@@ -7,11 +7,9 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         this.items = [];
         this.border = false;
         this.frame  = false;
-        this.width  = 425;
         this.materialCount = -1;
         this.lastChecked = "";
         this.isUpdate = false;
-        LABKEY.idri.activeFormID = this.id;
         
         /* This store contains all known source materials */
         this.materialStore = new Ext.data.ArrayStore({
@@ -35,6 +33,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             }
         });
 
+        this.materialMap = {};
         this.formPanel = this.getFormulationItems();
         this.materialsPanel = this.getFormItems();
 
@@ -48,7 +47,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             text : 'Add Another Material',
             handler : function()
             {
-                this.add(this.getFormItems());
+                this.add(this.getFormItems(true));
                 this.doLayout();
             },
             scope : this
@@ -130,6 +129,13 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                         failure : function(response)
                         {
                             this.getEl().unmask();
+                            if (response && response.responseText) {
+                                var decode = Ext.decode(response.responseText);
+                                if (decode && decode.errors) {
+                                    this.showMsg(decode.errors[0].message, true);
+                                    return;
+                                }
+                            }
                             this.showMsg("Failed to Save.", true);
                         },
                         scope: this
@@ -191,39 +197,33 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             this.dialogPanel.update("<span style='color: green;'>" + msg + "</span>");
     },
     
-    materialFromJSON : function(v, rec)
+    materialFromJSON : function(ff, v, rec)
     {
         if (rec)
         {
             var materials = rec.materials; // Array of Material objects
-            if (materials.length > 0)
-            {
-                var cmp;
-                cmp = Ext.getCmp('material-0');
-                cmp.fireEvent('loadMaterial', cmp, materials[0]);
-
-                for (var i = 1; i < materials.length; i++)
-                {
-                    cmp = Ext.getCmp('material-' + i);
-                    if (cmp == null)
-                    {
-                        /* Not good -- attached ID to global scoped object. Should work fine though */
-                        var panel = Ext.getCmp(LABKEY.idri.activeFormID);
-                        panel.add(panel.getFormItems());
-                        panel.doLayout();
-                    }
-                    cmp = Ext.getCmp('material-' + i);
-                    cmp.fireEvent('loadMaterial', cmp, materials[i]);
+            console.info(materials.length + " materials received.");
+            var cmp;
+            for (var i = 0; i < materials.length; i++) {
+                cmp = ff.materialMap['material' + i];
+                if (cmp) {                    
                 }
+                else {
+                    ff.add(ff.getFormItems()); // This will add to the materalMap
+                    ff.doLayout();
+                }
+                cmp = ff.materialMap['material' + i];               
+                cmp.fireEvent('loadMaterial', cmp, materials[i]);
             }
         }
     },
     
     getFormulationItems : function()
     {
+        var ff = this;
         var fp = new Ext.FormPanel({
             labelAlign : 'top',
-            width : 400,
+            width : 575,
             border: false,
             frame : false,
             reader: new Ext.data.JsonReader({
@@ -236,7 +236,9 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     {name: 'nbpg'},
                     {name: 'comments'},
                     {name: 'batchsize'},
-                    {name: 'material', convert: this.materialFromJSON }
+                    {name: 'material', convert: function(v, rec){
+                        ff.materialFromJSON(ff, v, rec);
+                    }}
                 ],
                 scope : this
             }),
@@ -251,7 +253,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     frame  : false,
                     defaults : {
                         labelSeparator : '',
-                        width : 150
+                        width : 200
                     },
                     items  : [{
                         id: 'lot-field-id',
@@ -259,6 +261,9 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                         fieldLabel : 'Lot Number*',
                         name : 'batch',
                         enableKeyEvents: true,
+                        allowBlank : false,
+                        validateOnBlur : false,
+                        validationEvent: false,
                         listeners : {
                             specialkey : function(field, e) {
                                 if (e.getKey() == e.ENTER) {
@@ -368,7 +373,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     frame  : false,
                     defaults : {
                         labelSeparator : '',
-                        width : 100
+                        width : 150
                     },
                     items : [{
                         xtype : 'datefield',
@@ -403,155 +408,153 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         return fp;
     },
 
-    getMaterialItem : function()
+    getMaterialItems : function(parentID)
     {
-        this.materialCount = this.materialCount + 1;
-        return {
-            layout : 'column',
-            border : false,
-            frame  : false,
-            items  : [{
-                columnWidth : .4,
-                layout : 'form',
-                border : false,
-                frame  : false,
-                defaults : {
-                    labelSeparator : '',
-                    width : 150
-                },
-                items  : [{
-                    id : 'material-' + this.materialCount,
-                    xtype : 'combo',
-                    fieldLabel : 'Material',
-                    name  : 'materialName',
-                    valueField : 'materialName',
-                    displayField : 'materialName',
-                    mode : 'local',
-                    triggerAction : 'all',
-                    store : this.materialStore,
-                    emptyText : 'Choose a material',
-                    typeAhead : true,
-                    forceSelection : true,
-                    listeners : {
-                        select : this.onMaterialSelect,
-                        loadMaterial : this.onMaterialLoad,
-                        scope : this
-                    },
-                    scope : this
-                }],
+        var btnID = Ext.id();
+        var _id = 'material' + this.materialCount;
+        this.materialCount += 1;
+        console.info("creating " + _id);
+        this.materialMap[_id] = new Ext.form.ComboBox({
+            id : _id,
+            fieldLabel : 'Material',
+            name  : 'materialName',
+            valueField : 'materialName',
+            displayField : 'materialName',
+            mode : 'local',
+            width : 130,
+            triggerAction : 'all',
+            store : this.materialStore,
+            emptyText : 'Choose Material',
+            typeAhead : true,
+            forceSelection : true,
+            parentId : parentID,
+            btnId : btnID,
+            allowBlank : false,
+            listeners : {
+                select : this.onMaterialSelect,
+                loadMaterial : this.onMaterialLoad,
                 scope : this
-            },{
-                columnWidth : .5,
-                layout : 'form',
-                border : false,
-                frame  : false,
-                shown  : true,
-                defaults : {
-                    labelSeparator : ''
-                },
-                items  : [],
-                listeners : {
-                    afterlayout : function(panel)
-                    {
-                        if (panel.shown)
-                        {
-                            panel.hide();
-                            panel.shown = false;
-                        }
-                    }
-                },
-                scope : this
-            }],
-            scope : this
-        };
-    },
-
-    getFormItems : function()
-    {
-        var fp = new Ext.FormPanel({
-            labelAlign : 'top',
-            width : 400,
-            border: false,
-            frame : false,
-            items : [ this.getMaterialItem() ],
+            },
             scope : this
         });
+
+        return [this.materialMap[_id]];
+    },
+
+    getFormItems : function(addRemoveButton)
+    {
+        if (this.materialCount < 0){
+            this.materialCount += 1;
+            return new Ext.Panel({
+                hidden : true
+            });
+        }
+        var _id = Ext.id();
+        var fp = new Ext.FormPanel({
+            id : _id,
+            layout : 'hbox',
+            layoutConfig : {
+                extraCls : 'material-xtra'
+            },
+            bodyStyle : 'padding: 4px 0;',
+            hideLabel : true, border: false, frame : false,
+            items : this.getMaterialItems(_id),
+            scope : this
+        });
+        if (addRemoveButton) {
+            fp.add({
+                ref   : 'removebtn',
+                width : 55,
+                template : new Ext.Template('<div><a>{0}</a></div>'),
+                buttonSelector : 'a',
+                xtype : 'button',
+                text  : 'Remove',
+                handler: function(btn) {
+                    fp.destroy();
+                }
+            });
+        }
         return fp;
     },
 
     resetMaterials : function()
     {
         var count = this.materialCount;
-        while (count > 0)
+        while (count >= 0)
         {
-            var cmp = Ext.getCmp('material-' + count);
-            var parent = cmp.findParentByType('panel');
-            var named = parent.findParentByType('panel');
-            named.destroy();
+            var cmp = Ext.getCmp('material' + count);
+            if (cmp && cmp.parentId) {
+                var p = Ext.getCmp(cmp.parentId);
+                if (p) {
+                    p.destroy();
+                }
+            }
             count = count - 1;
         }
-        this.materialCount = count;
 
-        // reset the initial material
-        var cmp = Ext.getCmp('material-' + count);
-        var parent = cmp.findParentByType('panel');
-        var named = parent.findParentByType('panel');
-        cmp.reset();
-        if (named.conc)
-        {
-            named.conc.destroy();
-        }
-
+        this.materialsPanel.removeAll(); //precaution
+        this.materialsPanel.doLayout();
+        this.materialCount = 0;
+        this.materialMap = {};
+        this.materialsPanel.doLayout();
+        
         this.formPanel.getForm().cleanDestroyed();
-
-        // Re-add the first material
     },
 
     onMaterialLoad : function(combo, material)
     {
-        combo.setValue(material.materialName);
-        var parent = combo.findParentByType('panel');
-        var named = parent.findParentByType('panel');
-
-        if (named.getComponent(2))
-            named.remove(named.getComponent(2));
-
+        console.info("Loading " + (material.materialName || material.material.materialName) + "...");
+        combo.setValue((material.materialName || material.material.materialName));
+        var parent = Ext.getCmp(combo.parentId);
+        
         if (material.concentration == 0)
             material.concentration = "";
-        
-        named.add({
-            columnWidth : .3,
-            layout : 'form',
-            border : false,
-            frame  : false,
-            labelSeparator : '',
-            items  : [{
-                ref : '../conc',
-                xtype : 'numberfield',
-                name  : 'concentration',
-                width : 100,
-                decimalPrecision : 4,
-                fieldLabel : 'Unit (' + material.typeUnit + ')'
-            },{
-                xtype : 'hidden',
-                name  : 'typeID',
-                value : material.type
-            }]
+
+        console.info("working from " + combo.getId());
+
+        parent.add({
+            ref   : 'conc',
+            xtype : 'numberfield',
+            name  : 'concentration',
+            hideLabel : true,
+            width : 60,
+            decimalPrecision : 4,
+            allowBlank : false,
+            validateOnBlur : false,
+            value : material.concentration
+        },{
+            ref : 'unittype',
+            xtype: 'box',
+            width : 70,
+            autoEl : {
+                tag : 'span',
+                html: (material.typeUnit || material.material.unit)
+            }
+        },{
+            ref   : 'removebtn',
+            width : 55,
+            template : new Ext.Template('<div><a>{0}</a></div>'),
+            buttonSelector : 'a',
+            xtype : 'button',
+            text  : 'Remove',
+            handler: function(btn) {
+                parent.destroy();
+            }
+        },{
+            ref   : 'typeid',            
+            xtype : 'hidden',
+            name  : 'typeID',
+            value : (material.type || material.material.typeID)
         });
-        named.getEl().unmask();
-        named.doLayout();
-        named.conc.setValue(material.concentration);
+        parent.doLayout();
+        parent.conc.clearInvalid();
     },
     
     onMaterialSelect : function(cb, rec, idx)
-    {      
-        var parent = cb.findParentByType('panel');
-        var named = parent.findParentByType('panel');
+    {
+        var parent = Ext.getCmp(cb.parentId);
         
-        if (named.getComponent(2))
-            named.remove(named.getComponent(2));
-
-        named.getEl().mask("Reticulating Splines.");
+        parent.getEl().mask("Loading Material...");
         Ext.Ajax.request({
             method : 'GET',
             url    : LABKEY.ActionURL.buildURL("idri", "getMaterialType.api",
@@ -559,33 +562,23 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             success: function(response, e)
             {
                 var json = Ext.util.JSON.decode(response.responseText);
-                
-                named.add({
-                    columnWidth : .3,
-                    layout : 'form',
-                    border : false,
-                    frame  : false,
-                    labelSeparator : '',
-                    items  : [{
-                        xtype : 'numberfield',
-                        name  : 'concentration',
-                        width : 100,
-                        decimalPrecision : 4,
-                        validateOnBlur : false,
-                        allowBlank : false,
-                        fieldLabel : 'Unit (' + json.material.unit + ')'
-                    },{
-                        xtype : 'hidden',
-                        name  : 'typeID',
-                        value : json.material.typeID
-                    }]
-                });
-                named.getEl().unmask();
-                named.doLayout();
+                if (parent.conc){
+                    parent.conc.setValue(undefined);
+                    parent.conc.clearInvalid();
+                    parent.unittype.update("<span>Unit (" + json.material.unit + ")</span>");
+                    parent.typeid.setValue(json.material.typeID);
+                    parent.getEl().unmask();
+                    parent.doLayout();
+                }
+                else {
+                    parent.remove(parent.removebtn);
+                    this.onMaterialLoad(cb, json);
+                }
+                parent.getEl().unmask();
             },
             failure: function(response, opts)
             {
-                named.getEl().unmask();
+                parent.getEl().unmask();
                 LABKEY.Utils.displayAjaxErrorResponse(response, opts);
             },
             scope : this
@@ -610,16 +603,17 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         formulation.materials = [];
         for (var i = 0; i <= this.materialCount; i++)
         {
-            var cmp = Ext.getCmp('material-' + i);
-            var parent = cmp.findParentByType('form');
-            if (parent.getForm().isValid())
-                formulation.materials.push(parent.getForm().getValues());
-            else
-            {
-                this.showMsg("> Invalid material.", true);
-                return false;
+            var cmp = Ext.getCmp('material' + i);
+            if (cmp) {
+                var parent = cmp.findParentByType('form');
+                if (parent.getForm().isValid())
+                    formulation.materials.push(parent.getForm().getValues());
+                else
+                {
+                    this.showMsg("> Invalid material.", true);
+                    return false;
+                }
             }
-
         }
         
         return formulation;

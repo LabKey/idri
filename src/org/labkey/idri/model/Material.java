@@ -127,4 +127,28 @@ public class Material
 
         return material;
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+
+        if (obj == null)
+            return false;
+
+        if (!(obj instanceof Material))
+            return false;
+
+        Material cMat = (Material) obj;
+
+        return this.getMaterialName().equals(cMat.getMaterialName());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int prime = 23;
+        return prime + this._materialName.hashCode();
+    }
 }

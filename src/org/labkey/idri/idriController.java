@@ -16,7 +16,6 @@
 
 package org.labkey.idri;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
@@ -25,7 +24,6 @@ import org.labkey.api.action.CustomApiForm;
 import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
-import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.TableInfo;
@@ -42,18 +40,14 @@ import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.RequiresPermissionClass;
-import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
-import org.labkey.api.study.ParticipantVisit;
-import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.WebPartView;
 import org.labkey.api.view.template.PageConfig;
 import org.labkey.idri.model.Formulation;
-import org.labkey.idri.model.FormulationFailure;
 import org.labkey.idri.model.Material;
 import org.labkey.idri.model.TypeEnum;
 import org.springframework.validation.BindException;
@@ -184,28 +178,47 @@ public class idriController extends SpringActionController
     @RequiresPermissionClass(UpdatePermission.class)
     public class SaveFormulationAction extends MutatingApiAction<SaveFormulationForm>
     {
+        Formulation _formulation;
+        
         @Override
-        public ApiResponse execute(SaveFormulationForm form, BindException errors) throws Exception
+        public void validateForm(SaveFormulationForm form, Errors errors)
         {
             JSONObject formulationProps = (JSONObject)form.getFormuluationProps();
             if (null == formulationProps || formulationProps.size() == 0)
-                throw new RuntimeException("No Formulation Properties were posted to the server.");
+                errors.reject(ERROR_MSG, "No Formulation Properties were posted to the server.");
 
-            User user = getViewContext().getUser();
-            Container container = getViewContext().getContainer();
+            _formulation = Formulation.fromJSON(formulationProps);
+            if (null == _formulation.getBatch() || _formulation.getBatch().length() == 0)
+                errors.reject(ERROR_MSG, "Formulation Provided does not have a lot name.");
 
-            Formulation formulation = Formulation.fromJSON(formulationProps);
-            if (null == formulation.getBatch() || formulation.getBatch().length() == 0)
-                throw new RuntimeException("Formulation Provided does not have a lot name.");
+            if (!_formulation.getBatch().startsWith("QF") && !_formulation.getBatch().startsWith("TD"))
+                errors.reject(ERROR_MSG, "Formulations must start TD or QF");
 
-            if (formulation.getBatch().startsWith("QF") || formulation.getBatch().startsWith("TD"))
-                formulation = idriManager.saveFormulation(formulation, user, container);
-            else
-                throw new RuntimeException("Formulations must start TD or QF");
+            if (!validateSourceMaterials(errors))
+                return;
+        }
+
+        private Boolean validateSourceMaterials(Errors errors)
+        {
+            List<Material> materials = _formulation.getMaterials();
+            if (materials.size() <= 0)
+                errors.reject(ERROR_MSG, "A minimum of one source material is required.");
+
+            Set<Material> setMaterial = new HashSet<Material>(materials);
+            if (setMaterial.size() < materials.size())
+                errors.reject(ERROR_MSG, "Duplicate source materials are not allowed. Please check your source materials.");
+            
+            return false;
+        }
+        
+        @Override
+        public ApiResponse execute(SaveFormulationForm form, BindException errors) throws Exception
+        {
+            Formulation saved = idriManager.saveFormulation(_formulation, getUser(), getContainer());
             
             ApiSimpleResponse resp = new ApiSimpleResponse();
             resp.put("success", true);
-            resp.put("formulation", formulation.toJSON());
+            resp.put("formulation", saved.toJSON());
             return resp;
         }
     }

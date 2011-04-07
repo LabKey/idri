@@ -18,6 +18,12 @@
     .x-panel-noborder .x-panel-body-noborder {
         background: transparent;
     }
+
+    .material-xtra {
+        float : left;
+        padding: 0 4px;
+    }
+
 </style>
 <script type="text/javascript">
     LABKEY.requiresClientAPI(true);

@@ -81,8 +81,8 @@
 </form>
 <div id="SearchStatusDiv"></div>
 <div id="SearchStatusDiv2"></div>
-<!--<div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", createURL)%></div>-->
-<div style="padding-bottom:2px;"><%=PageFlowUtil.generateButton("Create/Update a Formulation", "#", "makeFormulation(); return false;")%></div>
+<div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", createURL)%></div>
+<!--<div style="padding-bottom:2px;"><%=PageFlowUtil.generateButton("Create/Update a Formulation", "#", "makeFormulation(); return false;")%></div>-->
 <div id="topDiv"></div>
 <div id="errorDiv"></div>
 <div id="dataRegionDiv" style="float: left;"></div>
