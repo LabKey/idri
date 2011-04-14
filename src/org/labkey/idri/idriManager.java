@@ -235,7 +235,7 @@ public class idriManager
 
                 try
                 {
-                    result = qservice.updateRows(user, container, rows, null, Collections.<String, Object>emptyMap());
+                    result = qservice.updateRows(user, container, rows, null, null);
                     formulation.setRowID(Integer.parseInt(result.get(0).get("RowId").toString()));
                 }
                 catch (Exception e)
@@ -255,7 +255,7 @@ public class idriManager
 
                 try
                 {
-                    result = qservice.insertRows(user, container, rows, Collections.<String, Object>emptyMap());
+                    result = qservice.insertRows(user, container, rows, null);
                     formulation.setRowID(Integer.parseInt(result.get(0).get("RowId").toString()));
                 }
                 catch (Exception e)

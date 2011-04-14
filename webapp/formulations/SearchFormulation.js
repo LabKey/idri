@@ -269,8 +269,6 @@ function buildPSReports(tempstr, name, machine, renderto, renderimg)
         ]
     });
 
-    //mystore.on('load',validatePSReport);
-
     if (renderto) {
         dataRegionDivObj = new LABKEY.ext.EditorGridPanel({
             store: mystore,
