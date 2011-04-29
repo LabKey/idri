@@ -14,9 +14,7 @@
         </condition>
         <fail if="module.name.isempty" message="module.name must be set in build.xml" />
 
-        <condition property="labkey.root" value="${env.LABKEY_ROOT}">
-            <isset property="env.LABKEY_ROOT"/>
-        </condition>
+        <property name="labkey.root" value="../../../" />
 
         <fail unless="labkey.root"
               message="LABKEY_ROOT must be set as an environment variable, or -Dlabkey.root must be supplied on the ant command line" />

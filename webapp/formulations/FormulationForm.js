@@ -418,7 +418,6 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         var btnID = Ext.id();
         var _id = 'material' + this.materialCount;
         this.materialCount += 1;
-        console.info("creating " + _id);
         this.materialMap[_id] = new Ext.form.ComboBox({
             id : _id,
             fieldLabel : 'Material',
@@ -570,7 +569,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                 if (parent.conc){
                     parent.conc.setValue(undefined);
                     parent.conc.clearInvalid();
-                    parent.unittype.update("<span>Unit (" + json.material.unit + ")</span>");
+                    parent.unittype.update("<span>" + json.material.unit + "</span>");
                     parent.typeid.setValue(json.material.typeID);
                     parent.getEl().unmask();
                     parent.doLayout();

@@ -72,6 +72,7 @@
 
         new Ext.Panel({
             renderTo : 'machine-select',
+            bodyStyle : 'background-color: transparent;',
             border: false,
             frame : false,
             items : [ cb ]

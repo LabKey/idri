@@ -18,7 +18,6 @@ package org.labkey.idri;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
@@ -51,7 +50,7 @@ public class idriModule extends DefaultModule
 
     public double getVersion()
     {
-        return 10.39;
+        return 11.10;
     }
 
     public boolean hasScripts()
