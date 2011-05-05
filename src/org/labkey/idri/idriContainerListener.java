@@ -54,6 +54,11 @@ public class idriContainerListener implements ContainerListener
     }
 
     @Override
+    public void containerMoved(Container c, Container oldParent, User user)
+    {        
+    }
+
+    @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
     }
