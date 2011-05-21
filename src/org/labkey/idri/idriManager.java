@@ -31,14 +31,11 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.SamplesSchema;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.User;
-import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
-import org.labkey.idri.model.Compound;
 import org.labkey.idri.model.Concentration;
 import org.labkey.idri.model.Formulation;
 import org.labkey.idri.model.Material;
@@ -76,9 +73,9 @@ public class idriManager
         return DbSchema.get(idriSchema.NAME);
     }
 
-    public static void beginTransaction() throws SQLException
+    public static void ensureTransaction() throws SQLException
     {
-        getSchema().getScope().beginTransaction();
+        getSchema().getScope().ensureTransaction();
     }
 
     public static void commitTransaction() throws SQLException
@@ -86,14 +83,9 @@ public class idriManager
         getSchema().getScope().commitTransaction();
     }
 
-    public static void rollbackTransaction()
+    public static void closeConnection()
     {
-        getSchema().getScope().rollbackTransaction();
-    }
-
-    public static boolean isInTransaction()
-    {
-        return getSchema().getScope().isTransactionActive();
+        getSchema().getScope().closeConnection();
     }
    
     private String renderQuery(JspView view) throws SQLException
@@ -283,8 +275,7 @@ public class idriManager
 
             try
             {
-                if (!isInTransaction())
-                    beginTransaction();
+                ensureTransaction();
 
                 // Delete all rows for the current formulation
                 SimpleFilter filter = new SimpleFilter("lot", formulation.getRowID());
@@ -304,8 +295,7 @@ public class idriManager
             }
             finally
             {
-                if (isInTransaction())
-                    rollbackTransaction();
+                closeConnection();
             }
 
             List<Integer> invalids = new ArrayList<Integer>();
