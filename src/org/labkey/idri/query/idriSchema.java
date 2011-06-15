@@ -26,7 +26,6 @@ import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,12 +77,6 @@ public class idriSchema extends UserSchema
     @Override
     public Set<String> getTableNames()
     {
-        Set<String> ret = new HashSet<String>();
-        Collection<SchemaTableInfo> tables = getDbSchema().getTables();
-        for (SchemaTableInfo tinfo : tables)
-        {
-            ret.add(tinfo.getName());
-        }
-        return ret;
+        return new HashSet<String>(getDbSchema().getTableNames());
     }
 }
