@@ -16,21 +16,14 @@
 package org.labkey.idri.query;
 
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DatabaseTableType;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.query.AbstractQueryUpdateService;
 import org.labkey.api.query.DefaultQueryUpdateService;
-import org.labkey.api.query.DuplicateKeyException;
 //import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.FilteredTable;
-import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.query.QueryUpdateServiceException;
-import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.Permission;
-
-import java.sql.SQLException;
-import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -49,7 +42,7 @@ public class EditableFilteredTable extends FilteredTable
     public QueryUpdateService getUpdateService()
     {
         TableInfo table = getRealTable();
-        return (table != null && table.getTableType() == TableInfo.TABLE_TYPE_TABLE ?
+        return (table != null && table.getTableType() == DatabaseTableType.TABLE ?
                 new DefaultQueryUpdateService(this, table):
                 null);
     }
