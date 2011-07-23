@@ -15,6 +15,7 @@
  */
 package org.labkey.idri;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
@@ -114,12 +115,14 @@ public class idriModule extends DefaultModule
     }
 
     @Override
+    @NotNull
     public Set<String> getSchemaNames()
     {
         return Collections.singleton("idri");
     }
 
     @Override
+    @NotNull
     public Set<DbSchema> getSchemasToTest()
     {
         return PageFlowUtil.set(DbSchema.get(idriSchema.NAME));
