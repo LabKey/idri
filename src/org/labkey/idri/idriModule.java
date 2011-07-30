@@ -51,7 +51,7 @@ public class idriModule extends DefaultModule
 
     public double getVersion()
     {
-        return 11.10;
+        return 11.19;
     }
 
     public boolean hasScripts()
@@ -63,33 +63,33 @@ public class idriModule extends DefaultModule
     {
         return new ArrayList<WebPartFactory>(Arrays.asList(
 
-                new BaseWebPartFactory(FormulationSearchWebPart.NAME)
+            new BaseWebPartFactory(FormulationSearchWebPart.NAME)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
                 {
-                    public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
-                    {
-                        return new FormulationSearchWebPart();
-                    }
-                },
-                new BaseWebPartFactory(WEBPART_CONCENTRATIONS)
-                {
-                    public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
-                    {
-                        ConcentrationsQueryView view = new ConcentrationsQueryView(new idriSchema(portalCtx.getUser(), portalCtx.getContainer()));
-                        view.setTitle(WEBPART_CONCENTRATIONS);
-                        view.setFrame(WebPartView.FrameType.PORTAL);
-                        return view;
-                    }
-                },
-                new BaseWebPartFactory(WEBPART_CREATE_FORMULATION)
-                {
-                    public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
-                    {
-                        JspView view = new JspView("/org/labkey/idri/view/createFormulation.jsp");
-                        view.setTitle(WEBPART_CREATE_FORMULATION);                       
-                        view.setFrame(WebPartView.FrameType.PORTAL);
-                        return view;
-                    }
+                    return new FormulationSearchWebPart();
                 }
+            },
+            new BaseWebPartFactory(WEBPART_CONCENTRATIONS)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                {
+                    ConcentrationsQueryView view = new ConcentrationsQueryView(new idriSchema(portalCtx.getUser(), portalCtx.getContainer()));
+                    view.setTitle(WEBPART_CONCENTRATIONS);
+                    view.setFrame(WebPartView.FrameType.PORTAL);
+                    return view;
+                }
+            },
+            new BaseWebPartFactory(WEBPART_CREATE_FORMULATION)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                {
+                    JspView view = new JspView("/org/labkey/idri/view/createFormulation.jsp");
+                    view.setTitle(WEBPART_CREATE_FORMULATION);
+                    view.setFrame(WebPartView.FrameType.PORTAL);
+                    return view;
+                }
+            }
         ));
     }
 
