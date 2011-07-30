@@ -346,25 +346,20 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                         },
                         scope : this
                     },{
-                        xtype : 'combo',
-                        fieldLabel : 'Formulation Type*',
-                        name : 'type',
-                        triggerAction : 'all',
-                        typeAhead : true,
-                        mode  : 'local',
-                        displayField : 'type',
-                        allowBlank : false,
+                        xtype          : 'combo',
+                        fieldLabel     : 'Formulation Type*',
+                        name           : 'type',
+                        triggerAction  : 'all',
+                        typeAhead      : true,
+                        allowBlank     : false,
+                        editable       : false,
                         validateOnBlur : false,
-                        valueField   : 'type',
-                        store : new Ext.data.ArrayStore({
-                            fields : ['type'],
-                            data : [
-                            ['Emulsion'],['Aqueous'],
-                            ['Powder'],['Liposome'],
-                            ['Alum'],
-                            ['Niosomes']]
+                        displayField   : 'type',
+                        store          : new LABKEY.ext.Store({
+                            schemaName : 'lists',
+                            queryName  : 'FormulationTypes'
                         }),
-                        scope : this
+                        scope          : this
                     },{
                         xtype : 'textarea',
                         fieldLabel : 'Comments',
