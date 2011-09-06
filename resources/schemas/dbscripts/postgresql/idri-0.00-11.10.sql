@@ -19,7 +19,7 @@ CREATE SCHEMA idri;
 
 CREATE TABLE idri."concentrations"
 (
-  "rowId" serial not null,
+  "rowId" serial NOT NULL,
   "concentration" double precision NOT NULL,
   "unit" character varying(10) NOT NULL,
   "compound" integer NOT NULL,
