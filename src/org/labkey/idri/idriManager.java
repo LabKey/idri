@@ -30,6 +30,7 @@ import org.labkey.api.exp.api.ExpSampleSet;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.SamplesSchema;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.security.User;
 import org.labkey.api.view.HttpView;
@@ -262,7 +263,10 @@ public class idriManager
 
                 try
                 {
-                    result = qservice.insertRows(user, container, rows, null);
+                    BatchValidationException errors = new BatchValidationException();
+                    result = qservice.insertRows(user, container, rows, errors, null);
+                    if (errors.hasErrors())
+                        throw errors;
                     formulation.setRowID(Integer.parseInt(result.get(0).get("RowId").toString()));
                 }
                 catch (Exception e)
