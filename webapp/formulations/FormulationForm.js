@@ -65,6 +65,20 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
                 if (formulation)
                 {
+                    var fp = this;
+                    function onFailure(response)
+                    {
+                        fp.getEl().unmask();
+                        if (response && response.responseText) {
+                            var decode = Ext.decode(response.responseText);
+                            if (decode && decode.errors) {
+                                fp.showMsg(decode.errors[0].message, true);
+                                return;
+                            }
+                        }
+                        fp.showMsg("Failed to Save.", true);
+                    }
+
                     this.getEl().mask("Saving Formulation...");
                     Ext.Ajax.request({
                         method : 'POST',
@@ -73,6 +87,11 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                         success : function(response)
                         {
                             var obj = Ext.decode(response.responseText);
+                            if (obj.errors)
+                            {
+                                onFailure(response);
+                                return;
+                            }
                             this.formulations.push(obj.formulation);
                             this.formulationStore = new Ext.data.JsonStore({
                                 fields : ['comments', {name: 'dm', type:'date'}, 'batch', 'batchsize'],
@@ -131,18 +150,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                             this.formPanel.getForm().reset();
                             this.resetMaterials();
                         },
-                        failure : function(response)
-                        {
-                            this.getEl().unmask();
-                            if (response && response.responseText) {
-                                var decode = Ext.decode(response.responseText);
-                                if (decode && decode.errors) {
-                                    this.showMsg(decode.errors[0].message, true);
-                                    return;
-                                }
-                            }
-                            this.showMsg("Failed to Save.", true);
-                        },
+                        failure : onFailure,
                         scope: this
                     });
                 }
