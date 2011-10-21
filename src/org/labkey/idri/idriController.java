@@ -298,15 +298,15 @@ public class idriController extends SpringActionController
     @RequiresPermissionClass(ReadPermission.class)
     public class FormulationDetailsAction extends SimpleViewAction<ExpObjectForm>
     {
+        private Formulation _formulation;
+
         @Override
         public ModelAndView getView(ExpObjectForm form, BindException errors) throws Exception
         {
             VBox vbox = new VBox();
 
-            Formulation formulation = idriManager.getFormulation(form.getRowId());
-            PageConfig config = getPageConfig();
-            config.setTitle("Formulation " + formulation.getBatch());
-            
+            _formulation = idriManager.getFormulation(form.getRowId());
+
             JspView view = new JspView("/org/labkey/idri/view/formulationDetails.jsp", form);
             view.setFrame(WebPartView.FrameType.NONE);
             vbox.addView(view);
@@ -317,7 +317,7 @@ public class idriController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            return root;
+            return root.addChild("Formulation " + _formulation.getBatch());
         }
     }
 
