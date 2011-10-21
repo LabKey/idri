@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
--- Create schema, tables, indexes, and constraints used for idri module here
--- All SQL VIEW definitions should be created in idri-create.sql and dropped in idri-drop.sql
-EXEC sp_addapprole 'idri', 'password'
-GO
+EXEC sp_addapprole 'idri', 'password';
 
 CREATE TABLE idri.concentrations
 (
@@ -27,7 +24,7 @@ CREATE TABLE idri.concentrations
 	Compound INT NOT NULL,
 	Material INT NOT NULL,
 	Lot INT NOT NULL,
-	isTop BIT,
+	IsTop BIT,
 
 	CONSTRAINT PK_Constraints PRIMARY KEY (RowID),
 	CONSTRAINT FK_Compounds FOREIGN KEY (Compound) REFERENCES exp.Material(RowId),
