@@ -19,10 +19,9 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.DatabaseTableType;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.DefaultQueryUpdateService;
-//import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.security.User;
+import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.Permission;
 
 /**
@@ -48,7 +47,7 @@ public class EditableFilteredTable extends FilteredTable
     }
 
     @Override
-    public boolean hasPermission(User user, Class<? extends Permission> perm)
+    public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
     {
         return getContainer().hasPermission(user, perm);
     }
