@@ -34,16 +34,13 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.security.User;
 import org.labkey.api.view.HttpView;
-import org.labkey.api.view.JspView;
 import org.labkey.api.view.ViewContext;
-import org.labkey.api.view.WebPartView;
+import org.labkey.idri.model.Compound;
 import org.labkey.idri.model.Concentration;
 import org.labkey.idri.model.Formulation;
 import org.labkey.idri.model.Material;
 import org.labkey.idri.model.TypeEnum;
 import org.labkey.idri.query.idriSchema;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.sql.SQLException;
 import java.text.DecimalFormat;
@@ -88,23 +85,6 @@ public class idriManager
     {
         getSchema().getScope().closeConnection();
     }
-   
-    private String renderQuery(JspView view) throws SQLException
-    {
-        try {
-            view.setFrame(WebPartView.FrameType.NONE);
-
-            MockHttpServletResponse response = new MockHttpServletResponse();
-            MockHttpServletRequest request = new MockHttpServletRequest();
-            HttpView.include(view, request, response);
-
-            return response.getContentAsString();
-        }
-        catch (Exception e)
-        {
-            throw new SQLException(e);
-        }
-    }
     
     public static ExpMaterial getFormulationAsSample(Formulation formulation)
     {
@@ -117,19 +97,30 @@ public class idriManager
 
     /**
      *
+     * @param rowID
+     * @return
      */
+    @Nullable
     public static Material getMaterial(int rowID)
     {
         ExperimentService.Interface service = ExperimentService.get();
         ExpMaterial mat = service.getExpMaterial(rowID);
 
         if (mat != null)
-            return Material.fromExpMaterial(mat);
+        {
+            Material _mat = Material.fromExpMaterial(mat);
+            ExpMaterial compound = getCompound(_mat.getMaterialName());
+            Compound _compound = Compound.fromSample(compound);
+            _mat.setCompound(_compound);
+            return _mat;
+        }
         return null;
     }
-    
+
     /**
      *
+     * @param container
+     * @return
      */
     public static List<Material> getMaterials(Container container)
     {
@@ -138,6 +129,9 @@ public class idriManager
 
     /**
      *
+     * @param container
+     * @param materialType
+     * @return
      */
     public static List<Material> getMaterials(Container container, String materialType)
     {
@@ -179,6 +173,8 @@ public class idriManager
 
     /**
      *
+     * @param materialName
+     * @return
      */
     public static TypeEnum getMaterialType(String materialName)
     {
@@ -202,11 +198,15 @@ public class idriManager
         else
             return TypeEnum.aggregate;
     }
-    
+
     /**
      * Saves a formulation and associated concentrations with Raw Materials, Compounds, etc.
      * This is both insert and update orders. The method will check to see if a formulation already exists based
      * on lot.
+     * @param formulation
+     * @param user
+     * @param container
+     * @return
      */
     public static Formulation saveFormulation(Formulation formulation, User user, Container container)
     {
@@ -329,12 +329,14 @@ public class idriManager
         if (f != null)
             saveFormulationHelper(f, user, container);
     }
-    
+
     /**
      * Retrieves a well-formed (not a Sample Set row as it is persisted) formulation from the database.
      * Returns NULL if formulation is not found.
      * @param lot
+     * @return
      */
+    @Nullable
     public static Formulation getFormulation(String lot)
     {
         ExperimentService.Interface service = ExperimentService.get();
@@ -353,7 +355,10 @@ public class idriManager
 
     /**
      *
+     * @param RowId
+     * @return
      */
+    @Nullable
     public static Formulation getFormulation(int RowId)
     {
         ExperimentService.Interface service = ExperimentService.get();
@@ -362,6 +367,8 @@ public class idriManager
 
     /**
      *
+     * @param container
+     * @return
      */
     public static List<Formulation> getFormulations(Container container)
     {
@@ -374,10 +381,13 @@ public class idriManager
 
         return formulations;
     }
-    
+
     /**
      * Calculates concentrations and returns a list of Concentration objects.
      * @param formulation - The formulation and all associated first-level materials
+     * @param c
+     * @param u
+     * @return
      */
     private static List<Concentration> calculateConcentrations(Formulation formulation, Container c, User u)
     {
@@ -530,6 +540,8 @@ public class idriManager
 
     /**
      *
+     * @param RawMaterial
+     * @return
      */
     @Nullable
     public static ExpMaterial getCompound(String RawMaterial)
@@ -543,7 +555,6 @@ public class idriManager
         {
             String pcol = m.getSampleSet().getParentCol().getName();
             assert pcol != null : idriSchema.TABLE_RAW_MATERIALS + " requires a parent column. Fix the Sample Set to proceed.";
-            String compName;
             Map<PropertyDescriptor, Object> values = m.getPropertyValues();
             for (PropertyDescriptor pd : values.keySet())
             {
@@ -558,7 +569,10 @@ public class idriManager
 
     /**
      *
+     * @param CompoundName
+     * @return
      */
+    @Nullable
     private static TypeEnum getCompoundType(String CompoundName)
     {
         Container container = HttpView.getRootContext().getContainer();

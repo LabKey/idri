@@ -16,10 +16,12 @@
 package org.labkey.idri.model;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.data.BeanObjectFactory;
+import org.labkey.api.data.ObjectFactory;
 import org.labkey.api.exp.ObjectProperty;
 import org.labkey.api.exp.api.ExpMaterial;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,87 +32,97 @@ import java.util.Map;
  */
 public class Compound
 {
-    private int _rowID = -1;
-    private String _name;
-    private String _fullName;
-    private String _type;
-    private String _casNumber;
-    private double _density;
-    private double _molecularWeight;
+    private int rowID = -1;
+    private String name;
+    private String fullName;
+    private String type;
+    private String CASNumber;
+    private double density;
+    private double molecularWeight;
 
     public boolean isNew()
     {
-        return _rowID < 0;
+        return rowID < 0;
     }
     
     public int getRowID()
     {
-        return _rowID;
+        return rowID;
     }
 
     public void setRowID(int rowID)
     {
-        _rowID = rowID;
+        this.rowID = rowID;
     }
 
     public String getName()
     {
-        return _name;
+        return name;
+    }
+
+    public void setCompoundName(String compoundName)
+    {
+        this.name = compoundName;
     }
 
     public void setName(String name)
     {
-        _name = name;
+        this.name = name;
     }
 
     public String getFullName()
     {
-        return _fullName;
+        return fullName;
     }
 
-    public void setFullName(String fullName)
+    public void setFullName(String FullName)
     {
-        _fullName = fullName;
+        this.fullName = FullName;
     }
 
     public String getType()
     {
-        return _type;
+        return type;
     }
 
     public void setType(String type)
     {
-        _type = type;
+        this.type = type;
     }
 
-    public String getCasNumber()
+    public void setTypeofMaterial(String typeofMaterial)
     {
-        return _casNumber;
+        this.type = typeofMaterial;
     }
 
-    public void setCasNumber(String casNumber)
+    public String getCASNumber()
     {
-        _casNumber = casNumber;
+        return CASNumber;
+    }
+
+    public void setCASNumber(String CASNumber)
+    {
+        this.CASNumber = CASNumber;
     }
 
     public double getDensity()
     {
-        return _density;
+        return density;
     }
 
     public void setDensity(double density)
     {
-        _density = density;
+        this.density = density;
     }
 
     public double getMolecularWeight()
     {
-        return _molecularWeight;
+        return molecularWeight;
     }
 
     public void setMolecularWeight(double molecularWeight)
     {
-        _molecularWeight = molecularWeight;
+        this.molecularWeight = molecularWeight;
     }
 
     public static Compound fromSample(ExpMaterial sample)
@@ -118,21 +130,18 @@ public class Compound
         try
         {
             Map<String, ObjectProperty> values = sample.getObjectProperties();
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new CaseInsensitiveHashMap<Object>();
 
             for(ObjectProperty prop : values.values())
             {
                 String name = prop.getName();
                 if (name != null)
                 {
-                    properties.put(name.toLowerCase().replace(" ", ""), prop.value());
+                    properties.put(name.replace(" ", ""), prop.value());
                 }
             }
 
-            Compound compound = new Compound();
-            BeanUtils.populate(compound, properties);
-
-            return compound;
+            return ObjectFactory.Registry.getFactory(Compound.class).fromMap(properties);
         }
         catch (Exception e)
         {

@@ -46,7 +46,6 @@ import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.WebPartView;
-import org.labkey.api.view.template.PageConfig;
 import org.labkey.idri.model.Formulation;
 import org.labkey.idri.model.Material;
 import org.labkey.idri.model.TypeEnum;
@@ -144,6 +143,77 @@ public class idriController extends SpringActionController
     }
 
     @RequiresPermissionClass(ReadPermission.class)
+    public class GetDerivationGraphDescriptionAction extends ApiAction<MaterialTypeForm>
+    {
+        private String start;
+        private String nodeDefinition;
+        private String options;
+        private String links;
+        private String link;
+        private String sep;
+        private String end;
+
+        @Override
+        public ApiResponse execute(MaterialTypeForm form, BindException errors) throws Exception
+        {
+            start = "digraph Derivations {";
+            nodeDefinition = "node [shape=circle, fixedsize=true, width=0.9]; ";
+            options = "overlap=false;label=\"Derivations Graph\";";
+            links = "";
+            link = "->";
+            sep = ";";
+            end   = "}";
+
+            getFormulationGraph(form.getMaterialName());
+
+            // compile description
+            String description = start + nodeDefinition + links + options + end;
+
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            response.put("description", description);
+            response.put("success", true);
+
+            return response;
+        }
+
+        private void getFormulationGraph(String formulationName)
+        {
+            Formulation formulation = idriManager.getFormulation(formulationName);
+            String _link;
+            if (formulation != null)
+            {
+                nodeDefinition += formulation.getBatch() + sep;
+                for (Material m : formulation.getMaterials())
+                {
+                    String legalName = m.getMaterialName().replace("-","");
+
+                    // recurisely build other formulations
+                    if (idriManager.getMaterialType(m.getMaterialName()).equals(TypeEnum.aggregate))
+                        getFormulationGraph(m.getMaterialName());
+
+                    // construct node definition
+                    nodeDefinition += legalName + sep;
+                    if (m.getCompound() != null)
+                    {
+                        nodeDefinition += m.getCompound().getName() + sep;
+
+                        // material to compound link
+                        _link = legalName + link + m.getCompound().getName() + sep;
+                        if (!links.contains(_link))
+                            links += _link;
+                    }
+
+                    // formulation to material link
+                    _link = formulation.getBatch() + link + legalName + sep;
+                    if (!links.contains(_link))
+                        links += _link;
+                }
+
+            }
+        }
+    }
+
+    @RequiresPermissionClass(ReadPermission.class)
     public class CreateFormulationAction extends SimpleViewAction
     {
         @Override
@@ -194,8 +264,7 @@ public class idriController extends SpringActionController
             if (!_formulation.getBatch().startsWith("QF") && !_formulation.getBatch().startsWith("TD"))
                 errors.reject(ERROR_MSG, "Formulations must start TD or QF");
 
-            if (!validateSourceMaterials(errors))
-                return;
+            validateSourceMaterials(errors);
         }
 
         private Boolean validateSourceMaterials(Errors errors)
