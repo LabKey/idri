@@ -15,9 +15,7 @@
  */
 package org.labkey.idri.model;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
-import org.labkey.api.data.BeanObjectFactory;
 import org.labkey.api.data.ObjectFactory;
 import org.labkey.api.exp.ObjectProperty;
 import org.labkey.api.exp.api.ExpMaterial;
