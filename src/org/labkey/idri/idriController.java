@@ -564,7 +564,7 @@ public class idriController extends SpringActionController
                 return table;
             }
         };
-        materialsView.setAllowableContainerFilterTypes();
+        materialsView.disableContainerFilterSelection();
         materialsView.setShowBorders(true);
         materialsView.setShowDetailsColumn(false);
         materialsView.setShowExportButtons(false);
