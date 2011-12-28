@@ -309,7 +309,8 @@ function displayGraphic(name, temp, tool, imageElement, divElement)
             if (data.rowCount > 0)
             {
                 /* Check if there is a cached image */
-                var _url = LABKEY.ActionURL.buildURL("_webdav", "%40files/PSData/" + name + "_" + tool  + "PS.png");
+                var date = new Date(); // bypass browser cache
+                var _url = LABKEY.ActionURL.buildURL("_webdav", "%40files/PSData/" + name + "_" + tool  + "PS.png?" + date.getTime());
                 Ext.Ajax.request({
                     url : _url,
                     method : 'GET',
