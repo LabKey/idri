@@ -107,13 +107,7 @@ public class idriManager
         ExpMaterial mat = service.getExpMaterial(rowID);
 
         if (mat != null)
-        {
-            Material _mat = Material.fromExpMaterial(mat);
-            ExpMaterial compound = getCompound(_mat.getMaterialName());
-            Compound _compound = Compound.fromSample(compound);
-            _mat.setCompound(_compound);
-            return _mat;
-        }
+            return Material.fromExpMaterial(mat);
         return null;
     }
 

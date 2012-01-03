@@ -283,9 +283,9 @@ public class Formulation
                         found = false;
                         for (Concentration c : concs)
                         {
-                            if (idriManager.getMaterial(c.getMaterial()).getMaterialName().equals(mats[i]))
+                            m = idriManager.getMaterial(c.getMaterial());
+                            if (null != m && m.getMaterialName().equals(mats[i]))
                             {
-                                m = idriManager.getMaterial(c.getMaterial());
                                 m.setConcentration(c.getConcentration());
                                 m.setTypeID(idriManager.getMaterialType(mats[i]).toString());
                                 m.setTop(true);                                
@@ -294,7 +294,10 @@ public class Formulation
                             }
                         }
                         if (!found)
+                        {
+                            m = new Material();
                             m.setTypeID(idriManager.getMaterialType(mats[i]).toString());
+                        }
                         formulation.addMaterial(m);
                     }
                 }
