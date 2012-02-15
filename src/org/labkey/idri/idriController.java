@@ -48,7 +48,6 @@ import org.labkey.api.view.VBox;
 import org.labkey.api.view.WebPartView;
 import org.labkey.idri.model.Formulation;
 import org.labkey.idri.model.Material;
-import org.labkey.idri.model.TypeEnum;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
@@ -188,7 +187,7 @@ public class idriController extends SpringActionController
                     String legalName = m.getMaterialName().replace("-","");
 
                     // recurisely build other formulations
-                    if (idriManager.getMaterialType(m.getMaterialName()).equals(TypeEnum.aggregate))
+                    if (idriManager.getMaterialType(m.getMaterialName()).equals("aggregate"))
                         getFormulationGraph(m.getMaterialName());
 
                     // construct node definition
@@ -333,7 +332,7 @@ public class idriController extends SpringActionController
             ApiSimpleResponse resp = new ApiSimpleResponse();
 
             String name = form.getMaterialName();
-            TypeEnum type = idriManager.getMaterialType(name);
+            Map<String, Object> type = idriManager.getMaterialType(name);
             Material mat = new Material();
             mat.setType(type);
             String unit = mat.getTypeUnit();
@@ -346,7 +345,7 @@ public class idriController extends SpringActionController
 
             Map<String, Object> responseMap = new HashMap<String, Object>();
             responseMap.put("materialName", name);
-            responseMap.put("typeID", type.toString());
+            responseMap.put("typeID", type);
             responseMap.put("unit", unit);
             
             JSONObject response = new JSONObject(responseMap);

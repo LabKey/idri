@@ -287,7 +287,7 @@ public class Formulation
                             if (null != m && m.getMaterialName().equals(mats[i]))
                             {
                                 m.setConcentration(c.getConcentration());
-                                m.setTypeID(idriManager.getMaterialType(mats[i]).toString());
+                                m.setType(idriManager.getMaterialType(mats[i]));
                                 m.setTop(true);                                
                                 found = true;
                                 break;
@@ -296,7 +296,7 @@ public class Formulation
                         if (!found)
                         {
                             m = new Material();
-                            m.setTypeID(idriManager.getMaterialType(mats[i]).toString());
+                            m.setType(idriManager.getMaterialType(mats[i]));
                         }
                         formulation.addMaterial(m);
                     }

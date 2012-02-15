@@ -15,8 +15,12 @@
  */
 package org.labkey.idri.model;
 
+import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.exp.api.ExpMaterial;
 import org.labkey.idri.idriManager;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,7 +32,7 @@ public class Material
 {
     private String _materialName;
     private double _concentration;
-    private TypeEnum _typeEnum;
+    private Map<String, Object> _type;
     private String _typeID;
     private boolean _top = false;
     private Compound _compound;
@@ -53,14 +57,14 @@ public class Material
         _materialName = materialName;
     }
 
-    public TypeEnum getType()
+    public Map<String, Object> getType()
     {
-        return _typeEnum;
+        return _type;
     }
 
-    public void setType(TypeEnum typeEnum)
+    public void setType(Map<String, Object> type)
     {
-        _typeEnum = typeEnum;
+        _type = type;
     }
 
     public String getTypeID()
@@ -75,9 +79,11 @@ public class Material
     public void setTypeID(String typeId)
     {
         _typeID = typeId;
-        this.setType(TypeEnum.valueOf(_typeID));
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("type", typeId);
+        this.setType(map);
     }
-    
+
     public double getConcentration()
     {
         return _concentration;
@@ -100,39 +106,15 @@ public class Material
 
     public String getTypeUnit()
     {
-        if (_typeEnum != null)
+        if (_type != null)
         {
-            switch (_typeEnum)
-            {
-                case adjuvant:
-                    return "%w/vol";
-                case buffer:
-                    return "mM";
-                case antioxidant:
-                    return "%w/vol";
-                case lubricant:
-                    return "%w/vol";
-                case oil:
-                    return "%v/vol";
-                case sterol:
-                    return "%w/vol";
-                case antimicrobial:
-                    return "%w/vol";
-                case surfactant:
-                    return "%w/vol";
-                case isotonicAgent:
-                    return "%w/vol";
-                case jelly:
-                    return "%w/vol";
-                case viscocityEnhancer:
-                    return "%w/vol";
-                case aggregate:
-                    return "%v/vol";
-                default : throw new IllegalStateException("Unit Type not recognized.");
-            }
+            Object unit = _type.get("Units");
+            if (unit != null)
+                return unit.toString();
+            return "unknown";
         }
         else
-            return null;
+            return "%v/vol";
     }
 
     public static Material fromExpMaterial(ExpMaterial exp)

@@ -16,6 +16,7 @@
 package org.labkey.idri;
 
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.RuntimeSQLException;
@@ -28,18 +29,22 @@ import org.labkey.api.exp.PropertyDescriptor;
 import org.labkey.api.exp.api.ExpMaterial;
 import org.labkey.api.exp.api.ExpSampleSet;
 import org.labkey.api.exp.api.ExperimentService;
+import org.labkey.api.exp.list.ListDefinition;
+import org.labkey.api.exp.list.ListService;
 import org.labkey.api.exp.query.SamplesSchema;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.study.Study;
+import org.labkey.api.study.StudyService;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.ViewContext;
-import org.labkey.idri.model.Compound;
 import org.labkey.idri.model.Concentration;
 import org.labkey.idri.model.Formulation;
 import org.labkey.idri.model.Material;
-import org.labkey.idri.model.TypeEnum;
 import org.labkey.idri.query.idriSchema;
 
 import java.sql.SQLException;
@@ -170,13 +175,17 @@ public class idriManager
      * @param materialName
      * @return
      */
-    public static TypeEnum getMaterialType(String materialName)
+    public static Map<String, Object> getMaterialType(String materialName)
     {
         ViewContext ctx = HttpView.getRootContext();        
         ExpMaterial form = ExperimentService.get().getSampleSet(ctx.getContainer(), idriSchema.TABLE_FORMULATIONS).getSample(materialName);
 
+        Map<String, Object> aggregate = new CaseInsensitiveHashMap<Object>();
+        aggregate.put("Type", "aggregate");
+        aggregate.put("Units", "%v/vol");
+
         if (form != null)
-            return TypeEnum.aggregate;
+            return aggregate;
 
         ExpMaterial mat = ExperimentService.get().getExpMaterialsByName(materialName, ctx.getContainer(), ctx.getUser()).get(0);
         
@@ -190,7 +199,7 @@ public class idriManager
             return getCompoundType(expMat);
         }
         else
-            return TypeEnum.aggregate;
+            return aggregate;
     }
 
     /**
@@ -204,13 +213,48 @@ public class idriManager
      */
     public static Formulation saveFormulation(Formulation formulation, User user, Container container)
     {
-        Formulation f = saveFormulationHelper(formulation, user, container);
-        return f;
+        return saveFormulationHelper(formulation, user, container);
     }
 
     private static Formulation saveFormulationHelper(Formulation formulation, User user, Container container)
     {
         ExperimentService.Interface service = ExperimentService.get();
+
+        // Prototype code to test saving to a formulation demographics dataset
+        Study study = StudyService.get().getStudy(container);
+        if (study != null)
+        {
+            UserSchema schema = QueryService.get().getUserSchema(user, container, "study");
+            TableInfo info = schema.getTable("FORM1");
+            if (info != null)
+            {
+                List<Map<String, Object>> _formulation = new ArrayList<Map<String, Object>>();
+                Map<String, Object> keys = new CaseInsensitiveHashMap<Object>(formulation.describe());
+                keys.put("BatchId", formulation.getBatch());
+
+                _formulation.add(keys);
+                try
+                {
+                    List<Map<String, Object>> result = info.getUpdateService().getRows(user, container, _formulation);
+                    if (result != null)
+                    {
+                        BatchValidationException errors = new BatchValidationException();
+                        if (result.size() == 0)
+                        {
+                            info.getUpdateService().insertRows(user, container, _formulation, errors, new HashMap<String, Object>());
+                        }
+                        else
+                        {
+                            info.getUpdateService().updateRows(user, container, _formulation, result, new HashMap<String, Object>());
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
 
         ExpSampleSet ss = service.getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
         if (ss != null && ss.canImportMoreSamples())
@@ -567,7 +611,7 @@ public class idriManager
      * @return
      */
     @Nullable
-    private static TypeEnum getCompoundType(String CompoundName)
+    private static Map<String, Object> getCompoundType(String CompoundName)
     {
         Container container = HttpView.getRootContext().getContainer();
         ExperimentService.Interface service = ExperimentService.get();
@@ -577,20 +621,75 @@ public class idriManager
         return null;
     }
 
-    private static TypeEnum getCompoundType(ExpMaterial Compound)
+    private static Map<String, Object> getCompoundType(ExpMaterial Compound)
     {
         Map<PropertyDescriptor, Object> values = Compound.getPropertyValues();
         for (PropertyDescriptor pd : values.keySet())
         {
-            if (pd.getName().equals("Type of Material"))
+            if (pd.getName().equalsIgnoreCase("compoundLookup"))
             {
-                String type = Compound.getProperty(pd).toString();
-                return TypeEnum.valueOf(type);
+                ListDefinition ld = ListService.get().getList(Compound.getContainer(), idriSchema.LIST_MATERIAL_TYPES);
+                Map<String, Object> type = new CaseInsensitiveHashMap<Object>();
+                if (ld != null)
+                {
+                    User u = HttpView.currentContext().getUser();
+                    Container c = Compound.getContainer();
+
+                    List<Map<String, Object>> types = new ArrayList<Map<String, Object>>();
+                    Map<String, Object> keys = new CaseInsensitiveHashMap<Object>();
+                    keys.put("Key", values.get(pd));
+                    types.add(keys);
+
+                    try
+                    {
+                        types = ld.getTable(u).getUpdateService().getRows(u, c, types);
+                        if (types.size() >= 0)
+                            type = types.get(0);
+                    }
+                    catch (Exception e)
+                    {
+                        /* */
+                    }
+                }
+                return type;
             }
         }
         return null;
     }
-    
+
+    // NYI
+//    public static void initializeLists(Container c)
+//    {
+//        User u = HttpView.currentContext().getUser();
+//        ListService.Interface service = ListService.get();
+//
+//        // Create the Material Types List
+//        ListDefinition matTypesList = service.getList(c, idriSchema.LIST_MATERIAL_TYPES);
+//
+//        if (matTypesList == null)
+//        {
+//            matTypesList = service.createList(c, idriSchema.LIST_MATERIAL_TYPES);
+//            matTypesList.setKeyName("Key");
+//            matTypesList.setKeyType(ListDefinition.KeyType.AutoIncrementInteger);
+//            matTypesList.setDescription("Material Types for Formulation Samples.");
+//
+//            try
+//            {
+//                matTypesList.setAllowDelete(true);
+//                matTypesList.setAllowExport(true);
+//                matTypesList.setAllowUpload(true);
+//
+////                RowMapFactory<Object> mapFactory = new RowMapFactory<Object>("ListName", "Type", "Units");
+//
+//                matTypesList.save(u);
+//            }
+//            catch (Exception e)
+//            {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
+
     /**
      * Initializes the Samples Sets used by Formulations. Does precautionary
      * lookup to make sure sample sets don't already exist. If they do, does
@@ -619,7 +718,7 @@ public class idriManager
                 properties = new ArrayList<GWTPropertyDescriptor>();
                 properties.add(new GWTPropertyDescriptor("Compound Name", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Full Name", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Type of Material", "http://www.w3.org/2001/XMLSchema#string"));
+//                properties.add(new GWTPropertyDescriptor("Type of Material", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("CAS Number", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Density", "http://www.w3.org/2001/XMLSchema#double"));
                 properties.add(new GWTPropertyDescriptor("Molecular Weight", "http://www.w3.org/2001/XMLSchema#double"));

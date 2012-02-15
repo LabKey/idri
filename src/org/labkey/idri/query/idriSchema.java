@@ -39,6 +39,8 @@ public class idriSchema extends UserSchema
     public static final String TABLE_FORMULATIONS = "Formulations";
     public static final String TABLE_CONCENTRATIONS = "Concentrations";
 
+    public static final String LIST_MATERIAL_TYPES = "MaterialTypes";
+
     static public void register()
     {
         DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider() {
