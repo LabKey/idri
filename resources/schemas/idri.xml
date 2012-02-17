@@ -5,6 +5,7 @@
             <ns:column columnName="RowID"/>
             <ns:column columnName="Concentration"/>
             <ns:column columnName="Compound"/>
+            <ns:column columnName="Container"/>
             <ns:column columnName="Unit"/>
             <ns:column columnName="Lot"/>
             <ns:column columnName="Material"/>
