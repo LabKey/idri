@@ -15,6 +15,8 @@
  */
 package org.labkey.idri.model;
 
+import org.labkey.api.data.Container;
+
 /**
  * Created by IntelliJ IDEA.
  * User: jNicholas
@@ -27,6 +29,7 @@ public class Concentration
     private double _conc;
     private String _unit;
     private int _compound;
+    Container _container;
     private int _lot;
     private int _material;
     private boolean _top;
@@ -39,6 +42,16 @@ public class Concentration
     public void setRowid(int rowid)
     {
         _rowid = rowid;
+    }
+
+    public Container getContainer()
+    {
+        return _container;
+    }
+
+    public void setContainer(Container container)
+    {
+        _container = container;
     }
 
     public double getConcentration()

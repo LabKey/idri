@@ -431,7 +431,6 @@ public class idriManager
     {
         List<Concentration> concentrations = new ArrayList<Concentration>();
 
-        ExperimentService.Interface service = ExperimentService.get();
         try
         {
             for(Material material : formulation.getMaterials())
@@ -451,6 +450,7 @@ public class idriManager
         List<Concentration> tops = new ArrayList<Concentration>();
         for (Concentration conc : concentrations)
         {
+            conc.setContainer(c);
             if (conc.isTop())
                 tops.add(conc);
             else if (map.containsKey(conc.getMaterial()))
@@ -557,7 +557,19 @@ public class idriManager
             Concentration conc = new Concentration();
             conc.setCompound(comp.getRowId());
             conc.setMaterial(m.getRowId());
-            conc.setUnit(material.getTypeUnit());
+
+            Map<String, Object> type;
+            if (material.getTypeKey() != null)
+            {
+                type = getCompoundType(material.getTypeKey(), c);
+                if (type != null)
+                    conc.setUnit(type.get("units").toString());
+                else
+                    conc.setUnit("%v/vol");
+            }
+            else
+                conc.setUnit("%v/vol");
+
             conc.setConcentration(material.getConcentration());
             concentrations.add(conc);
         }
@@ -566,7 +578,19 @@ public class idriManager
         {
             Concentration conc = new Concentration();
             conc.setCompound(m.getRowId());  // Use the expMaterial for the RowId
-            conc.setUnit(material.getTypeUnit());
+
+            Map<String, Object> type;
+            if (material.getTypeKey() != null)
+            {
+                type = getCompoundType(material.getTypeKey(), c);
+                if (type != null)
+                    conc.setUnit(type.get("units").toString());
+                else
+                    conc.setUnit("%v/vol");
+            }
+            else
+                conc.setUnit("%v/vol");
+
             conc.setMaterial(m.getRowId());
             conc.setConcentration(material.getConcentration());
             conc.setIsTop(material.isTop());
@@ -621,6 +645,7 @@ public class idriManager
         return null;
     }
 
+    @Nullable
     private static Map<String, Object> getCompoundType(ExpMaterial Compound)
     {
         Map<PropertyDescriptor, Object> values = Compound.getPropertyValues();
@@ -657,38 +682,35 @@ public class idriManager
         return null;
     }
 
-    // NYI
-//    public static void initializeLists(Container c)
-//    {
-//        User u = HttpView.currentContext().getUser();
-//        ListService.Interface service = ListService.get();
-//
-//        // Create the Material Types List
-//        ListDefinition matTypesList = service.getList(c, idriSchema.LIST_MATERIAL_TYPES);
-//
-//        if (matTypesList == null)
-//        {
-//            matTypesList = service.createList(c, idriSchema.LIST_MATERIAL_TYPES);
-//            matTypesList.setKeyName("Key");
-//            matTypesList.setKeyType(ListDefinition.KeyType.AutoIncrementInteger);
-//            matTypesList.setDescription("Material Types for Formulation Samples.");
-//
-//            try
-//            {
-//                matTypesList.setAllowDelete(true);
-//                matTypesList.setAllowExport(true);
-//                matTypesList.setAllowUpload(true);
-//
-////                RowMapFactory<Object> mapFactory = new RowMapFactory<Object>("ListName", "Type", "Units");
-//
-//                matTypesList.save(u);
-//            }
-//            catch (Exception e)
-//            {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
+    @Nullable
+    public static Map<String, Object> getCompoundType(Integer key, Container c)
+    {
+        ListDefinition ld = ListService.get().getList(c, idriSchema.LIST_MATERIAL_TYPES);
+        Map<String, Object> type = new CaseInsensitiveHashMap<Object>();
+        if (ld != null)
+        {
+            User u = HttpView.currentContext().getUser();
+
+            List<Map<String, Object>> types = new ArrayList<Map<String, Object>>();
+            Map<String, Object> keys = new CaseInsensitiveHashMap<Object>();
+            keys.put("Key", key);
+            types.add(keys);
+
+            try
+            {
+                types = ld.getTable(u).getUpdateService().getRows(u, c, types);
+                if (types.size() >= 0)
+                    type = types.get(0);
+            }
+            catch (Exception e)
+            {
+                /* */
+            }
+
+            return type;
+        }
+        return null;
+    }
 
     /**
      * Initializes the Samples Sets used by Formulations. Does precautionary

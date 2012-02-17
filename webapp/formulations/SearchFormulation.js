@@ -3,8 +3,8 @@
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
-LABKEY.requiresClientAPI();
-LABKEY.requiresScript("formulations/HemolysisPanel.js");
+//LABKEY.requiresClientAPI();
+//LABKEY.requiresScript("formulations/HemolysisPanel.js");
 
 function resolveView(queryString)
 {

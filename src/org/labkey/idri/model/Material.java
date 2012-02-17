@@ -33,6 +33,7 @@ public class Material
     private String _materialName;
     private double _concentration;
     private Map<String, Object> _type;
+    private Integer _typeKey;
     private String _typeID;
     private boolean _top = false;
     private Compound _compound;
@@ -57,6 +58,16 @@ public class Material
         _materialName = materialName;
     }
 
+    public Integer getTypeKey()
+    {
+        return _typeKey;
+    }
+
+    public void setTypeKey(Integer typeKey)
+    {
+        _typeKey = typeKey;
+    }
+
     public Map<String, Object> getType()
     {
         return _type;
@@ -65,6 +76,15 @@ public class Material
     public void setType(Map<String, Object> type)
     {
         _type = type;
+
+        if (_type.get("Key") == null && _typeKey != null)
+            _type.put("Key", _typeKey);
+
+        Object mappedType = _type.get("type");
+        if (mappedType != null)
+        {
+            this.setTypeID(_type.get("type").toString());
+        }
     }
 
     public String getTypeID()
@@ -73,15 +93,24 @@ public class Material
     }
 
     /**
-     * Will set the 'Type' of this object by proxy
+     * This
      * @param typeId
      */
     public void setTypeID(String typeId)
     {
         _typeID = typeId;
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("type", typeId);
-        this.setType(map);
+
+        Map<String, Object> map;
+        if (_type == null)
+        {
+            map = new CaseInsensitiveHashMap<Object>();
+            map.put("type", typeId);
+            this.setType(map);
+        }
+        else
+        {
+            _type.put("type", typeId);
+        }
     }
 
     public double getConcentration()

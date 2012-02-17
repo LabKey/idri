@@ -51,7 +51,7 @@ public class idriModule extends DefaultModule
 
     public double getVersion()
     {
-        return 11.30;
+        return 11.31;
     }
 
     public boolean hasScripts()
