@@ -17,6 +17,7 @@ package org.labkey.idri;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.module.DefaultFolderType;
+import org.labkey.api.security.User;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
 
@@ -52,9 +53,9 @@ public class idriFormulationsFolderType extends DefaultFolderType
     }
 
     @Override
-    public void configureContainer(Container c)
+    public void configureContainer(Container c, User user)
     {
-        super.configureContainer(c);
+        super.configureContainer(c, user);
 
         idriManager.initializeSampleSets(c);
     }
