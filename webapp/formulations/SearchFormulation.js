@@ -3,8 +3,8 @@
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
-//LABKEY.requiresClientAPI();
-//LABKEY.requiresScript("formulations/HemolysisPanel.js");
+
+var _searchStatus = 'SearchStatusDiv';
 
 function resolveView(queryString)
 {
@@ -13,10 +13,6 @@ function resolveView(queryString)
         if(/^IRM\-?\s*\d{1,4}\s*$/.test(queryString))
         {
             return "RM";
-        }
-        else if(/\d{1,7}-\d{2}-\d{1}/.test(queryString))
-        {
-            return "COMPOUND";
         }
         else if(/(TD|QF)\d{1,3}\s*$/.test(queryString))
         {
@@ -51,7 +47,7 @@ function formatQueryString(queryString, resolvedView)
 
 function showInSearchView(resolvedView, data)
 {
-    document.getElementById('SearchStatusDiv').innerHTML = "";
+    document.getElementById(_searchStatus).innerHTML = "";
 
     // This is what is displayed when a Formulation search is performed.
     if(data.rowCount == 1 && resolvedView == "FORMULATION")
@@ -68,54 +64,44 @@ function showInSearchView(resolvedView, data)
         else
             document.getElementById('topDiv').innerHTML = "<span style='color:red;'>" + row["Name"] + " contains errors. No stability report available.</span>";
 
-        console.info('Would render hemoSearch');
         var hemoDiv = document.getElementById('hemoSearch');
         if (hemoDiv)
             buildHemoReport(hemoDiv);
     }
 
     var qwp = new LABKEY.QueryWebPart({
-        renderTo: 'SearchStatusDiv',
-        schemaName: globalQueryConfig.schemaName,
-        queryName: globalQueryConfig.queryName,
-        filters: globalQueryConfig.filterArray,
-        buttonBarPosition: 'none',
-        title: 'Search Results'
+        renderTo   : _searchStatus,
+        title      : 'Search Results',
+        schemaName : globalQueryConfig.schemaName,
+        queryName  : globalQueryConfig.queryName,
+        filters    : globalQueryConfig.filterArray,
+        buttonBarPosition: 'none'
     });
 }
 
-var globalQueryConfig = {}
-
-function resetSearch()
-{
-    document.getElementById('hemoSearch').innerHTML = "";
-    document.getElementById('hemoSearch').style.display = "none";
-
-    document.getElementById('hemoImage').src = "";
-    document.getElementById('hemoImage').style.display = "none";
-}
+var globalQueryConfig = {};
 
 function getRunIdIfUnique(srchstr, assayName)
 {
-    if(document.getElementById('SearchStatusDiv'))
-        document.getElementById('SearchStatusDiv').innerHTML = "Searching...";
+    var ss = Ext.get(_searchStatus);
 
-    resetSearch();
-    
     if (srchstr.length > 0)
     {
+        if(ss)
+            ss.update('Searching...');
+
         /* Establish what view we want based on the search string */
         var view = resolveView(srchstr.replace(" ","").toUpperCase());
 
         /* Reformat the search string to find results in the database. */
-        var srchstr = formatQueryString(srchstr, view);
+        srchstr = formatQueryString(srchstr, view);
         globalQueryConfig.srchstr = srchstr;
         globalQueryConfig.resolvedView = "";
 
-        document.getElementById('errorDiv').style.display = "none";
-        document.getElementById('topDiv').style.display = "none";
+        document.getElementById('errorDiv').style.display      = "none";
+        document.getElementById('topDiv').style.display        = "none";
         document.getElementById('dataRegionDiv').style.display = "none";
-        document.getElementById('resultsDiv').style.display = "none";
+        document.getElementById('resultsDiv').style.display    = "none";
 
         if(view == "RM")
         {
@@ -145,18 +131,18 @@ function getRunIdIfUnique(srchstr, assayName)
         }
         else
         {
-            if(document.getElementById('SearchStatusDiv'))
-                document.getElementById('SearchStatusDiv').innerHTML = "Search failed.";
+            if(ss)
+                ss.update("Search failed.");
             return false;
         }
 
         LABKEY.Query.selectRows(
         {
-            schemaName: globalQueryConfig.schemaName,
-            queryName: globalQueryConfig.queryName,
-            successCallback: onSuccess,
-            errorCallback: onFailure,
-            filterArray : globalQueryConfig.filterArray
+            schemaName      : globalQueryConfig.schemaName,
+            queryName       : globalQueryConfig.queryName,
+            successCallback : onSuccess,
+            errorCallback   : onFailure,
+            filterArray     : globalQueryConfig.filterArray
         });
     }
     return false;
@@ -174,8 +160,8 @@ function onSuccess(data)
 {
     if(data.rowCount == 0)
     {
-        if(document.getElementById('SearchStatusDiv'))
-            document.getElementById('SearchStatusDiv').innerHTML = "Search failed. No matches found.";
+        if(document.getElementById(_searchStatus))
+            document.getElementById(_searchStatus).innerHTML = "Search failed. No matches found.";
         return false;
     }
     else if(data.rowCount > 1)
@@ -183,7 +169,7 @@ function onSuccess(data)
         if(globalQueryConfig.resolvedView)
             showInSearchView(globalQueryConfig.resolvedView, data);
         else
-            document.getElementById('SearchStatusDiv').innerHTML = "Search failed.";
+            document.getElementById(_searchStatus).innerHTML = "Search failed.";
         return false;
     }
 

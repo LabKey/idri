@@ -74,7 +74,6 @@
             items : [_panel]
         });
         formwindow.show();
-        console.info("window rendered.");
     }
 </script>
 
@@ -90,7 +89,7 @@
 
      </td>
     <td colspan=1>
-     <input type="submit" style="display: none;" id="IdriSearchSubmit"><a class="labkey-button" href="#" onclick="document.getElementById('SearchStatusDiv').innerHTML = 'Searching...'; getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;" ><span>Search</span></a></td>
+     <input type="submit" style="display: none;" id="IdriSearchSubmit"><a class="labkey-button" href="#" onclick="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;" ><span>Search</span></a></td>
 </tr>
 
 </table>
