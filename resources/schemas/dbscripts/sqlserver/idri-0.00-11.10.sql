@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-EXEC sp_addapprole 'idri', 'password';
+CREATE SCHEMA idri;
+GO
 
 CREATE TABLE idri.concentrations
 (
