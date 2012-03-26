@@ -296,6 +296,7 @@ public class Formulation
                         if (!found)
                         {
                             m = new Material();
+                            m.setMaterialName(mats[i]); // Fix for NULL materials set due to no name being present
                             m.setType(idriManager.getMaterialType(mats[i]));
                         }
                         formulation.addMaterial(m);
