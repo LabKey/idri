@@ -33,9 +33,9 @@ import java.util.List;
  */
 public abstract class AbstractFormulationAssayProvider extends AbstractAssayProvider implements FormulationAssayProvider
 {
-    public AbstractFormulationAssayProvider(String protocolLSIDPrefix, String runLSIDPrefix, AssayDataType dataType, AssayTableMetadata tableMetadata)
+    public AbstractFormulationAssayProvider(String protocolLSIDPrefix, String runLSIDPrefix, AssayDataType dataType)
     {
-        super(protocolLSIDPrefix, runLSIDPrefix, dataType, tableMetadata);
+        super(protocolLSIDPrefix, runLSIDPrefix, dataType);
     }
 
     @Override
