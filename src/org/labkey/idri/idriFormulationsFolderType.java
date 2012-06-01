@@ -42,7 +42,7 @@ public class idriFormulationsFolderType extends DefaultFolderType
                         Portal.getPortalPart("Lists").createWebPart()
                 ),
                 null,
-                getDefaultModuleSet(module, getModule("Experiment"), getModule("Study"), getModule("Formulations")), // Formulations is an external module.
+                getDefaultModuleSet(module, getModule("Experiment"), getModule("Study")),
                 module);
     }
 

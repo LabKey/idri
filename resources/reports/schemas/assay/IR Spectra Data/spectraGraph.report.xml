@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportDescriptor>
+    <Properties>
+        <Prop name="reportType">ReportService.rReport</Prop>
+        <Prop name="cached">false</Prop>
+        <Prop name="runInBackground">false</Prop>
+        <Prop name="dataRegionName">IR Spectra Data</Prop>
+    </Properties>
+</ReportDescriptor>

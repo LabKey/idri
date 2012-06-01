@@ -1,0 +1,139 @@
+<style type="text/css">
+
+    div.sample-preview {
+        float: left;
+        margin:  8px;
+        border: 1px solid #d3d3d3;
+    }
+
+    div.sample-preview:hover {
+        cursor: pointer;
+    }
+
+    div.x4-item-selected {
+        background: #d3d3d3;
+    }
+
+    .sample-error {
+        background: pink !important;
+    }
+
+</style>
+<div id="test-render"></div>
+<div id="hplc-upload-content"></div>
+<div id="pipelineBrowser" class="extContainer"></div>
+<script type="text/javascript">
+    LABKEY.requiresExt4ClientAPI(true);
+    LABKEY.requiresScript("FileUploadField.js");
+
+    var scripts = [
+        'applet.js',
+        'FileUploadField.js',
+        'StatusBar.js',
+        'fileBrowser.js',
+        'Reorderer.js',
+        'ToolbarDroppable.js',
+        'ToolbarReorderer.js',
+        'ActionsAdmin.js',
+        'PipelineAction.js',
+        'FileProperties.js',
+        'FileContent.js'
+    ];
+
+    LABKEY.requiresScript(scripts);
+    LABKEY.requiresScript('formulations/HPLCUploadPanel.js');
+</script>
+<script type="text/javascript">
+
+    function initHPLCUPload()
+    {
+        var _fileBrowser,
+                _fileSystem,
+                _focusPath,
+                _smpStore,
+                _stdStore,
+                _mthdStore;
+
+        Ext.onReady(function(){
+            LABKEY.Pipeline.getPipelineContainer({
+                success : function(data) {
+                    if (data && data.containerPath)
+                        createFileBrowser(data.webDavURL);
+                    else
+                    {
+                        var html = "The data pipeline has not yet been configured for this folder.";
+                        if (LABKEY.Security.currentUser.isAdmin)
+                        {
+                            html += " [<a href='";
+                            html += Ext.util.Format.htmlEncode(LABKEY.ActionURL.buildURL("pipeline","setup"));
+                            html += "'>Setup Pipeline</a>]";
+                        }
+                        Ext.get("pipelineBrowser").update(html);
+                    }
+                }
+            });
+        });
+
+        function createFileBrowser(pipeURL)
+        {
+            _fileSystem = new LABKEY.FileSystem.WebdavFileSystem({
+                baseUrl : pipeURL
+            });
+
+            _fileBrowser = new LABKEY.FilesWebPartPanel({
+                fileSystem     : _fileSystem,
+                statePrefix    : LABKEY.ActionURL.getContainer() + '#pipeline',
+                helpEl         : null,
+                showAddressBar : true,
+                showDetails    : true,
+                expandFileUpload : true,
+                tbarItems : ['parentFolder', 'refresh', 'createDirectory', 'download', 'deletePath', 'upload',
+                    {
+                        id: 'hplc-import',
+                        text: 'Import HPLC',
+                        handler: onImport,
+                        iconCls: 'iconCheck'
+                    }]
+            });
+
+            _fileBrowser.render("pipelineBrowser");
+            _fileBrowser.start();
+        }
+
+        function onImport()
+        {
+            var folder = _fileBrowser.grid.getSelectionModel().getSelected();
+            if (!folder) {
+                folder = _fileBrowser.selectedRecord;
+            }
+            var _runStore;
+
+            if (folder)
+            {
+                Ext4.onReady(function(){
+
+                    var panel = Ext4.create('LABKEY.assay.HPLCUploadPanel', {
+                        targetFile : folder,
+                        fileSystem : _fileSystem
+                    });
+
+                    var win = Ext4.create('Ext.window.Window', {
+                        title : 'HPLC Assay Upload',
+                        height: 600,
+                        width : 800,
+                        layout: 'fit',
+                        items : [panel]
+                    });
+                    win.show();
+                });
+            }
+            else
+            {
+                Ext.Msg.alert('', 'Please select a folder containing HPLC run information.');
+            }
+        }
+    }
+
+    initHPLCUPload();
+
+</script>

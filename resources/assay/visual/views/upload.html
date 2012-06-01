@@ -1,0 +1,938 @@
+<style type="text/css">
+    fieldset {
+        height: auto !important;
+    }
+
+    .x-toolbar div.xtb-text
+    {
+        color : #BD1A00;
+    }
+
+    .form-header
+    {
+        font-size: 18px;
+        padding: 10px 5px;
+    }
+
+    .x-form-item
+    {
+        margin : 2px;
+        overflow: hidden !important;
+    }
+
+    .x-table-layout-cell
+    {
+        width: 20% !important;
+        text-align: center;
+    }
+
+    p { margin: 0px; text-align: left;}
+</style>
+<script type="text/javascript">
+    LABKEY.requiresScript("StatusBar.js");
+    LABKEY.requiresScript("formulations/IDRIComponents.js");
+</script>
+<script type="text/javascript">
+
+    Ext.QuickTips.init();
+    var _lotID;
+    var timeStore;
+    var tempStore;
+
+    function init(valid) {
+
+        if (!valid) {
+            var reported = 0;
+            var goal = 2;
+            function processStore() {
+                reported = reported + 1;
+                if (reported == goal) {
+                    init(true);
+                }
+            }
+            tempStore = getTemperatureStore();
+            tempStore.load({callback : processStore});
+            timeStore = getTimeStore();
+            timeStore.load({callback : processStore});
+            return;
+        }
+
+        var tempItems = [];
+        var timeItems = [];
+        
+        /* Setup temperature items */
+        tempStore.each(function(rec) {
+            var temp = rec.get('temperature');
+            tempItems.push({boxLabel : temp + 'C', name : 'temp', inputValue : temp + 'C', sortValue : temp});
+        });
+
+        /* Setup time items */
+        timeStore.singleSort('sort');
+        timeStore.each(function(rec) {
+            timeItems.push({boxLabel : rec.get('time'), name : 'time', inputValue : rec.get('time')});
+        });
+
+        var navHandler = function(direction) {
+            var win = Ext.getCmp('wizard-window').getLayout();
+            if (direction > 0) {
+                var id = win.activeItem.nextCard();
+                var lastActive = win.activeItem.id;
+                if (id) {
+                    win.setActiveItem(id);
+                    win.activeItem.prevCard = lastActive;
+                    Ext.getCmp('move-prev').setDisabled(false);
+                }
+            }
+            else {
+                if (win.activeItem.prevCard) {
+                    win.setActiveItem(win.activeItem.prevCard);
+                    if (!win.activeItem.prevCard) {
+                        Ext.getCmp('move-prev').setDisabled(true);
+                    }
+                }
+            }
+        };
+
+        var initialForm = new Ext.form.FormPanel({
+            id : 'init-form',
+            border: false,
+            frame : false,
+            dirty : false,
+            nextState : function(doContinue) {
+                if (this.getForm().isValid()) {
+                    presentMsg(false);
+                    this.card = 'state-form';
+                    return;
+                }
+
+                this.getForm().clearInvalid();
+                /* Not ready to move to next card */
+                var temps = Ext.getCmp('card-1-fieldset-2');
+                if (temps && !temps.isVisible()) {
+                    temps.show();
+                    temps.getEl().slideIn();
+
+                    temps = Ext.getCmp('card-1-fieldset-3');
+                    if (temps && !temps.isVisible()) {
+                        temps.show();
+                        temps.getEl().slideIn();
+                    }
+                }
+                else {
+                    if(doContinue && !this.getForm().isValid()) {
+                        presentMsg("Please complete this page to continue.");
+                    }
+                }
+
+                this.card = false;
+            },
+            items : [{
+                xtype : 'box',
+                autoEl : {
+                    tag : 'div',
+                    html: 'Formulation Lot Information',
+                    cls : 'form-header'
+                }
+            },{
+                xtype : 'fieldset',
+                title : 'What is the Lot Number?',
+                items : [{
+                    id    : 'lot-field',
+                    xtype : 'textfield',
+                    style : "font-size: 18px; height: 25px;",
+                    hideLabel : true,
+                    enableKeyEvents : true,
+                    listeners : {
+                        specialkey : function(field, e) {
+                            if (e.getKey() == e.ENTER) {
+                                var form = Ext.getCmp('init-form');
+                                var value = field.getRawValue();
+                                if (form && value != field.prevValue) {
+                                    field.prevValue = value;
+                                    field.notReady = false;
+                                    field.validator(field.getRawValue(), true);
+                                }
+                            }
+                        },
+                        afterlayout : function(cmp) {
+                            cmp.focus();
+                        },
+                        keyup : function(field) {
+                            field.setValue(field.getValue().toUpperCase());
+                        },
+                        change : function(field) {
+                            var form = Ext.getCmp('init-form');
+                            if (form) {
+                                form.dirty = true;
+                            }
+                            field.clearInvalid();
+                        },
+                        blur : function(field) {
+                            field.notReady = false;
+                            var value = field.getRawValue();
+                            if (value.length > 0 && value != field.prevValue) {
+                                field.prevValue = value;
+                                field.validator(field.getRawValue(), true);
+                            }
+                        },
+                        scope : this
+                    },
+                    prevValue  : null,
+                    validationEvent : null,
+                    fieldValid : false,
+                    notReady  : true,
+                    validating: false,
+                    validator : function(value, isSpecial) {
+                        var field = Ext.getCmp('lot-field');
+                        var formEl = Ext.getCmp('init-form').getEl();
+                        if (isSpecial) {  // -- 'isSpecial' is to override the default validator() signature.
+                            field.validating = true;
+                            formEl.mask("Loading...");
+                            LABKEY.Query.selectRows({
+                                schemaName : 'Samples',
+                                queryName  : 'Formulations',
+                                filterArray : [LABKEY.Filter.create("name", value, LABKEY.Filter.Types.EQUAL)],
+                                successCallback : function(data, response, ops){
+                                    field.fieldValid = false;
+                                    if (data.rowCount > 1) {
+                                        presentMsg(value + " must be unique.");
+                                        field.markInvalid(value + " must be unique.");
+                                        formEl.unmask();
+                                        field.validating = false;
+                                        return;
+                                    }
+                                    else if (data.rowCount < 1) {
+                                        presentMsg(value + " was not found.");
+                                        field.markInvalid(value + " was not found.");
+                                        formEl.unmask();
+                                        field.validating = false;
+                                        return;
+                                    }
+                                    
+                                    _lotID = data.rows[0].RowId.toString();
+                               
+                                    LABKEY.Query.selectRows({
+                                        schemaName : 'assay',
+                                        queryName  : LABKEY.page.assay.name + ' Runs',
+                                        filterArray: [ LABKEY.Filter.create("Name", value) ],
+                                        columns    : [ "Batch/RowId"],
+                                        successCallback : function(data, opts, response)
+                                        {
+                                            if (data.rows && data.rows.length > 0) {
+                                                
+                                                // This will retrieve the batch for ones that already exist.
+                                                var existingBatchId = data.rows[0]["Batch/RowId"];
+                                                LABKEY.Experiment.loadBatch({
+                                                    assayId : LABKEY.page.assay.id,
+                                                    batchId : existingBatchId,
+                                                    successCallback : function(batch, response)
+                                                    {
+                                                        formEl.unmask();
+                                                        field.validating = false;
+                                                        
+                                                        LABKEY.page.batch = batch; // could be empty
+
+                                                        var form = Ext.getCmp('init-form');
+                                                        if (form) {
+                                                            field.fieldValid = true;
+                                                            form.nextState();
+                                                        }
+
+                                                    },
+                                                    errorCallback : function(response)
+                                                    {
+                                                        formEl.unmask();
+                                                        field.validating = false;
+                                                        console.info("Something weird happened...");
+                                                    }
+                                                })
+                                            }
+                                            else {
+                                                formEl.unmask();
+                                                // Setup a new batch
+                                                LABKEY.page.batch = {};
+
+                                                var form = Ext.getCmp('init-form');
+                                                if (form) {
+                                                    field.fieldValid = true;
+                                                    form.nextState();
+                                                }
+                                            }
+                                        },
+                                        failureCallback : function(error, opts, response)
+                                        {
+                                            console.info("Actually failed.");
+                                        }
+                                    });
+                                },
+                                errorCallback : function() {
+                                    alert("Failed to lookup formulation.");
+                                }
+                            });
+                        }
+                        else if (field.validating) {
+                            return true;
+                        }
+                        else if (!field.notReady)
+                            return field.fieldValid;
+                        return true;
+                    },
+                    name : 'lot',
+                    scope: this
+                }],
+                scope : this
+            },{
+                xtype : 'fieldset',
+                id : 'card-1-fieldset-2',
+                title : 'What timepoint?',
+                hidden: true,
+                layout: 'form',
+                items : [{
+                    width : 410,
+                    columns : [80, 80, 80, 80, 80],
+                    xtype : 'radiogroup',
+                    allowBlank : false,
+                    hideLabel : true,
+                    validateOnBlur : false,
+                    items : timeItems,
+                    listeners : {
+                        change : function(rgrp, radio) {
+                            var form = Ext.getCmp('init-form');
+                            if (form) {
+                                form.card = false;
+                                form.dirty = true;
+                                console.info("The form is dirty.");
+                            }
+                        }
+                    }
+                }]
+            },{
+                xtype : 'fieldset',
+                id : 'card-1-fieldset-3',
+                title : 'What temperatures are you examining?',
+                hidden : true,
+                items : [{
+                    width   : 250,
+                    columns : [100, 100],
+                    xtype : 'checkboxgroup',
+                    allowBlank : false,
+                    hideLabel : true,
+                    validateOnBlur : false,
+                    items : tempItems,
+                    name : 'temp',
+                    listeners : {
+                        change : function(cgrp, cb) {
+                            var form = Ext.getCmp('init-form');
+                            if (form) {
+                                form.card = false;
+                                form.dirty = true;
+                            }
+                        }
+                    }
+                }]
+            }],
+            card : false,
+            nextCard : function() {
+                this.nextState(true);
+                return this.card;
+            },
+            prevCard : false,
+            listeners : {
+                activate : function(form) {
+                    form.dirty = false;
+                }
+            }
+        });
+
+        function getWindow() {
+            return Ext.getCmp('wizard-window');
+        }
+
+        function createFailureCard(temperature, previousCardId) {
+            var cmp = Ext.getCmp('failure-' + temperature);
+            if (cmp) {
+                return cmp.id;
+            }
+            /* Otherwise, place the new card in the window */
+            getWindow().add(new Ext.form.FormPanel({
+                id     : 'failure-' + temperature,
+                border : false,
+                frame  : false,
+                defaults : {
+                    xtype : 'fieldset',
+                    layout: 'form',
+                    defaults : {
+                        labelSeparator : '',
+                        validateOnBlur : false
+                    }
+                },
+                items  : [{
+                    xtype : 'box',
+                    autoEl : {
+                        tag : 'div',
+                        html: 'Failure Criteria for ' + temperature,
+                        cls : 'form-header'
+                    }
+                },{
+                    title : 'Color Change',
+                    items : [{
+                        xtype : 'checkbox',
+                        fieldLabel : 'Failed',
+                        name : 'failed',
+                        listeners : {
+                            check : function(cb, checked) {
+                                var form = cb.findParentByType('form');
+                                form.getForm().clearInvalid();
+                                var com = cb.ownerCt.colorcomment;
+                                com.setDisabled(!checked);
+                            }
+                        }
+                    },{
+                        ref   : 'colorcomment',
+                        xtype : 'textfield',
+                        name  : 'color',
+                        fieldLabel : 'Comment',
+                        allowBlank : false,
+                        disabled : true,
+                        width : 300
+                    }]
+                },{
+                    title : 'Phase Separation',
+                    items : [{
+                        xtype : 'checkbox',
+                        fieldLabel : 'Failed',
+                        name : 'failed',
+                        listeners : {
+                            check : function(cb, checked) {
+                                var form = cb.findParentByType('form');
+                                form.getForm().clearInvalid();
+                                var com = cb.ownerCt.phasecomment;
+                                com.setDisabled(!checked);
+                            }
+                        }
+                    },{
+                        ref   : 'phasecomment',
+                        name  : 'phase',
+                        xtype : 'textfield',
+                        fieldLabel : 'Comment',
+                        disabled : true,
+                        allowBlank : false,
+                        width : 300
+                    }]
+                },{
+                    title : 'Foreign Object',
+                    items : [{
+                        xtype : 'checkbox',
+                        fieldLabel : 'Failed',
+                        name : 'failed',
+                        listeners : {
+                            check : function(cb, checked) {
+                                var form = cb.findParentByType('form');
+                                form.getForm().clearInvalid();
+                                var com = cb.ownerCt.foreigncomment;
+                                com.setDisabled(!checked);
+                            }
+                        }
+                    },{
+                        ref   : 'foreigncomment',
+                        name  : 'foreign',
+                        xtype : 'textfield',
+                        fieldLabel : 'Comment',
+                        disabled : true,
+                        allowBlank : false,
+                        width : 300
+                    }]
+                }],
+                card : false,
+                nextCard : function() {
+                    return this.nextState();
+                },                
+                nextState: function() {
+                    var vals = this.getForm().getValues();
+
+                    /* Validate the form */
+                    if (!vals.failed) {
+                        presentMsg("At least one criteria must be marked as a failure.");
+                        return false;
+                    }
+                    
+                    if (!this.getForm().isValid()) {
+                        presentMsg("Comments are required for failing criteria.");
+                        return false;
+                    }
+                    
+                    return this.card;
+                },
+                prevCard : previousCardId
+            }));
+            return 'failure-' + temperature;
+        }
+
+        function getSubmitCard() {
+            var cmp = Ext.getCmp('submit-form');
+            if (cmp) {
+                return cmp;
+            }
+            var panel = new Ext.Panel({
+                id     : 'submit-form',
+                border : false,
+                frame  : false,
+                layout: 'table',
+                layoutConfig : {
+                    tableAttrs: {
+                        style: {
+                            width: '100%'
+                        },
+                        cellspacing: 15
+                    },
+                    columns:5
+                },
+                defaults : {
+                    border: false,
+                    frame : false
+                },
+                items  : [],
+                listeners : {
+                    activate : function(p){
+                        /* Reset the form */
+                        p.removeAll(true);
+                        p.doLayout(false, true);
+
+                        /* Initial form */
+                        var initform = Ext.getCmp('init-form').getForm();
+                        var initvals = initform.getValues();
+
+                        var stateform = Ext.getCmp('state-form').getForm();
+                        var statevals = stateform.getValues();
+
+                        /* Ensure we are dealing with an Array */
+                        if (initvals.temp.constructor != Array) {
+                            initvals.temp = [initvals.temp];
+                        }
+
+                        p.add({
+                            xtype : 'box',
+                            autoEl : {
+                                tag : 'div',
+                                html: initvals.lot + ' at ' + initvals.time + ' Visual Inspection Summary Report',
+                                cls : 'form-header'
+                            },
+                            colspan : 5
+                        });
+                        p.add({html : 'Temperature'});
+                        p.add({html : 'State'});
+                        p.add({html : 'Comment'});
+                        p.add({html : ""});
+                        p.add({html : ""});
+
+                        var state = "";
+                        var comment = "";
+                        var failureform = null;
+                        for (var i = 0; i < initvals.temp.length; i++) {
+
+                            comment = "";
+                            state   = "";
+                            p.add({html:initvals.temp[i]}); // temperature
+                            if (statevals[initvals.temp[i]] == "fail") {
+                                failureform = Ext.getCmp('failure-' + initvals.temp[i]);
+                                var ff = failureform.getForm().getValues();
+
+                                /* Presentation */
+                                state = "<span style='color: #BD1A00;'>Failed</span>";
+                                comment += (ff.color ? "<p><b>Color</b>: " + ff.color + "</p>": "");
+                                comment += (ff.phase ? "<p><b>Phase</b>: " + ff.phase + "</p>": "");
+                                comment += (ff.foreign ? "<p><b>Foreign</b>: " + ff.foreign + "</p>": "");
+
+                                /* Data loading */
+                            }
+                            else {
+                                /* Presentation */
+                                state = "<span style='color: #00A786;'>Passed</span>";
+                                comment = (statevals["comment"+initvals.temp[i]].length > 0 ? "<p>" + statevals["comment"+initvals.temp[i]] + "</p>" : "");
+                            }
+                            
+                            p.add({html:state}); // State
+                            p.add({html:comment, colspan : 3});
+                        }
+                        var btn = Ext.getCmp('move-next');
+                        btn.setText("Submit");
+                        p.doLayout();
+                    },
+                    deactivate : function(p) {
+                        var btn = Ext.getCmp('move-next');
+                        btn.setText("Next");
+                    }
+                },
+                nextCard : function() {
+                    /* Assumes all data to be correct. Should be validated by local forms. */
+                    var run = ensureRun();            
+
+                    /* Initial form */
+                    var initform = Ext.getCmp('init-form').getForm();
+                    var initvals = initform.getValues();
+
+                    var stateform = Ext.getCmp('state-form').getForm();
+                    var statevals = stateform.getValues();
+
+                    /* Ensure we are dealing with an Array */
+                    if (initvals.temp.constructor != Array) {
+                        initvals.temp = [initvals.temp];
+                    }
+
+                    var failureform = null;
+                    var ff = null;
+
+                    /* One row for each temperature */
+                    var newDataRow;
+                    var isFailure = false;
+                    for (var i = 0; i < initvals.temp.length; i++) {
+
+                        newDataRow = {};
+                        newDataRow["Timepoint"]   = initvals.time;
+                        newDataRow["Temperature"] = initvals.temp[i].replace("C", "");
+                        
+                        if (statevals[initvals.temp[i]] == "fail") {
+                            /* Failed */
+                            isFailure = true;
+                            newDataRow["Failure"] = true;
+                            failureform = Ext.getCmp('failure-' + initvals.temp[i]);
+                            ff = failureform.getForm().getValues();
+
+                            (ff.color ? newDataRow["ColorChange"] = ff.color : null);
+                            (ff.phase ? newDataRow["PhaseSeparation"] = ff.phase : null);
+                            (ff.foreign ? newDataRow["ForeignObject"] = ff.foreign : null);
+                        }
+                        else {
+                            /* Passed */
+                            newDataRow["Failure"] = false;
+                            newDataRow["PassComment"] = (statevals["comment"+initvals.temp[i]].length > 0 ? statevals["comment"+initvals.temp[i]] : "");
+                        }
+
+                        var rows = [];
+                        var placed = false;
+                        for (var j = 0; j < run.dataRows.length; j++)
+                        {
+                            if (run.dataRows[j]["Timepoint"] == newDataRow["Timepoint"] &&
+                                    run.dataRows[j]["Temperature"] == newDataRow["Temperature"]) {
+                                placed = true;
+                                run.dataRows[j] = newDataRow;
+                            }
+                        }
+
+                        if (!placed) {
+                            run.dataRows.push(newDataRow);
+                        }
+                    }
+
+                    /* check if this is a new lot */
+                    if (run.properties["LotNumber"] === undefined)
+                    {
+                        run.name = initvals.lot;
+                        run.properties["LotNumber"] = _lotID;
+                    }
+
+                    LABKEY.page.batch.runs[0] = run;
+                    saveBatch();
+                }
+            });
+            return panel;
+        }
+
+        function getStateForm() {
+            var cmp = Ext.getCmp('state-form');
+            if (cmp)
+                return cmp;
+            return new Ext.form.FormPanel({
+                id : 'state-form',
+                border : false,
+                frame  : false,
+                reset  : function() {},
+                items  : [{
+                    xtype : 'box',
+                    ref   : 'titlearea',
+                    autoEl : {
+                        tag : 'div',
+                        cls : 'form-header'
+                    }
+                },{
+                    xtype : 'fieldset',
+                    ref   : 'passfail',
+                    title : 'Select Passing/Failed for each temperature',
+                    layout : 'form',
+                    items : [],
+                    defaults : {
+                        labelSeparator: ''
+                    },
+                    populate : function() {
+                        var form = Ext.getCmp('init-form');
+                        if (form.dirty) {
+                            form = form.getForm();
+                            var vals = form.getValues();
+
+                            this.removeAll();
+                            if (vals.temp) {
+                                this.add({
+                                    xtype : 'box',
+                                    html  : 'Passing',
+                                    style : 'float: left; padding-left: 90px;'
+                                });
+                                this.add({
+                                    xtype : 'box',
+                                    html  : 'Failed',
+                                    style : 'padding-left: 180px;'
+                                });
+                                if (vals.temp.constructor != Array) {
+                                    vals.temp = [vals.temp];
+                                }
+
+                                /* Parse & Sort*/
+                                for (var i = 0; i < vals.temp.length; i++) {
+                                    vals.temp[i] = vals.temp[i].replace("C", "");
+                                }
+                                vals.temp = vals.temp.sort(function(a,b){return a-b;});
+
+                                for (i = 0; i < vals.temp.length; i++) {
+                                    this.add({
+                                        xtype : 'radiogroup',
+                                        width: 175,
+                                        fieldLabel : vals.temp[i] + 'C',
+                                        allowBlank : false,
+                                        defaults : {
+                                            name : vals.temp[i] + 'C'
+                                        },
+                                        temp  : vals.temp[i] + 'C',
+                                        items : [{inputValue : 'pass'},{inputValue : 'fail'}],
+                                        listeners : {
+                                            change : function(rgrp, radio) {
+                                                var form = rgrp.findParentByType('form');
+                                                if (form && radio.getRawValue() == "pass") {
+                                                    form.comments.addItem(rgrp.temp);
+                                                }
+                                                else if (form) {
+                                                    form.comments.removeItem(rgrp.temp);
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                            this.doLayout();
+                        }
+                    },
+                    listeners : {
+                        afterrender : function(fieldset) {
+                            fieldset.populate();
+                        }
+                    }
+                },{
+                    xtype : 'fieldset',
+                    title : '(Optional) Additional Comments for passing temperatures.',
+                    layout: 'form',
+                    ref   : 'comments',
+                    hidden: true,
+                    items : [],
+                    addItem : function(temp) {
+                        this.add({
+                            id    : 'comment' + temp,
+                            xtype : 'textfield',
+                            fieldLabel : temp,
+                            labelSeparator : '',
+                            labelWidth : 40,
+                            width : 180,
+                            name : 'comment' + temp
+                        });
+                        this.doLayout();
+                    },
+                    removeItem : function(temp) {
+                        var field = Ext.getCmp('comment' + temp);
+                        if (field) {
+                            this.remove(field);
+                            this.doLayout();
+                        }
+                    },
+                    populate : function() {
+                        this.removeAll();
+                        this.hide();
+                    }
+                }],
+                temps: {},
+                card : false,
+                nextCard : function() {
+                    if (!this.card) {
+                        /* Making some state selection */
+                        this.nextState();
+                    }
+                    return this.card;
+                },
+                prevCard : false,
+                nextState : function() {
+                    if (!this.getForm().isValid()) {
+                        presentMsg("Please complete these items to continue.");
+                        return;
+                    }
+
+                    /* Check if there are any failing -- create cards */
+                    var map = this.getForm().getValues();
+                    var prev = this.id;
+                    var next = false;
+                    var first = true;
+                    var success = false;
+                    for (var key in map) {
+                        if (map[key] == "fail") {
+                            var temp = prev;
+                            prev = createFailureCard(key, prev);
+                            if (first) {
+                                next = prev;
+                                first = false;
+                            }
+                            else {
+                                var cmp = Ext.getCmp(temp);
+                                if (cmp)
+                                    cmp.card = prev;
+                            }
+                        }
+                        else if (map[key] == "pass")
+                            success = true;
+                    }
+
+                    if (!this.comments.isVisible() && success) {
+                        this.comments.show();
+                        return false;
+                    }
+
+                    if (!next)
+                        this.card = 'submit-form';
+                    else {
+                        this.card = next;
+                        if (prev != this.id) {
+                            Ext.getCmp(prev).card = 'submit-form';
+                        }
+                    }
+                },
+                listeners : {
+                    activate : function(cmp) {
+                        var form = Ext.getCmp('init-form');
+                        if (form && form.dirty) {
+
+                            this.passfail.populate();
+                            this.comments.populate();
+
+                            form.dirty = false;
+                            form = form.getForm();
+                            var vals = form.getValues();
+
+                            if (vals.time) {
+                                this.titlearea.update("State of " + vals.lot + " at " + vals.time);
+                            }
+                            else {
+                                this.titlearea.update("Temperature State");
+                            }
+                        }
+                        cmp.card = false;
+                    }
+                }
+            });
+        }
+
+        /* If message is false, it will clear the message */
+        function presentMsg(message) {
+            var sb = Ext.getCmp('my-status');
+            if (sb) {
+                if (message) {
+                    sb.setStatus({
+                        text: message,
+                        iconCls:'',
+                        clear: true
+                    });
+                }
+                else
+                    sb.clearStatus();
+            }
+        }
+
+        /* Each item that participates in this wizard must declare a valid 'nextCard()' */
+        var wizardWindow = new Ext.Window({
+            id : 'wizard-window',
+            closeAction: 'hide',
+            layout: 'card',
+            modal: true,
+            plain: true,
+            resizable: false,
+            title: "Visual Inspection",
+            layoutConfig:{deferredRender:true},
+            height: 425,
+            width: 625,
+            activeItem: 0,
+            bodyStyle: 'padding:5px; padding-top; 30px;',
+            bbar : new LABKEY.ext.StatusBar({
+                id: 'my-status',
+
+                // defaults to use when the status is cleared:
+                defaultText: '',
+                defaultIconCls: 'default-icon',
+
+                // values to set initially:
+                text: '',
+                iconCls: 'ready-icon',
+
+                // any standard Toolbar items:
+                items: [{
+                    id: 'move-next',
+                    text: 'Next',
+                    handler: navHandler.createDelegate(this, [1])
+                },{
+                    id: 'move-prev',
+                    text: 'Back',
+                    handler: navHandler.createDelegate(this, [-1]),
+                    disabled: true
+                }]
+            }),
+            items: [initialForm, getStateForm(), getSubmitCard()]
+        });
+
+        wizardWindow.show();
+    }
+
+    function ensureRun() {
+        var batch = LABKEY.page.batch;
+        if (!batch.runs || batch.runs.length == 0)
+            batch.runs = [ new LABKEY.Exp.Run() ];
+        var run = batch.runs[0];
+
+        if (!run.properties)
+            run.properties = {};
+
+        if (!run.dataRows)
+            run.dataRows = [];
+        return run;
+    }
+
+    function saveBatch() {
+        Ext.getCmp('submit-form').getEl().mask("Saving...");
+        LABKEY.Experiment.saveBatch({
+            assayId : LABKEY.page.assay.id,
+            batch : LABKEY.page.batch,
+            successCallback : function (batch, response) {
+                Ext.getCmp('submit-form').getEl().unmask();
+                LABKEY.page.batch = batch;
+                var link = LABKEY.contextPath + '/idri/Formulations/formulationDetails.view?rowId=' + _lotID;
+                var home = LABKEY.contextPath + '/project/Formulations/begin.view?';
+                Ext.Msg.show({
+                    title : 'Saved Successfully',
+                    msg  : 'Updated successfully.<br/>What would you like to do next?<br/><br/><a class="labkey-text-link" href="">More Visual Inspection</a>' +
+                            '<br/><a class="labkey-text-link" href=\"' + home + '\">Formulations Home Page</a>' +
+                            '<br/><a class="labkey-text-link" href=\"' + link + '\">View ' + batch.runs[0].name + '</a>'
+                });
+            },
+            failureCallback : function (errorInfo, options, response) {
+                Ext.getCmp('submit-form').getEl().unmask();
+                var msg = errorInfo.exception;
+                Ext.Msg.hide();
+                Ext.Msg.alert("Error saving", msg);
+            }
+        });
+    }
+
+    Ext.onReady(init);
+</script>
+<div id="submit-window-div"></div>       

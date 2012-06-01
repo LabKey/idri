@@ -1,0 +1,53 @@
+<ap:domain xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
+    <exp:Description>Visual results</exp:Description>
+    <exp:PropertyDescriptor>
+        <exp:Name>PhaseSeparation</exp:Name>
+        <exp:Required>false</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Phase Separation</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>ColorChange</exp:Name>
+        <exp:Required>false</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Color Change</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>ForeignObject</exp:Name>
+        <exp:Required>false</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Foreign Object</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Timepoint</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Time Point</exp:Label>
+        <exp:FK>
+            <exp:Schema>lists</exp:Schema>
+            <exp:Query>Timepoints</exp:Query>
+        </exp:FK>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Temperature</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+        <exp:Label>Temperature</exp:Label>
+        <exp:FK>
+            <exp:Schema>lists</exp:Schema>
+            <exp:Query>Temperatures</exp:Query>
+        </exp:FK>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Failure</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#boolean</exp:RangeURI>
+        <exp:Label>Failure</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>PassComment</exp:Name>
+        <exp:Required>false</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Passing Comment</exp:Label>
+    </exp:PropertyDescriptor>
+</ap:domain>

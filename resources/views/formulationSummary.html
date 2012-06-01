@@ -1,0 +1,264 @@
+<script type="text/javascript">
+
+    LABKEY.requiresClientAPI();
+    LABKEY.requiresScript("formulations/SearchFormulation.js");
+
+    var _newStoreX = null;
+    
+    function formPanelQuery()
+    {
+        LABKEY.Query.selectRows({
+            schemaName: 'Samples',
+            queryName:  'StatReport',
+            successCallback: onSuccessStatReport,
+            errorCallback: ongetout,
+            filterArray : [ LABKEY.Filter.create("Name",LABKEY.ActionURL.getParameter('nameContains'), LABKEY.Filter.Types.CONTAINS)]
+        });
+    }
+
+    function onSuccessStatReport(data)
+    {
+        if(data.rowCount > 1)
+        {
+            document.getElementById('errorDiv').innerHTML = "ERROR: The forumulation lookup did not work correctly.";
+        }
+
+        var form = new LABKEY.ext.FormPanel({
+
+            id                : 'formulation-data-table',
+            selectRowsResults : data,
+            border            : false,
+            defaults          : {
+                style : {
+                    width : 72
+                },
+                disabledClass : null
+            },
+            items             : [
+                {
+                    name:'Name',
+                    fieldLabel:'Batch Number'
+                },{
+                    xtype : 'textfield',
+                    name:'DM',
+                    fieldLabel:'Manufacture Date'
+                },{
+                    name:'Batch_size'
+                }]
+        });
+
+        /*
+        var mydiv = [];
+        var tables = [];
+        var rows = [];
+
+        rows.push({
+            tag : 'tr',
+            children : [
+                {
+                    tag : 'td',
+                    colspan : 4,
+                    html : 'This is html in a td.'
+                }
+            ]
+        });
+        tables.push({
+            tag : 'table',
+            children : [
+                {
+                    tag : 'tbody',
+                    children : rows
+                }]});
+        mydiv.push({
+            tag : 'div',
+            children : tables
+        });
+        
+        form.render("reportDivTop");
+        
+        var elem = Ext.get('formulation-data-table');
+        elem.createChild(mydiv);
+        */
+
+        form.render("reportDivTop");
+    }
+
+    function ongetout(errorInfo, responseObj)
+    {
+        if(errorInfo && errorInfo.exception)
+            alert("Failure: " + errorInfo.exception);
+        else
+            alert("Failure: " + responseObj.statusText);
+    }
+
+    function init()
+    {
+        // Check URL for 'nameContains' -- this is the users search parameter.
+        var currentFormulation = LABKEY.ActionURL.getParameter('nameContains');
+        if (null != currentFormulation)
+        {
+            // Build the grids. See SearchFormulation.js
+            formPanelQuery();
+
+            /* Initialize the temperature select combo box. */
+            function refreshChart(combo, record, index)
+            {
+                var config = {};
+
+                var tempstr = '5C';   // DEFAULT temperature
+
+                if(combo != null)
+                {
+                    tempstr = combo.getValue();
+                }
+
+                buildPSReports(tempstr, currentFormulation);
+                buildHPLCReports(tempstr);
+            }
+
+            /* The following defines the Temperature drop-down selection
+            _newStoreX = new LABKEY.ext.Store({
+                schemaName: 'assay',
+                queryName: 'resolveTemperatures',
+                filterArray: [LABKEY.Filter.create('RowId',LABKEY.ActionURL.getParameter('rowId'),LABKEY.Filter.Types.EQUAL)]
+            });
+
+            var comboBoxX = new Ext.form.ComboBox({
+                triggerAction: 'all',
+                renderTo: 'menuDiv',
+                editable: false,
+                valueField: 'StorageTemperature',
+                displayField: 'StorageTemperature',
+                autoHeight: true,
+                mode: 'remote',
+                emptyText: 'Select temperature...',
+                lazyInit: true,
+                store: _newStoreX,
+                listeners: {
+                    select : refreshChart
+                }
+            });
+            */
+
+            refreshChart(null, null, null);
+        }
+        else
+        {
+            document.getElementById("stabilityBtnDiv").style.display = "none";
+            document.getElementById('dataRegionDiv').innerHTML = "Use the search above to find a formulation lot."
+            document.getElementById('resultsDiv').innerHTML = "";
+        }
+    }
+
+    /* Suppresses all elements which should not be shown in a printable format. */
+    function makePrintable()
+    {
+        document.getElementById("bodypanel").getElementsByTagName('tr')[0].style.display = "none";
+        document.getElementById("headerpanel").style.display = "none";
+        document.getElementById("navpanel").style.display = "none";
+        document.getElementById("printBtnDiv").style.display = "none";
+        document.getElementById("errorDiv").style.display = "none";
+
+        /* Drop the administration bar menu if present. */
+        var mb = document.getElementById("menubar");
+        if(mb != null)
+        {
+            mb.style.display = "none";
+        }
+    }
+
+    function printReport()
+    {
+        makePrintable();
+
+        /* Give the user a (2) second to see what has happened. */
+        setTimeout("window.print()",2000);
+    }
+
+    function getStabilityReport()
+    {
+        document.getElementById("stabilityBtnDiv").style.display = "none";
+        document.getElementById("SearchFormulation").style.display = "none";
+        document.getElementById("errorDiv").style.display = "none";
+
+        document.getElementById("printBtnDiv").style.display = "inline";
+        document.getElementById("reportDiv").style.display = "inline";
+        document.getElementById("reportDivTop").style.display = "inline";
+        document.getElementById("reportDiv2").style.display = "inline";
+        document.getElementById("reportDivMiddle").style.display = "inline";
+    }
+
+    Ext.onReady(init);
+
+</script>
+<form id="SearchFormulation" method="get" action=""
+      onsubmit="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;">
+    <table width="95%">
+        <tr>
+            <td>Formulation name contains:
+
+                <input type="text" id="IdriSearchStr" name="nameContains" value="">
+                <input type="hidden" id="IdriPSAssayName" name="assayName" value="Particle Size">
+
+                <input type="submit" style="display: none;" id="IdriSearchSubmit"><a class="labkey-button" href="formulationSummary.html#"
+                                                                                     onclick="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;">
+                    <span>Search</span></a>
+            </td>
+        </tr>
+    </table>
+</form>
+
+<div id="stabilityBtnDiv">
+<input type="button" id="stabilityBtn" style="display: none;"><a id="stabilityBtnHref" class="labkey-button" onclick="getStabilityReport(); return false;">
+    <span>Stability Report</span></a>
+</div>
+        
+<div id="printBtnDiv" style="display:none">
+<input type="button" id="printBtn" style="display: none;"><a id="printBtnHref" class="labkey-button" onclick="printReport(); return false;">
+    <span>Print Report</span></a>
+</div>
+
+<!-- Div to present errors on screen -->
+<div id="errorDiv"></div>
+        
+<!-- TODO: Make the title of the page dynamic (e.g. Emulsion, ...) -->
+
+<!--<table>
+    <tr>
+        <td>Storage Temperature:</td>
+        <td id="menuDiv"></td>
+        <td id="menuDiv3"></td>
+        <td id="menuDiv2"></td>
+    </tr>
+</table>-->
+        
+<div id="reportDiv" style="display: none">
+<p id="reportHeadline" style="text-align: center; font-size: large"><span style="text-decoration: underline;">Stable Emulsion Formulation</p>
+    
+<div id="reportDivTop" style="display: none"></div>
+
+<p style="text-align: left;"><span style="text-decoration: underline;">Stability Test Results</span></p>
+</div>
+        
+<div id='dataRegionDiv' align="left"></div>
+<div id='dataRegionDiv2' align="left"></div>
+
+<div id="reportDiv2" style="display: none">
+<p style="text-align: left;"><span style="text-decoration: underline;">Sample Information</span></p>
+
+<div id="reportDivMiddle" style="display: none"></div>
+</div>
+        
+<table id="reportTable">
+    <tr>
+        <td>
+            <div id="resultsDiv"></div>
+        </td>
+        <td>
+            <div id="resultsDiv2"></div>
+        </td>
+        <td>
+            <div id="concentrationDiv"></div>
+        </td>
+    </tr>
+</table>

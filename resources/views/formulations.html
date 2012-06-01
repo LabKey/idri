@@ -1,0 +1,117 @@
+<!--
+  ~ Copyright (c) 2006-2009 LabKey Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<script type="text/javascript">
+    LABKEY.requiresClientAPI();
+    LABKEY.requiresScript("formulations/SearchFormulation.js");
+
+    var _expGrid;                       // the experiment grid
+    var _formulationsGrid;              // the formulation/experiment editor grid panel
+    var _materialTemplate;
+    var _baseFormulationRenderer;
+
+    function formulationRenderer(data, cellMetaData, record, rowIndex, colIndex, store)
+    {
+        return _materialTemplate.apply(record.data) + _baseFormulationRenderer(data, cellMetaData, record, rowIndex, colIndex, store) + '</a>';
+        //var name = _baseFormulationRenderer(data, cellMetaData, record, rowIndex, colIndex, store);
+        //return '<a href="javascript:void(0);" onClick="getRunIdIfUnique(\'' + name + '\', \'Particle Size\');">' + name + '</a>';
+    }
+
+    function customizeColumnModel(colModel, index)
+    {
+        if (colModel != undefined)
+        {
+            var col = index['Formulation'];
+            var url = LABKEY.ActionURL.buildURL("experiment", "showMaterial");
+
+            _materialTemplate = new Ext.XTemplate('<a href="' + url + '?rowId={Formulation}">').compile();
+            _baseFormulationRenderer = col.renderer;
+            col.renderer = formulationRenderer;
+        }
+    }
+
+    Ext.onReady(function(){
+
+        // override the editor grid panel so we can provide our own lookup editor
+        MyGridPanel = Ext.extend(LABKEY.ext.EditorGridPanel, {
+
+            constructor: function(config) {
+                MyGridPanel.superclass.constructor.call(this, config);
+            },
+
+            getLookupEditor : function(col, meta) {
+                var store = this.store.getLookupStore(meta.name, !col.required);
+                store.load();
+
+                return new Ext.form.ComboBox({
+                    store: store,
+                    allowBlank: !col.required,
+                    typeAhead: true,
+                    forceSelection: true,
+                    triggerAction: 'all',
+                    mode: 'local',
+                    displayField: meta.lookup.displayColumn,
+                    valueField: meta.lookup.keyColumn,
+                    tpl : '<tpl for="."><div class="x-combo-list-item">{[values["' + meta.lookup.displayColumn + '"]]}</div></tpl>', //FIX: 5860
+                    listClass: 'labkey-grid-editor'
+                });
+            }
+        });
+
+        _formulationsGrid = new MyGridPanel({
+            store: new LABKEY.ext.Store({
+                schemaName: 'lists',
+                queryName: 'FormulationExpMap'
+            }),
+            renderTo: 'formulationsDiv',
+    	    clicksToEdit: 'auto',
+            enableFilters: true,
+            width: 600,
+            autoHeight: true,
+            title: 'Formulations to IDRI Experiments',
+            editable: true
+        });
+        _formulationsGrid.on("columnmodelcustomize", customizeColumnModel);
+
+        _expGrid = new LABKEY.ext.EditorGridPanel({
+            store: new LABKEY.ext.Store({
+                schemaName: 'lists',
+                queryName: 'IDRI Experiments'
+            }),
+            renderTo: 'expDiv',
+    	    clicksToEdit: 'auto',
+            enableFilters: true,
+            width: 600,
+            autoHeight: true,
+            title: 'IDRI Experiments',
+            editable: true
+        });
+
+        var queryWebPartRenderer = new LABKEY.WebPart({
+            partName: 'Single List',
+            renderTo: 'listDiv',
+            partConfig: {
+                title: 'Formulation to Experiment',
+                listId: 172
+            }});
+    });
+</script>
+
+<h2>Formulations to IDRI Experiments</h2>
+<div id="formulationsDiv"></div><p/>
+
+<p/><h2>IDRI Experiments</h2>
+<div id="expDiv"></div><p/>
+

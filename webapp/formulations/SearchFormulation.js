@@ -316,7 +316,7 @@ function displayGraphic(name, temp, tool, imageElement, divElement)
                             renderTo: divElement,
                             frame   : 'none',
                             partConfig : {
-                                reportId      :'module:Formulations/schemas/assay/Particle Size Data/Z-Ave Graph.r',
+                                reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
                                 showSection   :'labkey' + tool + '_png',
                                 'nameContains': name,
                                 'storageTemp' : temp,
@@ -389,7 +389,7 @@ function buildHPLCReports(tempStr)
             renderTo: 'concentrationDiv',
             frame: 'none',
             partConfig: {
-                reportId:'module:Formulations/schemas/assay/HPLC Data/Concentration Graph.r',
+                reportId:'module:idri/schemas/assay/HPLC Data/Concentration Graph.r',
                 showSection:'labkey2_png'
             }});
 

@@ -1,0 +1,369 @@
+<div id="error-div"></div><br/>
+<div id="file-selected-div"></div><br/>
+<div id="upload-spectra-div" style="width: 301px; float: left;"></div>
+<div id="ir-image-display" style="float: left; height: 300px; width: 600px;"></div>
+
+<script type="text/javascript">
+    LABKEY.requiresScript("formulations/materials.js");
+    LABKEY.requiresScript("FileUploadField.js");
+</script>
+<script type="text/javascript">
+    
+    function submitSpectra()
+    {
+        if (validateForm() && file_ready)
+        {
+            var formCmp = Ext.getCmp('upload-spectra-form');
+            if (formCmp)
+                var form = formCmp.getForm();
+                var options = {
+                    method : 'POST',
+                    url    : LABKEY.ActionURL.buildURL("assay", "assayFileUpload"),
+                    name   : Ext.get('upload-run-field').getValue()
+                };
+                form.doAction(new Ext.form.Action.Submit(form, options));
+        }
+        else
+        {
+            if(!file_ready)
+                handleError("Please select a file to upload along with the IR Spectra definition.");
+        }
+    }
+
+    function validateForm()
+    {
+        // clear out error messages.
+        handleError("", true);
+
+        var form = Ext.getCmp('upload-spectra-form');
+        if(form.getForm().isValid())
+            return true;
+        else
+            handleError("Errors in your submission. See below.");
+        return false;
+    }
+    
+    function handleDataUpload(f, action)
+    {
+        if (!action || !action.result)
+        {
+            Ext.Msg.alert("Upload Failed", "Something went horribly wrong when uploading.");
+            return;
+        }
+        if (!action.result.id)
+        {
+            Ext.Msg.alert("Upload Failed", "Failed to upload the data file: " + action.result);
+            return;
+        }
+
+        Ext.Msg.wait("Uploading...");
+
+        var data = new LABKEY.Exp.Data(action.result);
+
+        var run = new LABKEY.Exp.Run();
+        run.dataInputs = run.dataInputs || [];
+        run.dataInputs[0] = data;
+
+        if (!data.content)
+        {
+            data.getContent({
+                format: 'jsonTSV',
+                successCallback: function (content, format)
+                {
+                    data.content = content;
+                    handleRunContent(run, content);
+                },
+                failureCallback: function (error, format)
+                {
+                    Ext.Msg.hide();
+                    handleError("Upload Failed. An error occurred while fetching the contents of the data file: " + error.exception);
+                    return;
+                }
+            });
+        }
+        else
+        {
+            Ext.Msg.hide();
+        }
+    }
+
+    function handleRunContent(run, content)
+    {
+        if (!content)
+        {
+            Ext.Msg.hide();
+            Ext.Msg.alert("Upload Failed", "The data file has no content");
+            return;
+        }
+        if (!content.sheets || content.sheets.length == 0)
+        {
+            // expected the data file to be parsed as jsonTSV
+            Ext.Msg.hide();
+            Ext.Msg.alert("Upload Failed", "The data file has no sheets of data");
+            return;
+        }
+
+        var sheet = content.sheets[0];
+
+        run.name = Ext.get("Material").getValue();
+        run.properties.Material   = Ext.get("Material").getValue();
+        run.properties.YDataType  = Ext.get("YDataType").getValue();
+        run.properties.Solvent    = Ext.get("Solvent").getValue();
+        run.properties.Method     = Ext.get("Method").getValue();
+        run.properties.acqDate    = Ext.get("acqDate").getValue();
+
+        run.dataRows = [];
+        var high = parseFloat(sheet.data[1][0]);
+        var low  = high;
+        var previous_resolution = 0.0;
+        var resolution = 0.0;
+        for (var j = 1; j < sheet.data.length; j++)
+        {
+            var dataRow = {};
+
+            var wavenumber = sheet.data[j][0].toFixed(6);
+            var intensity  = sheet.data[j][1].toFixed(6);
+            
+            /* Calculate the range (wavenumbers) */
+            dataRow['Wavenumbers'] = parseFloat(wavenumber);
+            dataRow['Intensity']  =  parseFloat(intensity);
+            if (dataRow['Wavenumbers'] > high)
+                high = dataRow['Wavenumbers'];
+            else if (dataRow['Wavenumbers'] < low)
+                low = dataRow['Wavenumbers'];
+
+            /* Calculate the resolution */
+            if ((j+1) < sheet.data.length)
+            {
+                resolution =  Math.abs(dataRow['Wavenumbers'] - parseFloat(sheet.data[j+1][0]));
+                resolution = resolution.toFixed(6);
+                resolution = Math.round(resolution*10)/10;
+                if (Math.abs(resolution - previous_resolution) > 0.001)
+                    console.info("RESOLUTION OUT OF RANGE!!! " + dataRow['Wavenumbers'] + ' ' + parseFloat(sheet.data[j+1][0]));
+                previous_resolution = resolution;
+            }
+
+            run.dataRows.push(dataRow);
+        }
+        run.properties.Range = high + '-' + low;
+        run.properties.Resolution = resolution;
+
+        LABKEY.page.batch.runs = LABKEY.page.batch.runs || [];
+        LABKEY.page.batch.runs.push(run);
+        LABKEY.setDirty(true);
+        saveSpectraBatch();
+    }
+
+    function saveSpectraBatch()
+    {
+        if(!LABKEY.dirty)
+        {
+            console.info("Not dirty");
+            return;
+        }
+
+        LABKEY.Experiment.saveBatch({
+            assayId : LABKEY.page.assay.id,
+            batch   : LABKEY.page.batch,
+            successCallback: function(batch, response)
+            {
+                console.info("Batch save successful.");
+                LABKEY.page.batch = batch;
+                LABKEY.setDirty(false);
+                Ext.Msg.hide();
+                postSave();
+            },
+            failureCallback: function(e, f)
+            {
+                Ext.Msg.hide();
+                handleError("Failed to upload the data properly.");
+            }
+        });
+    }
+
+    function handleError(msg, reset)
+    {
+        var errorEl = document.getElementById('error-div');
+        if(!(reset))
+        {
+            errorEl.innerHTML += "<span style='color:red;'>> " + msg + "<br/></span>";
+            error = true;
+            Ext.Msg.hide();
+        }
+        else
+        {
+            errorEl.innerHTML = "";
+            error = false;
+        }
+    }
+
+    function postSave()
+    {
+        var elem = Ext.get('ir-image-display');
+        elem.mask("Loading...", "x-mask-loading");
+        
+        var reportWebPartRenderer = new LABKEY.WebPart({
+            partName: 'Report',
+            renderTo: 'ir-image-display',
+            frame: 'none',
+            partConfig: {
+                reportId: 'module:idri/schemas/assay/IR Spectra Data/spectraGraph.r',
+                showSection: 'labkeyl_png',
+                nameContains: Ext.get("Material").getValue()
+            },
+            successCallback : function() {
+                elem.unmask();
+            },
+            errorCallback : function() {
+                elem.unmask();
+            }
+        });
+        reportWebPartRenderer.render();
+    }
+
+    var file_ready = false;
+    var error = false;
+    var _storeData = [];
+    var _matStore;
+
+    Ext.onReady(function() {
+
+        Ext.QuickTips.init();
+
+        var uploadFileField = new Ext.form.FileUploadField({
+            id: "upload-run-field",
+            buttonText: "Upload .txt file...",
+            fieldLabel: "IR File Upload",
+            buttonCfg: {
+                cls: "labkey-button"
+            },
+            buttonOnly : true,
+            listeners: {
+                "fileselected": function (fb, v)
+                {
+                    file_ready = true;
+                    handleError("", true);
+                    var elem = Ext.get('file-selected-div');
+                    elem.update("File selected: " + v);
+                }
+            }
+        });
+
+        var _store = new LABKEY.ext.Store({
+            schemaName : 'exp',
+            queryName  : 'Materials',
+            sortInfo   : { field: 'Name', direction: 'ASC' },
+            filterArray: [
+                LABKEY.Filter.create('SampleSet/Name','Raw Materials;Formulations',LABKEY.Filter.Types.EQUALS_ONE_OF)
+            ]
+        });
+
+        _store.load({
+            callback : function(records, options, success)
+            {
+                if (success)
+                {
+                    for (var i = 0; i < records.length; i++)
+                    {
+                        var rec = [];
+                        rec.push(records[i].data.Name);
+                        _storeData.push(rec);
+                    }
+                    var form_panel = Ext.getCmp('upload-spectra-form');
+                    var matBox = new Ext.form.ComboBox({
+                        id            : 'Material',
+                        fieldLabel    : 'Material',
+                        store         : new Ext.data.SimpleStore({
+                            storeId    : 'materialStore',
+                            fields     : ['Name'],
+                            data       : _storeData
+                        }),
+                        triggerAction : 'all',
+                        displayField  : 'Name',
+                        valueField    : 'Name',
+                        mode          : 'local',
+                        forceSelection: true,
+                        invalidText   : 'Not a valid material.'
+                    });
+                    form_panel.add(matBox);
+                    form_panel.doLayout();
+                }
+            }
+        });
+
+        var fp = new Ext.FormPanel({
+            renderTo: 'upload-spectra-div',
+            id      : 'upload-spectra-form',
+            defaults: {
+                validationEvent: false,
+                width : 130,
+                allowBlank : false,
+                style : { margin: '2 0 2 0' }
+            },
+            method : 'POST',
+            fileUpload : true,
+            enctype :'multipart/form-data',
+            border : false,
+            stateful : false,
+            autoHeight : true,
+            width : 300,
+            frame : false,
+            buttonAlign : 'left',
+            items : [
+                uploadFileField,
+                {
+                    xtype           : 'combo',
+                    id              : 'YDataType',
+                    fieldLabel      : 'Y Data Type',
+                    store           : new Ext.data.SimpleStore({
+                        fields : ['dt'],
+                        data   : [['absorption'],['transmission']]
+                    }),
+                    displayField : 'dt',
+                    valueField   : 'dt',
+                    triggerAction   : 'all',
+                    forceSelection : true,
+                    mode : 'local'
+                },{
+                    xtype      : 'textfield',
+                    id         : 'Solvent',
+                    fieldLabel : 'Solvent',
+                    validationEvent : true
+                },{
+                    xtype           : 'combo',
+                    id              : 'Method',
+                    fieldLabel      : 'Method',
+                    store           : new Ext.data.SimpleStore({
+                        fields : ['td'],
+                        data   : [['neat ATR'],['thin film ATR']]
+                    }),
+                    displayField : 'td',
+                    valueField   : 'td',
+                    triggerAction   : 'all',
+                    forceSelection : true,
+                    mode : 'local'
+                },{
+                    xtype      : 'datefield',
+                    id         : 'acqDate',
+                    fieldLabel : 'Acquisition Date'
+                }
+            ],
+            buttons : [
+                {text: 'Cancel', handler: function(){ window.history.back(); }},
+                {text: 'Submit', handler: submitSpectra}
+            ],
+            listeners : {
+                "actioncomplete" : function (f, action) { handleDataUpload(f, action); },
+                "actionfailed" : function (f, action) { handleDataUpload(f, action); },
+                afterlayout    : function(formPanel) {
+                    /* A bunch of post layout issues. */
+                    var arrows = document.getElementsByClassName("x-form-arrow-trigger");
+                    for(var i = 0; i < arrows.length; i++)
+                        arrows[i].style.margin = "2px 0pt";
+                    var date = document.getElementsByClassName("x-form-date-trigger")[0];
+                    date.style.margin = "2px 0pt";
+                }
+            }
+        });
+    });
+</script>

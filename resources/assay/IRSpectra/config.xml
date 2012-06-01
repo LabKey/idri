@@ -1,0 +1,4 @@
+<ap:provider xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
+    <ap:name>IR Spectra</ap:name>
+    <ap:description>IDRI IR Spectra Data.</ap:description>
+</ap:provider>

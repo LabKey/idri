@@ -1,0 +1,19 @@
+<ap:domain xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
+  <exp:PropertyDescriptor>
+    <exp:Name>IDRIBatchNumber</exp:Name>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+    <exp:Label>IDRI Batch Number</exp:Label>
+  </exp:PropertyDescriptor>
+  <exp:PropertyDescriptor>
+    <exp:Name>ZAveMean</exp:Name>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+    <exp:Label>Z-Ave Mean</exp:Label>
+  </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Error</exp:Name>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Error</exp:Label>
+    </exp:PropertyDescriptor>
+</ap:domain>
+
+

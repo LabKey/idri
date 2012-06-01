@@ -1,0 +1,28 @@
+<ap:domain xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
+    <exp:PropertyDescriptor>
+        <exp:Name>LotNumber</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Lot Number</exp:Label>
+        <exp:FK>
+            <exp:Schema>Study</exp:Schema>    <!-- Should be changed to support Study lookup -->
+            <exp:Query>Formulation</exp:Query>
+        </exp:FK>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>StorageTemperature</exp:Name>
+        <exp:Required>false</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Storage Temperature</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Time</exp:Name>  <!-- Lookup to timepoint (or visit) OR actual date OR amount of time run took -->
+        <exp:Required>false</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:FK>
+            <exp:Schema>Study</exp:Schema>    <!-- Should be changed to support Study lookup -->
+            <exp:Query>Visit</exp:Query>
+        </exp:FK>
+    </exp:PropertyDescriptor>
+    <!-- Need to add associated Method file -->
+</ap:domain>

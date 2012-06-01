@@ -19,7 +19,8 @@ function getTimeStore() {
     return new LABKEY.ext.Store({
         schemaName : 'lists',
         queryName  : 'Timepoints',
-        sort       : '[+]sort'
+        sort       : '[+]sort',
+        // remoteSort : false
     });
 
 }

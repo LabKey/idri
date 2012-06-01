@@ -555,7 +555,7 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
                             partName : 'Report',
                             frame   : 'none',
                             partConfig : {
-                                reportId : 'module:Formulations/schemas/assay/HPLC Data/Preview.r',
+                                reportId : 'module:idri/schemas/assay/HPLC Data/Preview.r',
                                 'file'   : LABKEY.ActionURL.decodePath(r.data.uri.replace(LABKEY.ActionURL.getBaseURL(), '').replace("_webdav", '')), // container is a hack
                                 showSection : 'peaks_png'
                             },
