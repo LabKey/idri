@@ -183,7 +183,7 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
                 },
 
                 listeners : {
-                    formconfiguration : function(fields){
+                    formconfiguration : function(formPanel, fields){
 
                         // just use this for validation of fields
                         // layout the form myself
