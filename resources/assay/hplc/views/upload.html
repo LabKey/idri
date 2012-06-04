@@ -26,6 +26,21 @@
     LABKEY.requiresExt4ClientAPI(true);
     LABKEY.requiresScript("FileUploadField.js");
 
+    var visScripts = [
+        'vis/lib/patches.js',
+        'vis/lib/d3-2.0.4.js',
+        'vis/lib/raphael-min-2.1.0.js',
+        'vis/src/utils.js',
+        'vis/src/geom.js',
+        'vis/src/stat.js',
+        'vis/src/position.js',
+        'vis/src/scale.js',
+        'vis/src/layer.js',
+        'vis/src/plot.js'
+    ];
+
+    LABKEY.requiresScript(visScripts, true, null, this, true);
+
     var scripts = [
         'applet.js',
         'FileUploadField.js',
@@ -45,16 +60,12 @@
 </script>
 <script type="text/javascript">
 
-    function initHPLCUPload()
+    var initHPLCUPload = function()
     {
-        var _fileBrowser,
-                _fileSystem,
-                _focusPath,
-                _smpStore,
-                _stdStore,
-                _mthdStore;
+        var _fileBrowser, _fileSystem;
 
         Ext.onReady(function(){
+
             LABKEY.Pipeline.getPipelineContainer({
                 success : function(data) {
                     if (data && data.containerPath)
@@ -72,9 +83,10 @@
                     }
                 }
             });
+
         });
 
-        function createFileBrowser(pipeURL)
+        var createFileBrowser = function(pipeURL)
         {
             _fileSystem = new LABKEY.FileSystem.WebdavFileSystem({
                 baseUrl : pipeURL
@@ -93,23 +105,26 @@
                         text: 'Import HPLC',
                         handler: onImport,
                         iconCls: 'iconCheck'
-                    }]
+                    }],
+                updateToolbarButtons : function() {
+                    /* Overridden due to bad update timing */
+                }
             });
 
             _fileBrowser.render("pipelineBrowser");
             _fileBrowser.start();
         }
 
-        function onImport()
+        var onImport = function()
         {
             var folder = _fileBrowser.grid.getSelectionModel().getSelected();
             if (!folder) {
                 folder = _fileBrowser.selectedRecord;
             }
-            var _runStore;
 
-            if (folder)
+            if (folder && folder.id != '/')
             {
+                // Switching to Ext 4 -- must ensure it is ready
                 Ext4.onReady(function(){
 
                     var panel = Ext4.create('LABKEY.assay.HPLCUploadPanel', {
@@ -129,7 +144,7 @@
             }
             else
             {
-                Ext.Msg.alert('', 'Please select a folder containing HPLC run information.');
+                Ext.Msg.alert('Select Folder', 'Please select a folder containing HPLC run information.');
             }
         }
     }

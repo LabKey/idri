@@ -13,13 +13,18 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
         if (!config.targetFile) {
             console.error('HPLCUploadPanel not initialized properly. Provide a targetFile.');
         }
+        else {
+            this.targetFile = config.targetFile;
+        }
+
         if (!config.fileSystem) {
             console.error('HPLCUploadPanel not initialized properly. Provide a fileSystem.');
         }
+        else {
+            this.fileSystem = config.fileSystem;
+        }
 
         Ext4.QuickTips.init();
-
-        Ext4.apply(this, config);
 
         Ext4.applyIf(config, {
             layout: 'card'
@@ -37,7 +42,7 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
         this.on('fileload', this.onFileLoad, this);
 
         this.fileUploadPanel = this.initFileUploadPanel();
-        this.runInfoPanel = this.initRunInfoPanel();
+        this.runInfoPanel    = this.initRunInfoPanel();
 
         this.items = [this.fileUploadPanel, this.runInfoPanel];
 
@@ -135,7 +140,11 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
                         autoCreateRecordOnChange: false,
                         autoBindFirstRecord: false
                     },
-                    columns : '*'
+                    columns : '*',
+                    metadata : {
+                        Flag : { hidden: true },
+                        RunGroups : { hidden: true }
+                    }
                 }),
                 autoScroll : true,
                 height : 175,
@@ -279,12 +288,16 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
                 }
             });
 
+            var imgPath = LABKEY.contextPath + '/formulations';
+
             // this template knows too much about Assay Result
             var imageTpl = Ext4.create('Ext.XTemplate',
                     '<tpl for=".">',
                     '<div style="width: 120px; height: 120px; padding: 5px;" class="sample-preview">',
                     '<span style="margin: auto;"><strong>{TestType}</strong></span>',
-                    '<img style="margin-left: auto; margin-right: auto;" src="/labkey/formulation/{TestType}.png" height="48" width="72"/>',
+                    '<img style="margin-left: auto; margin-right: auto;" src="',
+                    imgPath,
+                    '/{TestType}.png" height="48" width="72"/>',
                     '</div>',
                     '</tpl>'
             );
@@ -302,7 +315,6 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
                 listeners : {
                     itemclick : this.onInputSelect,
                     refresh   : function(v) {
-                        console.log('refreshing data view');
                         v.select(0);
                         this.onInputSelect(v, v.getStore().getAt(0));
                     },
@@ -459,7 +471,8 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
                 icon : LABKEY.contextPath + '/visualization/report/timechart.gif',
                 tooltip : 'Preview',
                 handler : function(grid, ridx, cidx) {
-                    this.seePreview(grid.getStore().getAt(ridx));
+                    this.seePreviewVis(grid.getStore().getAt(ridx));
+//                    this.seePreview(grid.getStore().getAt(ridx));
                 },
                 scope : this
             }]
@@ -528,6 +541,26 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
         this.runInfoPanel.getComponent('sampleInfo').add(this.renderDataView());
     },
 
+    seePreviewVis : function(record) {
+        this.plotRegion = Ext4.create('Ext.Component', {
+            autoEl: {
+                tag : 'div',
+                cls : 'emptyplot plot'
+            },
+            listeners : {
+                afterrender : function(c){
+                    console.log(c.getId());
+                    this.plotid = c.getId();
+                },
+                scope : this
+            },
+            scope : this
+        });
+        this.add(this.plotRegion);
+        this.getLayout().setActiveItem(this.plotRegion);
+        console.log(record);
+    },
+
     seePreview : function(record) {
         var r = record;
         var preview = Ext4.create('Ext.panel.Panel', {
@@ -584,14 +617,27 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
     },
 
     getConfiguration : function(handler, scope) {
-        this.fileSystem.listFiles(this.targetFile.treeNode.id, function(fs, success, path, files){
-            var _data = {}, _files = [];
-            for (var i = 0; i < files.length; i++){
-                _files.push(files[i].data);
-            }
-            _data['files'] = _files;
-            handler.call(scope || this, _data);
-        }, this);
+
+        if (!this.targetFile || !this.targetFile.treeNode)
+        {
+            Ext4.Msg.alert('No Files', 'Please select a directory or file to import.');
+            return;
+        }
+
+        var fileConfig = {
+            path : this.targetFile.treeNode.id,
+            success : function(fs, path, files){
+                var _data = {}, _files = [];
+                for (var i = 0; i < files.length; i++){
+                    _files.push(files[i].data);
+                }
+                _data['files'] = _files;
+                handler.call(scope || this, _data);
+            },
+            scope : this
+        };
+
+        this.fileSystem.listFiles(fileConfig);
     },
 
     // This will save the assay run in it's current state
@@ -693,7 +739,7 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
     _defineModels : function() {
 
         // resolves the field type of a value (e.g 123 -> 'int', etc)
-        function resolveType(val)
+        var resolveType = function(val)
         {
             if (Ext4.isString(val))
                 return 'string';
@@ -709,7 +755,7 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
         }
 
         // Returns an array of properties and their associated type
-        function mapFolderRecord(record) {
+        var mapFolderRecord = function(record) {
             var _results = [];
 
             if (record && record.data) {
@@ -731,7 +777,7 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
             return _results;
         }
 
-        function mapAssayRun()
+        var mapAssayRun = function()
         {
             var fields = [], field;
             var domain = LABKEY.page.assay.domains;
@@ -748,14 +794,14 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
         }
 
         // creates an array of {name, type} objects used to define fields in model
-        function mapAssayResult()
+        var mapAssayResult = function()
         {
             var fields = [], field;
             var domain = LABKEY.page.assay.domains;
             var name = LABKEY.page.assay.name;
             var run = domain[name + ' Result Fields'];
             for (var i=0; i < run.length; i++) {
-                console.log(run[i]);
+//                console.log(run[i]);
                 field = {
                     name : run[i].name,
                     type : run[i].typeName,
@@ -827,7 +873,6 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
             }
         };
 
-        console.log('stores initialized');
         this.smpStore  = Ext4.create('Ext.data.Store', fileStoreConfig);
         this.stdStore  = Ext4.create('Ext.data.Store', fileStoreConfig);
         this.mthdStore = Ext4.create('Ext.data.Store', fileStoreConfig);
