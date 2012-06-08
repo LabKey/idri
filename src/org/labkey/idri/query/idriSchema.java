@@ -25,6 +25,7 @@ import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.idri.idriModule;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,12 +42,16 @@ public class idriSchema extends UserSchema
 
     public static final String LIST_MATERIAL_TYPES = "MaterialTypes";
 
-    static public void register()
+    public static void register(final idriModule module)
     {
-        DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider() {
+        DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider()
+        {
+            @Override
             public QuerySchema getSchema(DefaultSchema schema)
             {
-                return new idriSchema(schema.getUser(), schema.getContainer());
+                if (schema.getContainer().getActiveModules().contains(module))
+                    return new idriSchema(schema.getUser(), schema.getContainer());
+                return null;
             }
         });
     }

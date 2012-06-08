@@ -96,13 +96,14 @@ public class idriModule extends DefaultModule
     protected void init()
     {
         addController("idri", idriController.class);
-        idriSchema.register();
     }
 
     public void startup(ModuleContext moduleContext)
     {
         // add a container listener so we'll know when our container is deleted:
         ContainerManager.addContainerListener(new idriContainerListener());
+
+        idriSchema.register(this);
 
         // add folder types
         ModuleLoader.getInstance().registerFolderType(this, new idriFormulationsFolderType(this));
