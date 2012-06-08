@@ -56,8 +56,8 @@ Ext4.define('HPLC.view.SampleEntry', {
             xtype  : 'panel',
             region : 'east',
             border: false, frame : false,
-            flex : 3,
-            items : [this.initReplicateForm()]
+            flex : 3
+//            items : [this.initReplicateForm()]
         }];
 
         this.callParent();

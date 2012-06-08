@@ -21,7 +21,6 @@ Ext4.define('HPLC.controller.State', {
     },
 
     setActiveView : function(xtype) {
-        console.log('active view set: ' + xtype);
         this.activeview = xtype;
     },
 
@@ -88,6 +87,9 @@ Ext4.define('HPLC.controller.State', {
                     this.application.tab.add(view);
                     this.max++;
                 }
+
+                this.application.tab.add(this.createReviewView());
+                this.max++;
             }
 
             this.done = true;
@@ -104,6 +106,12 @@ Ext4.define('HPLC.controller.State', {
         this.back.setDisabled(this.activeIdx <= 0);
         this.application.tab.setActiveTab(this.activeIdx);
         this.setActiveView(this.application.tab.getActiveTab().getXType());
+    },
+
+    createReviewView : function() {
+        return Ext4.create('Ext.panel.Panel', {
+            html : 'Review Page: Under Construction'
+        });
     },
 
     createSampleView : function(samples, idx, standards) {
