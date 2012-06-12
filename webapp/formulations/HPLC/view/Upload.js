@@ -36,10 +36,7 @@ Ext4.define('HPLC.view.Upload', {
 
         this.on('fileload', this.onFileLoad, this);
 
-        this.fileUploadPanel = this.initFileUploadPanel();
-        this.runInfoPanel    = this.initRunInfoPanel();
-
-        this.items = [this.fileUploadPanel, this.runInfoPanel];
+        this.items = [this.getFileUploadPanel()];
 
         // Once this handler is called the models are in a correct state to be used
         var handler = function(data) {
@@ -51,12 +48,12 @@ Ext4.define('HPLC.view.Upload', {
         this.callParent();
     },
 
-    initFileUploadPanel : function() {
+    getFileUploadPanel : function() {
 
         if (this.fileUploadPanel)
             return this.fileUploadPanel;
 
-        return Ext4.create('Ext.panel.Panel', {
+        this.fileUploadPanel = Ext4.create('Ext.panel.Panel', {
             itemId : 'fileInfo',
             layout : 'border',
             border : false, frame: false,
@@ -75,151 +72,7 @@ Ext4.define('HPLC.view.Upload', {
             }]
         });
 
-    },
-
-    initRunInfoPanel : function() {
-
-        if (this.runInfoPanel)
-            return this.runInfoPanel;
-
-        return Ext4.create('Ext.panel.Panel', {
-            itemId   : 'runInfo',
-            border   : false, frame : false,
-            layout   : 'border',
-            items : [{
-                itemId: 'runForm',
-                xtype : 'labkey-formpanel',
-                title : 'Run Information',
-                region: 'north',
-                store : new LABKEY.ext4.Store({
-                    schemaName : 'assay',
-                    queryName  : LABKEY.page.assay.name + ' Runs',
-                    autoLoad   : true,
-                    bindConfig: {
-                        autoCreateRecordOnChange: false,
-                        autoBindFirstRecord: false
-                    },
-                    columns : '*',
-                    metadata : {
-                        Flag : { hidden: true },
-                        RunGroups : { hidden: true }
-                    }
-                }),
-                autoScroll : true,
-                height : 175,
-                defaultFieldWidth : 500,
-                defaultFieldLabelWidth : 200,
-                buttons : [], // weird to declare I dont want buttons
-                style   : 'margin-bottom: 0px',
-
-                // Override
-                configureForm : function(store) {
-                    var _fields = {};
-                    var toAdd = [];
-                    var config = {
-                        queryName  : store.queryName,
-                        schemaName : store.schemaName
-                    };
-
-                    store.getFields().each(function(c){
-                        _fields[c.name] = store.getFormEditorConfig(c.name, config);
-
-                        if(!c.width)
-                            _fields[c.name].width = 500;
-                        if(!c.width)
-                            _fields[c.name].labelWidth = 200;
-
-                        if (_fields[c.name].xtype == 'combo')
-                            _fields[c.name].store.autoLoad = true;
-                        if(c.isUserEditable===false || c.isAutoIncrement || c.isReadOnly){
-                            _fields[c.name].xtype = 'displayfield';
-                        }
-                    });
-
-                    // special handling of method display
-                    _fields['Method'].xtype = 'displayfield';
-//                    console.log('setting field to ' + this.mthdStore.getAt(0).get('name'));
-//                    _fields['Method'].value = this.mthdStore.getAt(0).get('name');
-
-                    // eww, do this for specific order
-                    toAdd.push(_fields['LotNumber']);
-                    toAdd.push(_fields['StorageTemperature']);
-                    toAdd.push(_fields['Time']);
-                    toAdd.push(_fields['Method']);
-
-                    return toAdd;
-                },
-
-                listeners : {
-                    formconfiguration : function(formPanel, fields){
-
-                        // just use this for validation of fields
-                        // layout the form myself
-
-                        for (var f = 0; f < fields.length; f++) {
-                            if (fields[f].disabled)
-                            {
-                                fields[f].xtype = 'hiddenfield'
-                                fields[f].height = undefined;
-                                fields[f].width = undefined;
-                            }
-                        }
-                    }
-                },
-                scope : this
-            },{
-                itemId : 'sampleInfo',
-                region : 'center',
-                flex   : 1,
-                items  : [],
-                border : false, frame : false,
-                layout : 'fit',
-                scope  : this
-            },{
-                itemId : 'sampleBound',
-                region : 'west',
-                flex   : 1,
-                layout : 'fit',
-                border : false, frame : false,
-                width  : '45%',
-                items  : [{
-                    border : false, frame : false,
-                    html : 'Click a sample/standard to see details.'
-                }]
-            }],
-            listeners : {
-                activate : function() {
-                    var dataView = this.runInfoPanel.getComponent('sampleInfo').getComponent('smpDataView');
-
-                    if (!this.smpStore || !this.smpStore.getCount()) {
-                        return;
-                    }
-
-                    var data = {};
-                    data.results = [];
-                    for (var i=0; i < this.smpStore.getCount(); i++) {
-                        data.results.push({
-                            fileName   : this.smpStore.getAt(i).data.name,
-                            'TestType' : 'sample'
-                        });
-                    }
-
-                    for (i=0; i < this.stdStore.getCount(); i++) {
-                        data.results.push({
-                            fileName   : this.smpStore.getAt(i).data.name,
-                            'TestType' : 'standard'
-                        });
-                    }
-
-                    dataView.getStore().loadRawData(data);
-                    dataView.refresh();
-
-                    this.nextBtn.setText('Save');
-                },
-                scope : this
-            },
-            scope    : this
-        });
+        return this.fileUploadPanel;
     },
 
     renderDataView : function(p) {
@@ -227,7 +80,7 @@ Ext4.define('HPLC.view.Upload', {
         if (this.stdStore && this.smpStore) {
 
             var resultsStore = Ext4.create('Ext.data.Store', {
-                model : 'LABKEY.Assay.HPLC.Result',
+                model : 'HPLC.model.Result',
                 proxy    : {
                     type : 'memory',
                     reader : {
@@ -266,14 +119,6 @@ Ext4.define('HPLC.view.Upload', {
                 store : resultsStore,
                 autoScroll : true,
                 deferInitialRefresh : true,
-                listeners : {
-                    itemclick : this.onInputSelect,
-                    refresh   : function(v) {
-                        v.select(0);
-                        this.onInputSelect(v, v.getStore().getAt(0));
-                    },
-                    scope : this
-                },
                 scope : this
             });
 
@@ -284,118 +129,6 @@ Ext4.define('HPLC.view.Upload', {
             border : false, frame : false,
             html : 'Stores not loaded in time'
         });
-    },
-
-    onInputSelect : function(view, rec) {
-        var p = this.runInfoPanel.getComponent('sampleBound');
-
-        var form = p.getComponent('sampleForm');
-        if (!form)
-        {
-            p.removeAll();
-
-            var task = new Ext4.util.DelayedTask();
-
-            function resolveXType(item) {
-                switch (item.type.type)
-                {
-                    case 'int' : return 'numberfield';
-                }
-                return 'textfield';
-            }
-
-            var configs = {
-                'fileName' : {
-                    xtype : 'displayfield',
-                    name  : 'fileName',
-                    fieldLabel : 'File'
-                },
-                'TestType' : {
-                    xtype : 'combobox',
-                    fieldLabel : 'Test Type',
-                    store : Ext4.create('Ext.data.ArrayStore', {
-                        idIndex : 0,
-                        fields  : ['type'],
-                        data    : [['sample'],['standard']]
-                    }),
-                    displayField : 'type',
-                    valueField   : 'type',
-                    name : 'TestType',
-                    editable : false,
-                    required : true
-                },
-                'Compound' : {
-                    xtype : 'combobox',
-                    store : new LABKEY.ext4.Store({
-                        schemaName : 'Samples',
-                        queryName  : 'Compounds',
-                        autoLoad   : true,
-                        bindConfig: {
-                            autoCreateRecordOnChange: false,
-                            autoBindFirstRecord: false
-                        }
-                    }),
-                    fieldLabel : 'Compound',
-                    name : 'Compound',
-                    valueField : 'RowId',
-                    displayField : 'Name',
-                    editable : false
-                }
-            };
-
-            var formItems = [];
-
-            for (var c in configs) {
-                if (configs.hasOwnProperty(c)) {
-                    formItems.push(configs[c]);
-                }
-            }
-
-            for (var i=0; i < rec.fields.keys.length; i++) {
-                if (configs[rec.fields.keys[i]])
-                    continue;
-
-                formItems.push({
-                    xtype : resolveXType(rec.fields.items[i]),
-                    name  : rec.fields.keys[i],
-                    fieldLabel : rec.fields.keys[i],
-                    required : rec.fields.items[i].required || false,
-                    scope : this
-                });
-            }
-
-            formItems.push({
-                itemId : 'sampleFormErrors',
-                bodyStyle : 'padding: 5px; color: red;',
-                border : false, frame : false,
-                html : ''
-            });
-
-            form = Ext4.create('Ext.form.Panel', {
-                itemId : 'sampleForm',
-                bodyStyle : 'padding: 5px',
-                defaults : {
-                    listeners : {
-                        change : function(f, newVal) {
-                            task.delay(200, function(f, newVal){
-                                form.getComponent('sampleFormErrors').update('');
-                                if (this.activeSampleRecord) {
-                                    this.activeSampleRecord.set(f.getName(), newVal);
-                                }
-                            }, this, [f, newVal]);
-                        },
-                        scope : this
-                    }
-                },
-                items : formItems
-            });
-
-            p.add(form);
-        }
-
-        // update the form
-        this.activeSampleRecord = rec;
-        form.getForm().loadRecord(rec);
     },
 
     onFileLoad : function(a, b, c, d, e, f)
@@ -490,9 +223,8 @@ Ext4.define('HPLC.view.Upload', {
             scope : this
         });
 
-        this.fileUploadPanel.getComponent('grid').add(leftGrid);
-        this.fileUploadPanel.getComponent('targets').add(rightPanel);
-        this.runInfoPanel.getComponent('sampleInfo').add(this.renderDataView());
+        this.getFileUploadPanel().getComponent('grid').add(leftGrid);
+        this.getFileUploadPanel().getComponent('targets').add(rightPanel);
     },
 
     seePreviewVis : function(record) {
@@ -604,17 +336,6 @@ Ext4.define('HPLC.view.Upload', {
                 errors = resultStore.getAt(i).validate();
                 if (errors && !errors.isValid()) {
                     this.dataView.select(i);
-                    this.onInputSelect(this.dataView, resultStore.getAt(i));
-                    var els = this.dataView.getSelectedNodes();
-                    if (els) {
-                        Ext4.fly(els[0]).addCls('sample-error');
-                        var form = this.runInfoPanel.getComponent('sampleBound').getComponent('sampleForm');
-                        if (form) {
-                            var basic = form.getForm();
-                            basic.markInvalid(errors);
-                            form.getComponent('sampleFormErrors').update('Please fix this standard/sample.');
-                        }
-                    }
 
                     return false;
                 }
@@ -628,17 +349,19 @@ Ext4.define('HPLC.view.Upload', {
         }
 
         /* Run info */
-        var form = this.runInfoPanel.getComponent('runForm');
-        form = form.getForm();
-        if (!form.isValid || !form.store.getAt(0)) {
-            console.log('the form is invalid');
-            form.markInvalid();
-            return false;
-        }
+//        var form = this.runInfoPanel.getComponent('runForm');
+//        form = form.getForm();
+//        if (!form.isValid || !form.store.getAt(0)) {
+//            console.log('the form is invalid');
+//            form.markInvalid();
+//            return false;
+//        }
+        return false;
+
 
         var run = this._ensureRun(true);
 
-        var _rec = Ext4.create('LABKEY.Assay.HPLC.Run', form.store.getAt(0).data);
+        var _rec = Ext4.create('HPLC.model.Run', form.store.getAt(0).data);
 
         /* map run properties */
         for (var i=0; i < _rec.fields.keys.length; i++)
@@ -776,17 +499,17 @@ Ext4.define('HPLC.view.Upload', {
 
         // TODO: This should extend OR be a model of the standard labkey ajax file object
         // reexamine this after fileBrowser has been updated to Ext4
-        Ext4.define('LABKEY.Assay.HPLC.File', {
+        Ext4.define('HPLC.model.File', {
             extend : 'Ext.data.Model',
             fields : mapFolderRecord(this.targetFile)
         });
 
-        Ext4.define('LABKEY.Assay.HPLC.Run', {
+        Ext4.define('HPLC.model.Run', {
             extend : 'Ext.data.Model',
             fields : mapAssayRun()
         });
 
-        Ext4.define('LABKEY.Assay.HPLC.Result', {
+        Ext4.define('HPLC.model.Result', {
             extend : 'Ext.data.Model',
             fields : mapAssayResult(),
             validations : [
@@ -817,7 +540,7 @@ Ext4.define('HPLC.view.Upload', {
 
         // There are a set of file stores used for each category
         var fileStoreConfig = {
-            model    : 'LABKEY.Assay.HPLC.File',
+            model    : 'HPLC.model.File',
             proxy    : {
                 type : 'memory',
                 reader : {

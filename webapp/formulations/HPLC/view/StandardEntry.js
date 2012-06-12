@@ -33,6 +33,19 @@ Ext4.define('HPLC.view.StandardEntry', {
         this.callParent();
     },
 
+    getForm : function() {
+        if (this.formItems)
+        {
+            var ret = [];
+            for (var f=0; f < this.formItems.length; f++)
+            {
+                ret.push(this.formItems[f].getValues());
+            }
+            return ret;
+        }
+        return [];
+    },
+
     initializeForms : function() {
 
         var formItems = [];
@@ -41,9 +54,9 @@ Ext4.define('HPLC.view.StandardEntry', {
             formItems.push(this.generateStandardForm(this.standards.getAt(i), i));
         }
 
-        console.log(formItems);
+        this.formItems = formItems;
 
-        return formItems;
+        return this.formItems;
     },
 
     generateStandardForm : function(standard, idx) {
@@ -69,21 +82,33 @@ Ext4.define('HPLC.view.StandardEntry', {
             },{
                 xtype : 'combo',
                 fieldLabel : 'Compound',
-                name : 'compound',
+                name : 'Compound',
                 store : this.initializeCompoundStore(),
                 editable : false,
                 queryMode : 'local',
                 displayField : 'Name',
-                valueField : 'RowId',
+                valueField : 'Name', //'RowId',
                 emptyText : 'None'
             },{
-                xtype : 'textfield',
+                xtype : 'numberfield',
                 fieldLabel : 'Concentration',
-                name : 'conc'
+                name : 'Concentration'
             },{
                 xtype : 'textfield',
                 fieldLabel : 'Dilutent',
                 name : 'dilutent'
+            },{
+                xtype : 'hidden',
+                name : 'TestType',
+                value : 'standard'
+            },{
+                xtype : 'hidden',
+                name : 'uri',
+                value : standard.data.uri
+            },{
+                xtype : 'hidden',
+                name : 'filepath',
+                value : standard.data.path
             }]
         });
 

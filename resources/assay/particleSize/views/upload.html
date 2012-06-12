@@ -61,799 +61,704 @@
 </script>
 <script type="text/javascript">
 
-// CONSTANTS
-var STANDARD_DATE_OF_MANUFACTURE = "T=0";
-var STANDARD_TEMPERATURE = "5C";
-var DATE_OF_MANUFACTURE_FOUND = false;
-var MAXIMAL_FULL_SET = 9;
-var WORKING_SET_SIZE = 3;
-var MAX_PDI = 1.0;
-var MIN_ZAVE = 1.0;
+(function(){
 
-function done()
-{
-    var url = LABKEY.ActionURL.buildURL("assay", "assayRuns", LABKEY.ActionURL.getContainer(), LABKEY.ActionURL.getParameters());
-    window.location = url;
-}
+    // CONSTANTS
+    var STANDARD_DATE_OF_MANUFACTURE = "T=0",
+            STANDARD_TEMPERATURE = "5C",
+            DATE_OF_MANUFACTURE_FOUND = false,
+            MAXIMAL_FULL_SET = 9,
+            WORKING_SET_SIZE = 3,
+            MAX_PDI = 1.0,
+            MIN_ZAVE = 1.0,
+            webpart;
 
-function saveBatch()
-{
-    if (!LABKEY.dirty) return;
+    var done = function() {
+        window.location = LABKEY.ActionURL.buildURL("assay", "assayRuns", LABKEY.ActionURL.getContainer(), LABKEY.ActionURL.getParameters());
+    };
 
-    // XXX: do some basic validation before saving...
-    LABKEY.Experiment.saveBatch({
-        assayId : LABKEY.page.assay.id,
-        batch : LABKEY.page.batch,
-        successCallback : function (batch, response)
-        {
-            LABKEY.page.batch = batch;
-            renderBatch();
-            LABKEY.setDirty(false);
+    var saveBatch = function() {
+        if (!LABKEY.dirty) return;
 
-            var sampleName = LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "");
-            var tools = ['aps', 'nano'];
-            LABKEY.Query.selectRows({
-                schemaName: 'samples',
-                queryName : 'Formulations',
-                filterArray : [LABKEY.Filter.create('name', sampleName, LABKEY.Filter.Types.STARTS_WITH)],
-                success   : function(data) {
-                    if (data && data.rows && data.rows.length == 1) {
-                        var temp = '5C';
-                        for (var i = 0; i < tools.length; i++) {
-                            document.getElementById(tools[i] + '-report-div').innerHTML = "<br/><span style='text-decoration: blink;'>Generating " + tools[i] +" Report...   </span>";
-                            var wp = new LABKEY.WebPart({
-                                partName: 'Report',
-                                renderTo: tools[i] + '-report-div',
-                                frame   : 'none',
-                                partConfig : {
-                                    reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
-                                    showSection   :'labkey' + tools[i] + '_png',
-                                    'nameContains': sampleName.toUpperCase(),
-                                    'storageTemp' : temp,
-                                    'analysisTool': tools[i]
-                                }
-                            });
-                            wp.render();
+        // XXX: do some basic validation before saving...
+        LABKEY.Experiment.saveBatch({
+            assayId : LABKEY.page.assay.id,
+            batch : LABKEY.page.batch,
+            successCallback : function (batch, response)
+            {
+                LABKEY.page.batch = batch;
+                renderBatch();
+                LABKEY.setDirty(false);
+
+                var sampleName = LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "");
+                var tools = ['aps', 'nano'];
+                LABKEY.Query.selectRows({
+                    schemaName: 'samples',
+                    queryName : 'Formulations',
+                    filterArray : [LABKEY.Filter.create('name', sampleName, LABKEY.Filter.Types.STARTS_WITH)],
+                    success   : function(data) {
+                        if (data && data.rows && data.rows.length == 1) {
+                            var temp = '5C';
+                            for (var i = 0; i < tools.length; i++) {
+                                document.getElementById(tools[i] + '-report-div').innerHTML = "<br/><span style='text-decoration: blink;'>Generating " + tools[i] +" Report...   </span>";
+                                var wp = new LABKEY.WebPart({
+                                    partName: 'Report',
+                                    renderTo: tools[i] + '-report-div',
+                                    frame   : 'none',
+                                    partConfig : {
+                                        reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
+                                        showSection   :'labkey' + tools[i] + '_png',
+                                        'nameContains': sampleName.toUpperCase(),
+                                        'storageTemp' : temp,
+                                        'analysisTool': tools[i]
+                                    }
+                                });
+                                wp.render();
+                            }
                         }
-                    }
-                    else {
+                        else {
+                            Ext.Msg.alert("Sample not Found", "Your data has been uploaded, however, the corresponding sample was not found for '" +
+                                    LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "") + "'.");
+                        }
+                    },
+                    failure : function(response){
                         Ext.Msg.alert("Sample not Found", "Your data has been uploaded, however, the corresponding sample was not found for '" +
                                 LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "") + "'.");
                     }
-                },
-                failure : function(response){
-                    Ext.Msg.alert("Sample not Found", "Your data has been uploaded, however, the corresponding sample was not found for '" +
-                            LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "") + "'.");
-                }
-            });
+                });
 
-            var uploadButtonDiv = document.getElementById("upload-run-form");
-            uploadButtonDiv.style.display = "none";
+                var uploadButtonDiv = document.getElementById("upload-run-form");
+                uploadButtonDiv.style.display = "none";
 
-            var uploadTextDiv = document.getElementById("uploadTextDiv");
-            uploadTextDiv.style.display = "none";
+                var uploadTextDiv = document.getElementById("uploadTextDiv");
+                uploadTextDiv.style.display = "none";
 
-            Ext.Msg.hide();
-        },
-        failureCallback : function (error, format)
-        {
-            Ext.Msg.hide();
-            // Break up this string in the source so that it's easier to tell when there's been an actual error -
-            // we can look for the concatenated version in the page
-            Ext.Msg.alert("Failure when communicating " + "with the server: " + error.exception);
-        }
-    });
-}
-
-function init()
-{
-    new Ext.form.TextField({
-        enableKeyEvents: true,
-        listeners: {
-            'keydown': function (field, evt)
-            {
-                if (field.isDirty())
-                {
-                    LABKEY.page.batch.name = field.getValue();
-                    LABKEY.setDirty(true);
-                }
+                Ext.Msg.hide();
             },
-            'specialkey': function (field, evt)
-            {
-                if (evt.getKey() == Ext.EventObject.ENTER)
-                {
-                    LABKEY.page.batch.name = field.getValue();
-                    LABKEY.setDirty(true);
-                }
-            },
-            'change': function (field, newValue, oldValue)
-            {
-                LABKEY.page.batch.name = newValue;
-                LABKEY.setDirty(true);
-            }
-        },
-        applyTo: 'batch_name_input',
-        id: 'batch_name_field',
-        width: 200
-    });
-
-    var form = new Ext.form.BasicForm(
-            Ext.get("upload-run-form"), {
-        fileUpload: true,
-        frame: false,
-        url: LABKEY.ActionURL.buildURL("assay", "assayFileUpload"),
-        listeners: {
-            "actioncomplete" : function (f, action)
-            {
-                console.log("actioncomplete");
-                console.log(action);
-                handleDataUpload(f, action);
-            },
-            "actionfailed" : function (f, action)
-            {
-                console.log("actionfailed");
-                console.log(action);
-                handleDataUpload(f, action);
-            }
-        }
-    });
-
-    var uploadField = new Ext.form.FileUploadField({
-        id: "upload-run-field",
-        renderTo: "upload-run-button",
-        buttonText: "Add Excel file...",
-        buttonOnly: true,
-        buttonCfg: {
-            cls: "labkey-button"
-        },
-        listeners: {
-            "fileselected": function (fb, v)
-            {
-                form.submit();
-            }
-        }
-    });
-
-    renderBatch();
-}
-
-function trim(stringToTrim) {
-
-    if(stringToTrim.match(/[Tt]\s*=\s*[0]/))
-    {
-        return STANDARD_DATE_OF_MANUFACTURE;
-    }
-    else if(stringToTrim.match(/[Dd][Mm]/))
-    {
-        return STANDARD_DATE_OF_MANUFACTURE;
-    }
-    return stringToTrim.replace(/^\s+|\s+$/g,"");
-}
-
-function equalsIgnoresCase(str1, str2)
-{
-    return str1.toLowerCase() == str2.toLowerCase();
-}
-
-function renderBatch()
-{
-    var batch = LABKEY.page.batch;
-    Ext.getCmp('batch_name_field').setValue(batch.name);
-    Ext.fly('batch_created_span').update(batch.created);
-    Ext.fly('batch_createdBy_span').update(batch.createdBy);
-    Ext.fly('batch_modified_span').update(batch.modified);
-    Ext.fly('batch_modifiedBy_span').update(batch.modifiedBy);
-
-    renderRunsWebPart();
-}
-
-var webpart = null;
-
-function renderRunsWebPart()
-{
-    if (LABKEY.page.batch.id)
-    {
-        var partConfig = {};
-        partConfig.viewProtocolId = LABKEY.page.assay.id;
-        partConfig[LABKEY.page.assay.name + " Runs.Batch/RowId~eq"] = LABKEY.page.batch.id;
-
-        webpart = new LABKEY.WebPart({
-            partName: 'Assay Runs',
-            renderTo: 'runs_div',
-            frame: 'none',
-            partConfig: partConfig
-        });
-    }
-
-    if (webpart) webpart.render();
-}
-
-function handleDataUpload(f, action)
-{
-    if (!action || !action.result)
-    {
-        Ext.Msg.alert("Upload Failed", "Something went horribly wrong when uploading.");
-        return;
-    }
-    if (!action.result.id)
-    {
-        Ext.Msg.alert("Upload Failed", "Failed to upload the data file: " + action.result);
-        return;
-    }
-
-    Ext.Msg.wait("Uploading...");
-
-    var data = new LABKEY.Exp.Data(action.result);
-
-    var run = new LABKEY.Exp.Run();
-    run.name = data.name || "[New]";
-    run.dataInputs = run.dataInputs || [];
-    run.dataInputs[0] = data;
-
-    if (!data.content)
-    {
-        data.getContent({
-            format: 'jsonTSV',
-            successCallback: function (content, format)
-            {
-                data.content = content;
-                handleRunContent(run, content);
-            },
-            failureCallback: function (error, format)
+            failureCallback : function (error, format)
             {
                 Ext.Msg.hide();
-                Ext.Msg.alert("Upload Failed", "An error occurred while fetching the contents of the data file: " + error.exception);
+                // Break up this string in the source so that it's easier to tell when there's been an actual error -
+                // we can look for the concatenated version in the page
+                Ext.Msg.alert("Failure when communicating " + "with the server: " + error.exception);
             }
         });
-    }
-    else
-    {
-        Ext.Msg.hide();
-    }
-}
+    };
 
-// DEPRECATED: In favor of parseSampleNameAdvanced
-// Return array of:
-// 0 - storage temperature:  "XXC" where X is a digit, and "RT" for room temp, default 5C
-// 1 - time label ("T=0", "4 dy", "1 wk", "6 mo")
-// 3 - extraction number
-function parseSampleName(sampleText)
-{
-    // Argument - sampleText is equivalent to one row in an incoming file.
+    var renderBatch = function() {
+        var batch = LABKEY.page.batch;
+        Ext.getCmp('batch_name_field').setValue(batch.name);
+        Ext.fly('batch_created_span').update(batch.created);
+        Ext.fly('batch_createdBy_span').update(batch.createdBy);
+        Ext.fly('batch_modified_span').update(batch.modified);
+        Ext.fly('batch_modifiedBy_span').update(batch.modifiedBy);
 
-    var extractionNum = 1; // If we don't find an extraction number
+        renderRunsWebPart();
+    };
 
-    // validate that the sample number is correct, if the text ends with a number
-    var num = sampleText.charAt(sampleText.length - 1);
-    if (/[0-9]$/.test(num))
-    {
-        extractionNum = parseInt(sampleText.substring(sampleText.length-2));
-
-        // strip off number and previous space
-        sampleText = sampleText.substring(0, sampleText.length - 2);
-    }
-
-    var temperature = null;
-    var cIndex = sampleText.toUpperCase().indexOf("C");
-
-    if (cIndex > 0 )
-    {
-        // pull up to two characters preceeding the C and treat as temp
-        if (cIndex < 3)
+    var renderRunsWebPart = function() {
+        if (LABKEY.page.batch.id)
         {
-            temperature = sampleText.substring(0, cIndex + 1);  // include the C
-            sampleText = sampleText.substring(cIndex + 2); // Do not include the C or the trailing space
+            var partConfig = {};
+            partConfig.viewProtocolId = LABKEY.page.assay.id;
+            partConfig[LABKEY.page.assay.name + " Runs.Batch/RowId~eq"] = LABKEY.page.batch.id;
+
+            webpart = new LABKEY.WebPart({
+                partName: 'Assay Runs',
+                renderTo: 'runs_div',
+                frame: 'none',
+                partConfig: partConfig
+            });
+        }
+
+        if (webpart) webpart.render();
+    };
+
+    var handleDataUpload = function(f, action) {
+        if (!action || !action.result)
+        {
+            Ext.Msg.alert("Upload Failed", "Something went horribly wrong when uploading.");
+            return;
+        }
+        if (!action.result.id)
+        {
+            Ext.Msg.alert("Upload Failed", "Failed to upload the data file: " + action.result);
+            return;
+        }
+
+        Ext.Msg.wait("Uploading...");
+
+        var data = new LABKEY.Exp.Data(action.result);
+
+        var run = new LABKEY.Exp.Run();
+        run.name = data.name || "[New]";
+        run.dataInputs = run.dataInputs || [];
+        run.dataInputs[0] = data;
+
+        if (!data.content)
+        {
+            data.getContent({
+                format: 'jsonTSV',
+                successCallback: function (content, format)
+                {
+                    data.content = content;
+                    handleRunContent(run, content);
+                },
+                failureCallback: function (error, format)
+                {
+                    Ext.Msg.hide();
+                    Ext.Msg.alert("Upload Failed", "An error occurred while fetching the contents of the data file: " + error.exception);
+                }
+            });
         }
         else
         {
-            temperature = sampleText.substring(cIndex - 2, cIndex + 1);
-            sampleText = sampleText.substring(0, cIndex - 3);
-
+            Ext.Msg.hide();
         }
+    };
 
-    }
-    else
-    {
-        cIndex = sampleText.indexOf("RT");
-        if (cIndex >= 0)
+    // Return array of:
+    // 0 - storage temperature:  "XXC" where X is a digit, and "RT" for room temp, default 5C
+    // 1 - time label ("T=0", "4 dy", "1 wk", "6 mo")
+    // 3 - extraction number
+    // 4 - Machine Type
+    var parseSampleNameAdvanced = function(sampleText) {
+        // Arguement - sampleText is equivalent to one row in the file.
+
+        // Possible pattern types recognized
+        // 1. [ TIME PERIOD ] [ SAMPLE # ]              nano -- Missing TEMP
+        // 2. [ TEMP ] [ TIME PERIOD ] [ SAMPLE # ]     nano
+        // 3. [ TIME PERIOD ] [ TEMP ] [ WELL INFO ]    aps  -- Missing SAMPLE #
+        // TIME PERIOD = DM, T=0, 1 wk, 2 wk, 3mo, 6mo, etc.
+        // SAMPLE #    = 1, 2, 3, ..., n samples
+        // TEMP        = 5C, 25C, 37C, etc
+        // WELL INFO   = "QF145 (well F7)", "TD336 (well G11)", etc
+        // For (1) the temperature must be assumed. For (3) the Sample number must be
+        // derived.
+
+        var temperature = "",
+                timeLabel = "",
+                extractionNum = 1, // If we don't find an extraction number
+                machineType = "",
+                patternAPS = /(WELL|Well|well)+/,
+                pattern2 = /(\d+[Cc])+/,
+                pattern1 = /((T\s*=\s*0)\s+\d+|[a-zA-Z]+\s+\d+)/,
+                patternFiltered = /T\s*=\s*0\s+\([F|f][a-zA-Z]+ed\)\s+\d+/,
+                patternTemp = /\d+[Cc]/,
+                patternTime = /(T\s*=\s*0)|[Dd][Mm]|(\s+[Dd]\d+\s+)|(\d+\s*[a-zA-Z]+)/; // Currently, this will match on Temp too
+
+        // Change all DM times to T=0
+        sampleText = sampleText.replace(/[Dd][Mm]/,STANDARD_DATE_OF_MANUFACTURE);
+
+        if (sampleText.search(/(T\s*=\s*0)/) > 0)
         {
-            temperature = "RT";
-            if (cIndex <= 1)
-                sampleText = sampleText.substring(cIndex + 3);
-            else
-                sampleText = sampleText.substring(0, cIndex - 1);
+            // Found a T=0
+            DATE_OF_MANUFACTURE_FOUND = true;
         }
 
-    }
+        // Convert weeks, months
+        sampleText = sampleText.replace(/([W|w]eek)/, 'wk');
+        sampleText = sampleText.replace(/([M|m]onth)/, 'mo');
 
-    sampleText = trim(sampleText);
-    if (null == temperature)
-        temperature = STANDARD_TEMPERATURE;
+        // replace '-' with ' '
+        sampleText = sampleText.replace((/-/), " ");
 
-    var result = [temperature, sampleText, extractionNum];
-    return result;
-
-}
-
-function parseSampleNameAdvanced(sampleText)
-{
-    // Arguement - sampleText is equivalent to one row in the file.
-
-    var temperature = "";
-    var timeLabel = "";
-    var extractionNum = 1;  // If we don't find an extraction number
-    var machineType = "";
-
-    // Possible pattern types recognized
-    // 1. [ TIME PERIOD ] [ SAMPLE # ]              nano -- Missing TEMP
-    // 2. [ TEMP ] [ TIME PERIOD ] [ SAMPLE # ]     nano
-    // 3. [ TIME PERIOD ] [ TEMP ] [ WELL INFO ]    aps  -- Missing SAMPLE #
-    // TIME PERIOD = DM, T=0, 1 wk, 2 wk, 3mo, 6mo, etc.
-    // SAMPLE #    = 1, 2, 3, ..., n samples
-    // TEMP        = 5C, 25C, 37C, etc
-    // WELL INFO   = "QF145 (well F7)", "TD336 (well G11)", etc
-    // For (1) the temperature must be assumed. For (3) the Sample number must be
-    // derived.
-
-    var patternAPS = /(WELL|Well|well)+/;
-    var pattern2 = /(\d+[Cc])+/;
-    var pattern1 = /((T\s*=\s*0)\s+\d+|[a-zA-Z]+\s+\d+)/;
-    var patternFiltered = /T\s*=\s*0\s+\([F|f][a-zA-Z]+ed\)\s+\d+/;
-    var patternTemp = /\d+[Cc]/;
-    var patternTime = /(T\s*=\s*0)|[Dd][Mm]|(\s+[Dd]\d+\s+)|(\d+\s*[a-zA-Z]+)/; // Currently, this will match on Temp too
-
-    // Change all DM times to T=0
-    sampleText = sampleText.replace(/[Dd][Mm]/,STANDARD_DATE_OF_MANUFACTURE);
-
-    if (sampleText.search(/(T\s*=\s*0)/) > 0)
-    {
-        // Found a T=0
-        DATE_OF_MANUFACTURE_FOUND = true;
-    }
-
-    // Convert weeks, months
-    sampleText = sampleText.replace(/([W|w]eek)/, 'wk');
-    sampleText = sampleText.replace(/([M|m]onth)/, 'mo');
-
-    // replace '-' with ' '
-    sampleText = sampleText.replace((/-/), " ");
-
-    // Check for time labels that should be in days (e.g. DM+1)
-    if(sampleText.match(/\+\s*\d+/))
-    {
-        var day = sampleText.match(/\+\s*\d+/)[0];
-        day = parseInt(day.replace(/\+\s*/,""));
-        sampleText = sampleText.replace(/T=0\+\s*\d+/, day + " dy");
-        console.info("Have case of DM+1");
-    }
-    else if(sampleText.match(/(\s+[Dd]\d+\s+)/))
-    {
-        // Converts D1, D2, etc to 1 dy, 2 dy, etc
-        var dayMatch = sampleText.match(/(\s+[Dd]\d+\s+)/)[0];
-        dayMatch = dayMatch.replace(/(\s+[Dd])/, " ");
-        dayMatch = dayMatch.replace(/\s+/g, "");
-
-        var dayNum = parseInt(dayMatch);
-        sampleText = sampleText.replace(/(\s+[Dd]\d+\s+)/, " " + dayNum + " dy");
-        console.info("Have case of D1, D2, etc");
-    }
-
-    if(sampleText.match(patternFiltered))
-    {
-        console.info("matched on filtered.");
-        temperature = STANDARD_TEMPERATURE;
-
-        timeLabel = sampleText.match(patternTime)[0];
-        sampleText = sampleText.replace(timeLabel,"");
-
-        extractionNum = sampleText.split(" ");
-        extractionNum = parseInt(extractionNum[extractionNum.length-1]);
-        machineType   = "nano";
-
-        return [temperature, timeLabel, extractionNum, machineType];
-    }
-    if(sampleText.match(patternAPS))
-    {
-        // Work with type 3
-        console.info("matched on aps.");
-        var cIndex = sampleText.toUpperCase().indexOf("C");
-
-        if(sampleText.match(patternTemp) != null)
+        // Check for time labels that should be in days (e.g. DM+1)
+        if(sampleText.match(/\+\s*\d+/))
         {
-            temperature = sampleText.match(patternTemp)[0];
-            sampleText = sampleText.replace(temperature,"");
+            var day = sampleText.match(/\+\s*\d+/)[0];
+            day = parseInt(day.replace(/\+\s*/,""));
+            sampleText = sampleText.replace(/T=0\+\s*\d+/, day + " dy");
         }
-        else
+        else if(sampleText.match(/(\s+[Dd]\d+\s+)/))
+        {
+            // Converts D1, D2, etc to 1 dy, 2 dy, etc
+            var dayMatch = sampleText.match(/(\s+[Dd]\d+\s+)/)[0];
+            dayMatch = dayMatch.replace(/(\s+[Dd])/, " ");
+            dayMatch = dayMatch.replace(/\s+/g, "");
+
+            var dayNum = parseInt(dayMatch);
+            sampleText = sampleText.replace(/(\s+[Dd]\d+\s+)/, " " + dayNum + " dy");
+        }
+
+        if(sampleText.match(patternFiltered))
         {
             temperature = STANDARD_TEMPERATURE;
+
+            timeLabel = sampleText.match(patternTime)[0];
+            sampleText = sampleText.replace(timeLabel,"");
+
+            extractionNum = sampleText.split(" ");
+            extractionNum = parseInt(extractionNum[extractionNum.length-1]);
+            machineType   = "nano";
+
+            return [temperature, timeLabel, extractionNum, machineType];
         }
-
-        timeLabel = sampleText.match(patternTime)[0];
-        sampleText = sampleText.replace(timeLabel,"");
-
-        machineType = "aps";
-        // we don't know extraction number in this case,
-        // might be able to calculate it based on temp, timelabel
-    }
-    else if(sampleText.match(pattern2))
-    {
-        // Work with type 2
-        console.info("matched on temp-time-sample.");
-        temperature = sampleText.match(patternTemp)[0];
-        sampleText = sampleText.replace(temperature,"");
-
-        if(!(sampleText.match(patternTime)))
+        if(sampleText.match(patternAPS))
         {
-            return -2;
-        }
+            // Work with type 3
+            var cIndex = sampleText.toUpperCase().indexOf("C");
 
-        timeLabel = sampleText.match(patternTime)[0];
-        sampleText = sampleText.replace(timeLabel,"");
-
-        extractionNum = parseInt(sampleText.replace(/\s/g,""));
-        machineType   = "nano";
-    }
-    else if(sampleText.match(pattern1))
-    {
-        console.info("matches on basic pattern: " + "\'" + sampleText + "\'");
-        temperature = STANDARD_TEMPERATURE;
-
-        if(!(sampleText.match(patternTime)))
-        {
-            return -2;
-        }
-
-        timeLabel = sampleText.match(patternTime)[0];
-        sampleText = sampleText.replace(timeLabel,"");
-        console.info("timeLabel: " + timeLabel);
-
-        extractionNum = parseInt(sampleText.replace(/\s/g,""));
-        console.info("extractionNum: " + extractionNum);
-        machineType   = "nano";
-    }
-    else
-    {
-        // Check if it is only the time point given
-        var tp = sampleText.match(patternTime);
-        if(tp)
-        {
-            console.info("Should be timepoint only.");
-            console.info("tp length: " + tp[0].length);
-            console.info("sampleText length: " + sampleText.length);
-            if(tp[0].length == sampleText.length)
+            if(sampleText.match(patternTemp) != null)
             {
-                temperature   = STANDARD_TEMPERATURE;
-                timeLabel     = tp[0];
-                extractionNum = 1;
-                machineType   = "nano";
-                return [temperature, timeLabel, extractionNum, machineType];
-            }
-        }
-
-        // Check for patterns we know about, but we do not want to include
-        if(sampleText.match(/([B|b]efore)/))
-        {
-            return -1;
-        }
-        // This row does not match any known pattern.
-        return null;
-    }
-
-    // WARNING: Very hard to read...this puts spaces in-between time number and label.
-    // e.g. "6mo" -> "6 mo"
-    if(timeLabel.match(/T\s*=\s*0/) == null)
-    {
-        if(timeLabel.match(/\d+/) && (timeLabel.match(/\d+\s/) == null))
-        {
-            timeLabel = timeLabel.replace(/\d+/,timeLabel.match(/\d+/) + " ");
-        }
-    }
-    temperature = temperature.toUpperCase();
-    return [temperature, timeLabel, extractionNum, machineType];
-}
-
-function handleRunContent(run, content)
-{
-    if (!content)
-    {
-        Ext.Msg.hide();
-        Ext.Msg.alert("Upload Failed", "The data file has no content");
-        return;
-    }
-    if (!content.sheets || content.sheets.length == 0)
-    {
-        // expected the data file to be parsed as jsonTSV
-        Ext.Msg.hide();
-        Ext.Msg.alert("Upload Failed", "The data file has no sheets of data");
-        return;
-    }
-
-    var sheet = content.sheets[0];
-    // If there's one called "Data" or "PS data", use that instead
-    for (var index = 0; index < content.sheets.length; index++)
-    {
-        if (content.sheets[index].name == "Data" || content.sheets[index].name == "PS data")
-            sheet = content.sheets[index];
-    }
-
-    var data = sheet.data;
-    if (!data.length)
-    {
-        Ext.Msg.alert("Upload Failed", "The data file " + run.name + " contains no rows");
-        return;
-    }
-
-    // Need to check if there is already a run that we need to replace.
-    var queryName = LABKEY.page.assay.name + " Runs";
-
-    function querySuccess(queryData)
-    {
-        if (queryData.rows.length > 0)
-        {
-            var message = "Existing run " + run.name + " found. Would you like to replace it?";
-            function handleConfirmation(button)
-            {
-                if (button == "yes")
-                {
-                    var batchId = queryData.rows[0]["batch/rowId"];
-                    LABKEY.page.batch.id = batchId;
-                    var oldRun = new LABKEY.Exp.Run({rowId: queryData.rows[0]["RowId"]});
-                    oldRun.deleteRun({successCallback: function() { handleRunContent2(run, data) }});
-                }
-            }
-            Ext.Msg.confirm("Existing data found", message, handleConfirmation);
-        }
-        else
-        {
-            handleRunContent2(run, data);
-        }
-    }
-
-    function queryFailure(errorInfo, options, responseObj)
-    {
-        Ext.Msg.hide();
-        Ext.Msg.alert("Assay query failure", "An error occurred while querying the assay: " + errorInfo.exception);
-    }
-
-    LABKEY.Query.selectRows({
-        schemaName: 'assay',
-        queryName: queryName,
-        successCallback: querySuccess,
-        failureCallback: queryFailure,
-        filterArray: [LABKEY.Filter.create('name', run.name)],
-        columns:'name,batch/rowId,rowId'
-    });
-}
-
-var world;
-
-function handleRunContent2(run, data)
-{
-    run.dataRows = [];
-    var testNum = 1; // test numbers are 1-3 like extraction numbers, but they get incremented when the extraction number resets,
-    // and reset when the time label changes.
-    var workingSet = []; // We store the working set as soon as we have all three tests
-    var lastTimeLabel = STANDARD_DATE_OF_MANUFACTURE;
-    var lastMachineType = "";
-    var firstStorageTemp = "";
-    var zAveMean = 0;
-    var zAveNum = 0;
-    var header = data[0];
-    var error = false;
-    var gapFound = false;
-    var fullGrpLength = 0;
-
-    world = data.length;
-    var count = 0;
-    // skip header row
-    for (var i = 1; i < data.length; i++)
-    {
-        count = count + 1;
-        var row = data[i];
-
-        // This is where it is assumed the 2nd column is the Sample Information
-        var sampleText = row[1];
-
-        if (sampleText == null)
-        {
-            if(i == 1)
-            {
-                console.info("Particle Size Data sheet was empty.");
-                run.properties.ZAveMean = -888;
-                run.properties.Error    = "Patricle Size Data sheet was empty.";
-                error = true;
-                break;
+                temperature = sampleText.match(patternTemp)[0];
+                sampleText = sampleText.replace(temperature,"");
             }
             else
             {
-                console.info("Expected " + world + " rows. Got " + i + ".");
-                gapFound = true;
-                continue;
+                temperature = STANDARD_TEMPERATURE;
+            }
+
+            timeLabel = sampleText.match(patternTime)[0];
+            sampleText = sampleText.replace(timeLabel,"");
+
+            machineType = "aps";
+            // we don't know extraction number in this case,
+            // might be able to calculate it based on temp, timelabel
+        }
+        else if(sampleText.match(pattern2))
+        {
+            // Work with type 2
+            temperature = sampleText.match(patternTemp)[0];
+            sampleText = sampleText.replace(temperature,"");
+
+            if(!(sampleText.match(patternTime)))
+            {
+                return -2;
+            }
+
+            timeLabel = sampleText.match(patternTime)[0];
+            sampleText = sampleText.replace(timeLabel,"");
+
+            extractionNum = parseInt(sampleText.replace(/\s/g,""));
+            machineType   = "nano";
+        }
+        else if(sampleText.match(pattern1))
+        {
+            temperature = STANDARD_TEMPERATURE;
+
+            if(!(sampleText.match(patternTime)))
+            {
+                return -2;
+            }
+
+            timeLabel = sampleText.match(patternTime)[0];
+            sampleText = sampleText.replace(timeLabel,"");
+
+            extractionNum = parseInt(sampleText.replace(/\s/g,""));
+            machineType   = "nano";
+        }
+        else
+        {
+            // Check if it is only the time point given
+            var tp = sampleText.match(patternTime);
+            if(tp)
+            {
+                if(tp[0].length == sampleText.length)
+                {
+                    temperature   = STANDARD_TEMPERATURE;
+                    timeLabel     = tp[0];
+                    extractionNum = 1;
+                    machineType   = "nano";
+                    return [temperature, timeLabel, extractionNum, machineType];
+                }
+            }
+
+            // Check for patterns we know about, but we do not want to include
+            if(sampleText.match(/([B|b]efore)/))
+            {
+                return -1;
+            }
+            // This row does not match any known pattern.
+            return null;
+        }
+
+        // WARNING: Very hard to read...this puts spaces in-between time number and label.
+        // e.g. "6mo" -> "6 mo"
+        if(timeLabel.match(/T\s*=\s*0/) == null)
+        {
+            if(timeLabel.match(/\d+/) && (timeLabel.match(/\d+\s/) == null))
+            {
+                timeLabel = timeLabel.replace(/\d+/,timeLabel.match(/\d+/) + " ");
             }
         }
-        else if ((sampleText != null) && (gapFound == true))
+        temperature = temperature.toUpperCase();
+
+        return [temperature, timeLabel, extractionNum, machineType];
+    };
+
+    var handleRunContent = function(run, content) {
+        if (!content)
         {
-            error = true;
-            run.properties.ZAveMean = -889;
-            run.properties.Error    = "Gap between rows containing data.";
+            Ext.Msg.hide();
+            Ext.Msg.alert("Upload Failed", "The data file has no content");
+            return;
+        }
+        if (!content.sheets || content.sheets.length == 0)
+        {
+            // expected the data file to be parsed as jsonTSV
+            Ext.Msg.hide();
+            Ext.Msg.alert("Upload Failed", "The data file has no sheets of data");
+            return;
         }
 
-        var parseResult = parseSampleNameAdvanced(sampleText);
-        if(parseResult == null)
+        var sheet = content.sheets[0];
+        // If there's one called "Data" or "PS data", use that instead
+        for (var index = 0; index < content.sheets.length; index++)
         {
-            console.info("Error on Sample name column in row " + (i+1));
-            run.properties.Error    = "Error on Sample name column in row " + (i+1);
-            run.properties.ZAveMean = -(i+1);
-            error = true;
-            break;
-        }
-        else if(parseResult == -1)
-        {
-            // Known row that we should skip. (e.g. 'Before filtered')
-            console.info("Acknowledged row " + (i+1));
-            continue;
-        }
-        else if(parseResult == -2)
-        {
-            run.properties.Error = "Invalid timepoint given on row " + (i+1);
-            run.properties.ZAveMean = -(i+1);
-            error = true;
-            break;
+            if (content.sheets[index].name == "Data" || content.sheets[index].name == "PS data")
+                sheet = content.sheets[index];
         }
 
-        var storageTemp   = parseResult[0];
-        var timeLabel     = parseResult[1];
-        var extractionNum = parseResult[2];
-        var machineType   = parseResult[3];
-        var dataRow = {};
-
-        console.info(lastTimeLabel + ' ' + timeLabel + ' ' + lastMachineType + ' ' + machineType);
-        if (!equalsIgnoresCase(lastTimeLabel, timeLabel) || !equalsIgnoresCase(lastMachineType, machineType))
+        var data = sheet.data;
+        if (!data.length)
         {
-            console.info("Resetting testNum");
-            testNum = 1;
+            Ext.Msg.alert("Upload Failed", "The data file " + run.name + " contains no rows");
+            return;
+        }
 
-            if (fullGrpLength % WORKING_SET_SIZE != 0)
+        var querySuccess = function(queryData) {
+            if (queryData.rows.length > 0)
             {
-                run.properties.Error = "Error: Improperly sized Working Set ending on row " + i;
-                run.properties.ZAveMean = -(i);
+                var message = "Existing run " + run.name + " found. Would you like to replace it?";
+
+                Ext.Msg.confirm("Existing data found", message, function(button) {
+                    if (button == "yes")
+                    {
+                        LABKEY.page.batch.id = queryData.rows[0]["batch/rowId"];
+                        var oldRun = new LABKEY.Exp.Run({rowId: queryData.rows[0]["RowId"]});
+                        oldRun.deleteRun({successCallback: function() { handleRunContent2(run, data) }});
+                    }
+                });
+            }
+            else
+            {
+                handleRunContent2(run, data);
+            }
+        };
+
+        var queryFailure = function(errorInfo) {
+            Ext.Msg.hide();
+            Ext.Msg.alert("Assay query failure", "An error occurred while querying the assay: " + errorInfo.exception);
+        };
+
+        // Need to check if there is already a run that we need to replace.
+        var queryName = LABKEY.page.assay.name + " Runs";
+
+        LABKEY.Query.selectRows({
+            schemaName: 'assay',
+            queryName: queryName,
+            successCallback: querySuccess,
+            failureCallback: queryFailure,
+            filterArray: [LABKEY.Filter.create('name', run.name)],
+            columns:'name,batch/rowId,rowId'
+        });
+    };
+
+    var handleRunContent2 = function(run, data) {
+
+        // test numbers are 1-3 like extraction numbers, but they get incremented
+        // when the extraction number resets, and reset when the time label changes.
+        var testNum = 1,
+                workingSet = [], // We store the working set as soon as we have all three tests
+                lastTimeLabel = STANDARD_DATE_OF_MANUFACTURE,
+                lastMachineType = "",
+                firstStorageTemp = "",
+                zAveMean = 0,
+                zAveNum = 0,
+                header = data[0],
+                error = false,
+                gapFound = false,
+                fullGrpLength = 0,
+                row, sampleText, i;
+
+        run.dataRows = [];
+
+        // skip header row
+        for (i=1; i < data.length; i++)
+        {
+            row = data[i];
+
+            // This is where it is assumed the 2nd column is the Sample Information
+            sampleText = row[1];
+
+            if (sampleText == null)
+            {
+                if(i == 1)
+                {
+                    run.properties.ZAveMean = -888;
+                    run.properties.Error    = "Patricle Size Data sheet was empty.";
+                    error = true;
+                    break;
+                }
+                else
+                {
+                    console.log("Expected " + data.length + " rows. Got " + i + ".");
+                    gapFound = true;
+                    continue;
+                }
+            }
+            else if ((sampleText != null) && (gapFound == true))
+            {
+                error = true;
+                run.properties.ZAveMean = -889;
+                run.properties.Error    = "Gap between rows containing data.";
+            }
+
+            var parseResult = parseSampleNameAdvanced(sampleText);
+            if(parseResult == null)
+            {
+                run.properties.Error    = "Error on Sample name column in row " + (i+1);
+                run.properties.ZAveMean = -(i+1);
                 error = true;
                 break;
             }
-
-            fullGrpLength = 1;
-
-            if (fullGrpLength > MAXIMAL_FULL_SET)
+            else if(parseResult == -1)
             {
-                console.info ("StorageTemp: " + storageTemp + ", firstStorageTemp: " + firstStorageTemp);
-                run.properties.Error = "Error: There are multiple Working Sets that result in more than the allowed (" +
-                        MAXIMAL_FULL_SET + ") contigious rows for " + lastTimeLabel + "/" + lastMachineType + ".";
+                // Known row that we should skip. (e.g. 'Before filtered')
+                continue;
+            }
+            else if(parseResult == -2)
+            {
+                run.properties.Error = "Invalid timepoint given on row " + (i+1);
                 run.properties.ZAveMean = -(i+1);
                 error = true;
                 break;
             }
 
-            lastTimeLabel = timeLabel;
-            lastMachineType = machineType;
-        }
-        else
-        {
-            fullGrpLength = fullGrpLength + 1;
-        }
+            var storageTemp   = parseResult[0];
+            var timeLabel     = parseResult[1];
+            var extractionNum = parseResult[2];
+            var machineType   = parseResult[3];
+            var dataRow = {};
 
-        console.info("Row " + (i+1) + ": " + timeLabel + ' ' + machineType + ' ' + testNum);
-
-        var zAve = row[2];
-
-        if (equalsIgnoresCase(STANDARD_DATE_OF_MANUFACTURE, timeLabel))
-        {
-            zAveMean += zAve;
-            zAveNum++;
-        }
-
-        dataRow["Record"]               = row[0];
-        dataRow["SampleName"]           = row[1];
-        dataRow["ExtractionNumber"]     = extractionNum;
-        dataRow["TestNumber"]           = testNum;
-        dataRow["TimeLabel"]            = timeLabel;
-        dataRow["ZAve"]                 = zAve;
-        dataRow["Pdl"]                  = row[3];
-        dataRow["meanCountRate"]        = row[4];
-        dataRow["Cumulants"]            = row[5];
-        dataRow["Date"]                 = row[6];
-        dataRow["StorageTemperature"]   = storageTemp;
-        dataRow["MeasuringTemperature"] = row[7];
-        dataRow["AnalysisTool"]         = machineType;
-
-        // data constraints - introduced 12.17.2010
-        if (dataRow.Pdl >= MAX_PDI)
-        {
-            run.properties.Error = "Error: The pdI value for row " + (i+1) + " is 1.0 or more.";
-            run.properties.ZAveMean = -(i+1);
-            error = true;
-            break;
-        }
-        else if (dataRow.ZAve < MIN_ZAVE)
-        {
-            run.properties.Error = "Error: The Z-Average for row " + (i+1) + " is less than 1.0";
-            run.properties.ZAveMean = -(i+1);
-            error = true;
-            break;
-        }
-
-        // any extra columns over the required first 8 will be included in the uploaded run data
-        // to support the scenario where IDRI may want to customize their assay and start uploading
-        // additional fields
-
-        if (row.length > 8)
-        {
-            for (var col=8; col < row.length; col++)
+            if (!equalsIgnoresCase(lastTimeLabel, timeLabel) || !equalsIgnoresCase(lastMachineType, machineType))
             {
-                if (header[col] != undefined)
-                    dataRow[header[col]] = row[col];
+                testNum = 1;
+
+                if (fullGrpLength % WORKING_SET_SIZE != 0)
+                {
+                    run.properties.Error = "Error: Improperly sized Working Set ending on row " + i;
+                    run.properties.ZAveMean = -(i);
+                    error = true;
+                    break;
+                }
+
+                fullGrpLength = 1;
+
+                if (fullGrpLength > MAXIMAL_FULL_SET)
+                {
+                    run.properties.Error = "Error: There are multiple Working Sets that result in more than the allowed (" +
+                            MAXIMAL_FULL_SET + ") contigious rows for " + lastTimeLabel + "/" + lastMachineType + ".";
+                    run.properties.ZAveMean = -(i+1);
+                    error = true;
+                    break;
+                }
+
+                lastTimeLabel = timeLabel;
+                lastMachineType = machineType;
             }
-        }
-        workingSet.push(dataRow);
-
-        if (workingSet.length == WORKING_SET_SIZE)
-        {
-            // This is a little funny. The machine can produce odd results.
-            // The extraction number can vary, indicating potential errors
-            // Valid: 1, 2, 3 or 1 ,1, 1
-            // If we have 1, 2, 1, then 1 and 2 are bad and need to be re-run
-            // If we have 1, 1, 2, then 1 needs to be re-run
-            if ((workingSet[0].ExtractionNumber == 1 &&
-                    workingSet[1].ExtractionNumber == 2 &&
-                    workingSet[2].ExtractionNumber == 3) ||
-                    (workingSet[0].ExtractionNumber == 1 &&
-                            workingSet[1].ExtractionNumber == 1 &&
-                            workingSet[2].ExtractionNumber == 1))
+            else
             {
-                copyWorkingSet(workingSet, run);
-                testNum++;
-                console.info("Updating testNum");
-                workingSet = [];
+                fullGrpLength++;
             }
-            else if (workingSet[0].ExtractionNumber == 1)
+
+            var zAve = row[2];
+
+            if (equalsIgnoresCase(STANDARD_DATE_OF_MANUFACTURE, timeLabel))
             {
-                workingSet.shift();
-                if (workingSet[0].ExtractionNumber == 2)
+                zAveMean += zAve;
+                zAveNum++;
+            }
+
+            dataRow["Record"]               = row[0];
+            dataRow["SampleName"]           = row[1];
+            dataRow["ExtractionNumber"]     = extractionNum;
+            dataRow["TestNumber"]           = testNum;
+            dataRow["TimeLabel"]            = timeLabel;
+            dataRow["ZAve"]                 = zAve;
+            dataRow["Pdl"]                  = row[3];
+            dataRow["meanCountRate"]        = row[4];
+            dataRow["Cumulants"]            = row[5];
+            dataRow["Date"]                 = row[6];
+            dataRow["StorageTemperature"]   = storageTemp;
+            dataRow["MeasuringTemperature"] = row[7];
+            dataRow["AnalysisTool"]         = machineType;
+
+            // data constraints - introduced 12.17.2010
+            if (dataRow.Pdl >= MAX_PDI)
+            {
+                run.properties.Error = "Error: The pdI value for row " + (i+1) + " is 1.0 or more.";
+                run.properties.ZAveMean = -(i+1);
+                error = true;
+                break;
+            }
+            else if (dataRow.ZAve < MIN_ZAVE)
+            {
+                run.properties.Error = "Error: The Z-Average for row " + (i+1) + " is less than 1.0";
+                run.properties.ZAveMean = -(i+1);
+                error = true;
+                break;
+            }
+
+            // any extra columns over the required first 8 will be included in the uploaded run data
+            // to support the scenario where IDRI may want to customize their assay and start uploading
+            // additional fields
+
+            if (row.length > 8)
+            {
+                for (var col=8; col < row.length; col++)
+                {
+                    if (header[col] != undefined)
+                        dataRow[header[col]] = row[col];
+                }
+            }
+            workingSet.push(dataRow);
+
+            if (workingSet.length == WORKING_SET_SIZE)
+            {
+                // This is a little funny. The machine can produce odd results.
+                // The extraction number can vary, indicating potential errors
+                // Valid: 1, 2, 3 or 1 ,1, 1
+                // If we have 1, 2, 1, then 1 and 2 are bad and need to be re-run
+                // If we have 1, 1, 2, then 1 needs to be re-run
+                if ((workingSet[0].ExtractionNumber == 1 &&
+                        workingSet[1].ExtractionNumber == 2 &&
+                        workingSet[2].ExtractionNumber == 3) ||
+                        (workingSet[0].ExtractionNumber == 1 &&
+                                workingSet[1].ExtractionNumber == 1 &&
+                                workingSet[2].ExtractionNumber == 1))
+                {
+                    copyWorkingSet(workingSet, run);
+                    testNum++;
+                    workingSet = [];
+                }
+                else if (workingSet[0].ExtractionNumber == 1)
                 {
                     workingSet.shift();
+                    if (workingSet[0].ExtractionNumber == 2)
+                    {
+                        workingSet.shift();
+                    }
                 }
             }
         }
-    }
-    if (zAveNum > 0 && !(error))
-    {
-        zAveMean = zAveMean / zAveNum;
-        run.properties.ZAveMean = zAveMean;
-    }
-
-    if(!(run.properties.ZAveMean))
-    {
-        if (DATE_OF_MANUFACTURE_FOUND)
+        if (zAveNum > 0 && !(error))
         {
-            run.properties.Error = "Unrecognized Error. See Sample Name Column.";
+            zAveMean = zAveMean / zAveNum;
+            run.properties.ZAveMean = zAveMean;
         }
-        else
+
+        if(!(run.properties.ZAveMean))
         {
-            run.properties.ZAveMean = 0;
+            if (DATE_OF_MANUFACTURE_FOUND)
+            {
+                run.properties.Error = "Unrecognized Error. See Sample Name Column.";
+            }
+            else
+            {
+                run.properties.ZAveMean = 0;
+            }
         }
-    }
 
-    console.info("Calling for save.");
-    fetchMaterialRowIdAndSave(run, true, saveBatch);
-}
+        // See materials.js
+        fetchMaterialRowIdAndSave(run, true, saveBatch);
+    };
 
-function copyWorkingSet(workingSet, run)
-{
-    for (var index=0; index<WORKING_SET_SIZE; index++)
-    {
-        workingSet[index].ExtractionNumber = index + 1;
-        run.dataRows.push(workingSet[index]);
-    }
-}
+    var init = function() {
+        var textField = new Ext.form.TextField({
+            enableKeyEvents: true,
+            listeners: {
+                'keydown': function (field, evt)
+                {
+                    if (field.isDirty())
+                    {
+                        LABKEY.page.batch.name = field.getValue();
+                        LABKEY.setDirty(true);
+                    }
+                },
+                'specialkey': function (field, evt)
+                {
+                    if (evt.getKey() == Ext.EventObject.ENTER)
+                    {
+                        LABKEY.page.batch.name = field.getValue();
+                        LABKEY.setDirty(true);
+                    }
+                },
+                'change': function (field, newValue, oldValue)
+                {
+                    LABKEY.page.batch.name = newValue;
+                    LABKEY.setDirty(true);
+                }
+            },
+            applyTo: 'batch_name_input',
+            id: 'batch_name_field',
+            width: 200
+        });
 
-init();
+        var form = new Ext.form.BasicForm(Ext.get("upload-run-form"), {
+            fileUpload: true,
+            frame: false,
+            url: LABKEY.ActionURL.buildURL("assay", "assayFileUpload"),
+            listeners: {
+                "actioncomplete" : function (f, action)
+                {
+                    handleDataUpload(f, action);
+                },
+                "actionfailed" : function (f, action)
+                {
+                    handleDataUpload(f, action);
+                }
+            }
+        });
+
+        var uploadField = new Ext.form.FileUploadField({
+            id: "upload-run-field",
+            renderTo: "upload-run-button",
+            buttonText: "Add Excel file...",
+            buttonOnly: true,
+            buttonCfg: {
+                cls: "labkey-button"
+            },
+            listeners: {
+                "fileselected": function (fb, v)
+                {
+                    form.submit();
+                }
+            }
+        });
+
+        renderBatch();
+    };
+
+    // Helper Functions
+    var trim = function(stringToTrim) {
+
+        if(stringToTrim.match(/[Tt]\s*=\s*[0]/))
+        {
+            return STANDARD_DATE_OF_MANUFACTURE;
+        }
+        else if(stringToTrim.match(/[Dd][Mm]/))
+        {
+            return STANDARD_DATE_OF_MANUFACTURE;
+        }
+        return stringToTrim.replace(/^\s+|\s+$/g,"");
+    };
+
+    var equalsIgnoresCase = function(str1, str2) {
+        return str1.toLowerCase() == str2.toLowerCase();
+    };
+
+    var copyWorkingSet = function(workingSet, run) {
+        for (var i=0; i<WORKING_SET_SIZE; i++)
+        {
+            workingSet[i].ExtractionNumber = i + 1;
+            run.dataRows.push(workingSet[i]);
+        }
+    };
+
+    init();
+
+})();
+
 </script>

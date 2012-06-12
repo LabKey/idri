@@ -53,7 +53,6 @@ Ext4.define('HPLC.controller.State', {
         });
 
         window.items.items[0].add(this.upload);
-//        window.add(this.upload);
         window.addDocked(tb);
 
 
@@ -109,9 +108,7 @@ Ext4.define('HPLC.controller.State', {
     },
 
     createReviewView : function() {
-        return Ext4.create('Ext.panel.Panel', {
-            html : 'Review Page: Under Construction'
-        });
+        return this.application.getController('AssayResolver').createReviewView();
     },
 
     createSampleView : function(samples, idx, standards) {
@@ -120,5 +117,32 @@ Ext4.define('HPLC.controller.State', {
 
     createStandardView : function(standards) {
         return this.application.getController('Sample').createStandardView(standards);
+    },
+
+    getSampleForms : function() {
+        return this._getForms('sampleentry');
+    },
+
+    getStandardForms : function() {
+        return this._getForms('standardentry');
+    },
+
+    _getForms : function(xtype) {
+        var tabs = this.application.tab,
+                forms = [], f;
+
+        for (var i=1; i < tabs.items.length; i++)
+        {
+            if (tabs.items.items[i].xtype == xtype)
+            {
+                f = tabs.items.items[i].getForm();
+                if (Ext4.isArray(f))
+                    forms = forms.concat(f);
+                else
+                    forms.push(f);
+            }
+        }
+
+        return forms;
     }
 });

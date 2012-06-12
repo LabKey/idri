@@ -44,7 +44,7 @@ Ext4.define('HPLC.view.SampleEntry', {
             region : 'west',
             border: false, frame : false,
             flex : 3,
-            items : [this.initFormPanel()]
+            items : [this.getFormPanel()]
         },{
             xtype  : 'panel',
             region : 'center',
@@ -63,7 +63,11 @@ Ext4.define('HPLC.view.SampleEntry', {
         this.callParent();
     },
 
-    initFormPanel : function() {
+    getForm : function() {
+        return this.getFormPanel().getValues();
+    },
+
+    getFormPanel : function() {
 
         if (this.formPanel)
             return this.formPanel;
@@ -80,8 +84,6 @@ Ext4.define('HPLC.view.SampleEntry', {
                 uncheckedValue : '0'
             });
         }
-
-        console.log(stdItems);
 
         this.formPanel = Ext4.create('Ext.form.Panel', {
             flex : 1,
@@ -101,8 +103,19 @@ Ext4.define('HPLC.view.SampleEntry', {
             },{
                 xtype : 'displayfield',
                 fieldLabel : 'File',
-                value : this.sample.path,
-                name : 'file'
+                value : this.sample.path
+            },{
+                xtype : 'hidden',
+                name : 'uri',
+                value : this.sample.uri
+            },{
+                xtype : 'hidden',
+                name : 'filepath',
+                value : this.sample.path
+            },{
+                xtype : 'hidden',
+                name : 'TestType',
+                value : 'sample'
             },{
                 xtype : 'combo',
                 fieldLabel : 'Formulation',
@@ -111,20 +124,25 @@ Ext4.define('HPLC.view.SampleEntry', {
                 editable : false,
                 queryMode : 'local',
                 displayField : 'Batch',
-                valueField : 'RowId',
+                valueField : 'Batch', // 'RowId'
                 emptyText : 'None'
             },{
                 xtype : 'textfield',
                 fieldLabel : 'Diluent',
-                name : 'diluent'
+                name : 'Diluent'
             },{
-                xtype : 'textfield',
+                xtype : 'numberfield',
                 fieldLabel : 'Dilution',
-                name : 'dilution'
+                name : 'Dilution'
             },{
                 xtype : 'textfield',
                 fieldLabel : 'Temperature',
                 name : 'temp',
+                allowBlank : true
+            },{
+                xtype : 'textfield',
+                fieldLabel : 'Time',
+                name : 'time',
                 allowBlank : true
             },{
                 xtype : 'checkboxgroup',

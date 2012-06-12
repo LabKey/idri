@@ -704,33 +704,18 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
             }
         }
 
-        //LABKEY.page.batch.runs[0] = run;
-        run.dataInputs = [ new LABKEY.Exp.Data() ];
-
-        Ext4.Ajax.request({
-            url: LABKEY.ActionURL.buildURL("assay", "assayFileUpload"),
-            params: { fileName: run.name + '.txt', fileContent: 'Placeholder' },
-            success: function(response, options) {
-                var data = new LABKEY.Exp.Data(Ext4.JSON.decode(response.responseText));
-
-                // now add the data as a dataInput to a LABKEY.Exp.Run
-                run.dataInputs = [ data ];
-
-                // add the new run to a LABKEY.Exp.Batch object here
-                LABKEY.Experiment.saveBatch({
-                    assayId : LABKEY.page.assay.id,
-                    batch   : LABKEY.page.batch,
-                    success : function(batch, response) {
-                        LABKEY.page.batch = batch;
-                        console.log('saved successfully.');
-                    },
-                    failure : function(error, opts, response) {
-                        var msg = error.exception;
-                        Ext.Msg.hide();
-                        console.log('error');
-                        alert(msg);
-                    }
-                });
+        LABKEY.Experiment.saveBatch({
+            assayId : LABKEY.page.assay.id,
+            batch   : LABKEY.page.batch,
+            success : function(batch, response) {
+                LABKEY.page.batch = batch;
+                console.log('saved successfully.');
+            },
+            failure : function(error, opts, response) {
+                var msg = error.exception;
+                Ext.Msg.hide();
+                console.log('error');
+                alert(msg);
             }
         });
     },
