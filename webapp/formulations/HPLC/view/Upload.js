@@ -181,7 +181,7 @@ Ext4.define('HPLC.view.Upload', {
             },
             columns  : columns,
             store    : this.fileStore,
-            selModel : Ext4.create('Ext.selection.RowModelFixed', {mode : 'MULTI'}),
+            selModel : Ext4.create('Ext.selection.RowModel', {mode : 'MULTI'}),
             scope : this
         });
 
