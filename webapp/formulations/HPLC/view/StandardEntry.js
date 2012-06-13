@@ -92,7 +92,8 @@ Ext4.define('HPLC.view.StandardEntry', {
             },{
                 xtype : 'numberfield',
                 fieldLabel : 'Concentration',
-                name : 'Concentration'
+                name : 'Concentration',
+                hideTrigger : true
             },{
                 xtype : 'textfield',
                 fieldLabel : 'Dilutent',

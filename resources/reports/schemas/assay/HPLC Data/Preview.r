@@ -17,12 +17,14 @@ library(Rlabkey)   # required for labkey.url.params && labkey.file.root
 library(hyperSpec)
 
 fileParam <- labkey.url.params$file
-#fileParam <- paste("C:/code/labkey/trunk/build/deploy/files", "/FormulationsBeta/@files/HPLCRun1/3004837A.txt", sep="")
+#fileParam <- paste("C:/code/labkey/trunk/build/deploy/files", "/FormulationsTest/@files/HPLCRun1/3004837A.txt", sep="")
 filePath <- paste(labkey.file.root, fileParam, sep="")
 
 spec <- scan.txt.Renishaw(file=filePath, data="spc")
+#spec <- scan.txt.Renishaw(file=fileParam, data="spc")
 
 png(filename="${imgout:peaks_png}", width=800, height=400)
+#png(filename="spectratest.png", width=800, height=400)
 
 # Data plotted here
 plot <- plotspc(spec, col = "red", wl.reverse=FALSE) #, plot.args = list(main="QF628"))

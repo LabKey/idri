@@ -200,7 +200,7 @@ Ext4.define('LABKEY.assay.HPLCUploadPanel', {
                         for (var f = 0; f < fields.length; f++) {
                             if (fields[f].disabled)
                             {
-                                fields[f].xtype = 'hiddenfield'
+                                fields[f].xtype = 'hiddenfield';
                                 fields[f].height = undefined;
                                 fields[f].width = undefined;
                             }

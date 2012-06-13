@@ -30,8 +30,22 @@ Ext4.define('HPLC.view.SampleEntry', {
             ]
         });
 
-        this.items = [{
-            xtype  : 'box',
+        Ext4.define('HPLC.data.Temperature', {
+            extend : 'Ext.data.Model',
+            fields : [
+                {name : 'temperature', type : 'int'}
+            ]
+        });
+
+        Ext4.define('HPLC.data.Timepoint', {
+            extend : 'Ext.data.Model',
+            fields : [
+                {name : 'sort', type : 'int'},
+                {name : 'time'}
+            ]
+        });
+
+        this.sampleTitle = Ext4.create('Ext.Component', {
             region : 'north',
             height : 60,
             autoEl : {
@@ -39,25 +53,20 @@ Ext4.define('HPLC.view.SampleEntry', {
                 cls : 'sample-header',
                 html: 'Sample ' + this._parseSampleName(this.sampleid)
             }
-        },{
-            xtype  : 'panel',
-            region : 'west',
-            border: false, frame : false,
-            flex : 3,
-            items : [this.getFormPanel()]
-        },{
+        });
+
+        this.items = [this.sampleTitle, {
             xtype  : 'panel',
             region : 'center',
-            flex : 1,
-            hidden : true
-//            border: false, frame : false,
-//            items : [this.initFormPanel()]
+            flex : 3,
+            border: false,
+            items : [this.getFormPanel()]
         },{
             xtype  : 'panel',
             region : 'east',
             border: false, frame : false,
-            flex : 3
-//            items : [this.initReplicateForm()]
+            flex : 3,
+            items : [this.generatePreview()]
         }];
 
         this.callParent();
@@ -133,17 +142,28 @@ Ext4.define('HPLC.view.SampleEntry', {
             },{
                 xtype : 'numberfield',
                 fieldLabel : 'Dilution',
-                name : 'Dilution'
+                name : 'Dilution',
+                hideTrigger : true
             },{
-                xtype : 'textfield',
+                xtype : 'combo',
                 fieldLabel : 'Temperature',
                 name : 'temp',
-                allowBlank : true
+                store : this.initializeTemperatureStore(),
+                editable : false,
+                queryMode : 'local',
+                displayField : 'temperature',
+                valueField : 'temperature',
+                emptyText : 'Storage Temp.'
             },{
-                xtype : 'textfield',
+                xtype : 'combo',
                 fieldLabel : 'Time',
                 name : 'time',
-                allowBlank : true
+                store : this.initializeTimepointStore(),
+                editable : false,
+                queryMode : 'local',
+                displayField : 'time',
+                valueField : 'time',
+                emptyText : 'Batch Timepoint'
             },{
                 xtype : 'checkboxgroup',
                 fieldLabel : 'Standards',
@@ -156,6 +176,66 @@ Ext4.define('HPLC.view.SampleEntry', {
         });
 
         return this.formPanel;
+    },
+
+    generatePreview : function() {
+
+        this.previewPanel = Ext4.create('Ext.panel.Panel', {
+            border: false,
+            frame : false,
+            layout: {
+                type: 'vbox',
+                align: 'center'
+            },
+            items : [{
+                border : false, frame : false,
+                html : '',
+                listeners : {
+                    afterrender : this.renderPreview,
+                    scope : this
+                },
+                scope : this
+            }]
+        });
+
+        return this.previewPanel;
+    },
+
+    // private
+    renderPreview : function(panel) {
+
+        var path = LABKEY.ActionURL.decodePath(this.sample.uri.replace(LABKEY.ActionURL.getBaseURL(), '').replace("_webdav", ''));
+
+        var partConfig = {
+            reportId    : 'module:idri/schemas/assay/HPLC Data/Preview.r',
+            file        : path,
+            showSection : 'peaks_png',
+            beforeRender : function(resp) {
+                var text = resp.responseText;
+                if (text.indexOf('error') > -1) {
+                    panel.update('<p style="margin-top: 35px;">Unable to generate Preview</p>');
+                }
+                else {
+                    panel.update('<img style="margin-top: 35px;" height="200" width="325" src="' + text.split('src')[1].replace('=', '').split('"')[1] + '">');
+                }
+                return false;
+            }
+        };
+
+        var wp = new LABKEY.WebPart({
+            renderTo : panel.getEl().id,
+            partName : 'Report',
+            frame   : 'none',
+            partConfig : partConfig,
+            success : function() {
+                console.log('success!');
+            },
+            failure : function() {
+                console.log('failure!');
+            }
+        });
+        wp.render();
+
     },
 
     initReplicateForm : function() {
@@ -178,16 +258,53 @@ Ext4.define('HPLC.view.SampleEntry', {
 
     initializeFormulationStore : function() {
 
-        var config = {
-            model   : 'HPLC.data.Formulation',
+        return this._buildStore({
+            model : 'HPLC.data.Formulation',
+            schema: 'Samples',
+            query : 'Formulations'
+        });
+
+    },
+
+    initializeTemperatureStore : function() {
+
+        return this._buildStore({
+            model : 'HPLC.data.Temperature',
+            schema: 'lists',
+            query : 'Temperatures',
+            sort  : {
+                field : 'temperature',
+                direction: 'ASC'
+            }
+        });
+
+    },
+
+    initializeTimepointStore : function() {
+
+        return this._buildStore({
+            model : 'HPLC.data.Timepoint',
+            schema: 'lists',
+            query : 'Timepoints',
+            sort  : {
+                field : 'sort',
+                direction: 'ASC'
+            }
+        });
+    },
+
+    _buildStore : function(config) {
+
+        var storeConfig = {
+            model   : config.model,
             autoLoad: true,
             pageSize: 10000,
             proxy   : {
                 type   : 'ajax',
                 url : LABKEY.ActionURL.buildURL('query', 'selectRows.api'),
                 extraParams : {
-                    schemaName  : 'Samples',
-                    queryName   : 'Formulations'
+                    schemaName  : config.schema,
+                    queryName   : config.query
                 },
                 reader : {
                     type : 'json',
@@ -196,7 +313,16 @@ Ext4.define('HPLC.view.SampleEntry', {
             }
         };
 
-        return Ext4.create('Ext.data.Store', config);
+        var store = Ext4.create('Ext.data.Store', storeConfig);
+
+        // Add sorter if sort was provided
+        if (config.sort) {
+            store.on('load', function(s) {
+                s.sort(config.sort.field, config.sort.direction);
+            }, null, {single: true});
+        }
+
+        return store;
     },
 
     _parseSampleName : function(name) {
