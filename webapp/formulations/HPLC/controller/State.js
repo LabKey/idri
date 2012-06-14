@@ -11,8 +11,9 @@ Ext4.define('HPLC.controller.State', {
 
     init : function() {
 
-        this.activeview = 'blam!';
+        this.activeview = '';
         this.upload = {};
+        this.activated = false;
 
         this.control('window', {
             render : this.onWindowRender
@@ -29,6 +30,11 @@ Ext4.define('HPLC.controller.State', {
     },
 
     onWindowRender : function(window)  {
+
+        if (this.activated) {
+            return;
+        }
+        this.activated = true;
 
         this.upload = Ext4.create('HPLC.view.Upload', {
             targetFile : this.application.getFolder(),

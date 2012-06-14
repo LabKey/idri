@@ -180,6 +180,8 @@ Ext4.define('HPLC.view.SampleEntry', {
 
     generatePreview : function() {
 
+        var loadImgPath = LABKEY.contextPath + '/' + LABKEY.extJsRoot_41 + '/resources/themes/images/default/grid/loading.gif';
+
         this.previewPanel = Ext4.create('Ext.panel.Panel', {
             border: false,
             frame : false,
@@ -188,8 +190,22 @@ Ext4.define('HPLC.view.SampleEntry', {
                 align: 'center'
             },
             items : [{
-                border : false, frame : false,
-                html : '',
+                xtype : 'box',
+                autoEl: {
+                    tag : 'div',
+                    style: 'margin-top: 90px; height: 200px; width: 400px; text-align: center;',
+                    children : [{
+                        tag : 'img',
+                        src : loadImgPath,
+                        style: 'vertical-align: middle; padding-right: 3px;',
+                        height: 20,
+                        width: 20
+                    },{
+                        tag : 'span',
+                        style : 'font-size: 7pt;',
+                        html : 'Loading Preview'
+                    }]
+                },
                 listeners : {
                     afterrender : this.renderPreview,
                     scope : this
@@ -202,9 +218,11 @@ Ext4.define('HPLC.view.SampleEntry', {
     },
 
     // private
-    renderPreview : function(panel) {
+    renderPreview : function(box) {
 
         var path = LABKEY.ActionURL.decodePath(this.sample.uri.replace(LABKEY.ActionURL.getBaseURL(), '').replace("_webdav", ''));
+
+        var me = this;
 
         var partConfig = {
             reportId    : 'module:idri/schemas/assay/HPLC Data/Preview.r',
@@ -213,17 +231,22 @@ Ext4.define('HPLC.view.SampleEntry', {
             beforeRender : function(resp) {
                 var text = resp.responseText;
                 if (text.indexOf('error') > -1) {
-                    panel.update('<p style="margin-top: 35px;">Unable to generate Preview</p>');
+                    box.update('<p style="margin-top: 35px;">Preview not Available</p>');
                 }
                 else {
-                    panel.update('<img style="margin-top: 35px;" height="200" width="325" src="' + text.split('src')[1].replace('=', '').split('"')[1] + '">');
+                    var id = Ext4.id();
+                    box.update('<img id="' + id + '" style="margin-top: -35px;" height="200" width="400" src="' + text.split('src')[1].replace('=', '').split('"')[1] + '"><p style="text-align: center; font-size: 7pt;">Click Image to Enlarge</p>');
+                    Ext4.get(id).on('click', function(el) {
+                        this.fireEvent('preview', Ext4.get(id).dom.src);
+                    }, me);
+                    me.doComponentLayout();
                 }
                 return false;
             }
         };
 
         var wp = new LABKEY.WebPart({
-            renderTo : panel.getEl().id,
+            renderTo : box.getEl().id,
             partName : 'Report',
             frame   : 'none',
             partConfig : partConfig,
