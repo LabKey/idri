@@ -2,7 +2,7 @@
     <exp:Description>HPLC Assay Results</exp:Description>
     <exp:PropertyDescriptor>
         <exp:Name>Dilution</exp:Name>
-        <exp:Required>true</exp:Required>
+        <exp:Required>false</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
         <exp:Label>Dilution Factor</exp:Label>
     </exp:PropertyDescriptor>

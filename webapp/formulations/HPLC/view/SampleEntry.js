@@ -97,6 +97,7 @@ Ext4.define('HPLC.view.SampleEntry', {
         this.formPanel = Ext4.create('Ext.form.Panel', {
             flex : 1,
             border : false,
+            height : 350,
             bodyStyle: 'padding-left: 27px; border: none;',
             fieldDefaults : {
                 labelSeparator : '',
@@ -251,10 +252,8 @@ Ext4.define('HPLC.view.SampleEntry', {
             frame   : 'none',
             partConfig : partConfig,
             success : function() {
-                console.log('success!');
             },
             failure : function() {
-                console.log('failure!');
             }
         });
         wp.render();

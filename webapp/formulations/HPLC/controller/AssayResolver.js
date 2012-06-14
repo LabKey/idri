@@ -5,23 +5,44 @@ Ext4.define('HPLC.controller.AssayResolver', {
 
     init : function() {
 
+        this.control('hplcreview', {
+            show : function(v) {
+                v.updateRuns(this.buildAssayRuns());
+            },
+            save : this.onSave
+        });
     },
 
     createReviewView : function() {
 
-        return Ext4.create('Ext.panel.Panel', {
-            html : 'Review Page: Under Construction',
-            buttons : [{
-                text : 'Save',
-                handler : this.save,
-                scope : this
-            }],
-            scope : this
-        });
+        if (this.review) {
+            this.review.updateRuns(this.buildAssayRuns());
+            return this.review;
+        }
+
+        this.review = Ext4.create('HPLC.view.Review', {});
+
+        return this.review;
 
     },
 
-    save : function() {
+    _processStandard : function(standards, idx, sets, run) {
+
+        if (standards.length && sets.std == "on")
+        {
+            /* Add file dependency */
+            if (standards[idx].filepath) {
+                run.dataInputs.push(new LABKEY.Exp.Data({pipelinePath: standards[idx].filepath}));
+            }
+
+            /* Add standard to Assay Result */
+            run.dataRows.push(standards[idx]);
+        }
+
+        return run;
+    },
+
+    buildAssayRuns : function() {
 
         /* Run(s) Info */
         var samples = this._getSampleForms();
@@ -39,7 +60,11 @@ Ext4.define('HPLC.controller.AssayResolver', {
                 run.name = sets[s][0].formulation;
 
                 run.properties['LotNumber'] = run.name;
-                run.properties['Method'] = this.application.tab.items.items[0].mthdStore.getAt(0).data.uri; // TODO: FIX
+
+                var methodFile = Ext4.getCmp(this.application.tab.items.keys[0]).mthdStore.getAt(0);
+                if (methodFile) {
+                    run.properties['Method'] = methodFile.data.uri;
+                }
 
                 run.properties['StorageTemperature'] = sets[s][0].temp;
                 run.properties['Time'] = sets[s][0].time;
@@ -47,30 +72,20 @@ Ext4.define('HPLC.controller.AssayResolver', {
                 run.dataInputs = [];
                 run.dataOutputs = [];
 
-                for (var j=0; j < sets[s].length; j++)
-                {
+                for (var j=0; j < sets[s].length; j++) {
+
                     /* fulfill runoutputs using PipelinePath */
                     run.dataOutputs.push(new LABKEY.Exp.Data({pipelinePath: sets[s][j].filepath}));
 
                     /* map associated standards */
-                    if (Ext4.isArray(sets[s][j]))
-                    {
-                        for (var x=0; x < sets[s][j].std.length; x++)
-                        {
-                            if (!standards[x].marked && sets[s][j].std[x] == "on")
-                            {
-                                run.dataOutputs.push(new LABKEY.Exp.Data({pipelinePath: standards[x].filepath}));
-                                standards[x].marked = true;
-                            }
+                    if (Ext4.isArray(sets[s][j])) {
+
+                        for (var x=0; x < sets[s][j].std.length; x++) {
+                            run = this._processStandard(standards, x, sets[s][j], run);
                         }
                     }
-                    else
-                    {
-                        if (!standards[0].marked && sets[s][j].std == "on")
-                        {
-                            run.dataOutputs.push(new LABKEY.Exp.Data({pipelinePath: standards[0].filepath}));
-                            standards[0].marked = true;
-                        }
+                    else {
+                        run = this._processStandard(standards, 0, sets[s][j], run);
                     }
 
                     /* fulfill Assay Results */
@@ -81,19 +96,33 @@ Ext4.define('HPLC.controller.AssayResolver', {
             }
         }
 
-        LABKEY.page.batch.runs = runs;
+        return runs;
+    },
+
+    onSave : function() {
+
+        LABKEY.page.batch.runs = this.buildAssayRuns();
+
+        var me = this;
 
         LABKEY.Experiment.saveBatch({
             assayId : LABKEY.page.assay.id,
             batch   : LABKEY.page.batch,
             success : function(batch, response) {
                 LABKEY.page.batch = batch;
+
+                me.application.win.hide();
                 Ext.Msg.hide();
-                Ext.Msg.alert('Save Batch', 'Save Successful');
+                Ext.Msg.alert('Save Batch', 'Save Successful', function(){
+                     me.application.win.show();
+                });
             },
             failure : function(error) {
+                me.application.win.hide();
                 Ext.Msg.hide();
-                Ext.Msg.alert('Failure', error.exception);
+                Ext.Msg.alert('Failure', error.exception, function(){
+                     me.application.win.show();
+                });
             }
         });
     },
@@ -151,6 +180,7 @@ Ext4.define('HPLC.controller.AssayResolver', {
     },
 
     getUniqueID : function(sample) {
+        console.log(sample.formulation + '_' + sample.time + '_' + sample.temp);
         return sample.formulation + '_' + sample.time + '_' + sample.temp;
     },
 

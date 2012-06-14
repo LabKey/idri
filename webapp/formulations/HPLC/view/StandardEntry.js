@@ -34,16 +34,15 @@ Ext4.define('HPLC.view.StandardEntry', {
     },
 
     getForm : function() {
-        if (this.formItems)
-        {
-            var ret = [];
-            for (var f=0; f < this.formItems.length; f++)
-            {
+        var ret = [];
+        if (this.formItems) {
+
+            for (var f=0; f < this.formItems.length; f++) {
                 ret.push(this.formItems[f].getValues());
             }
-            return ret;
+
         }
-        return [];
+        return ret;
     },
 
     initializeForms : function() {
@@ -77,17 +76,17 @@ Ext4.define('HPLC.view.StandardEntry', {
             items : [{
                 xtype : 'textfield',
                 fieldLabel : 'Name',
-                name : 'stdname',
+                name : 'name',
                 value : this._parseStandardName(standard.data.name)
             },{
                 xtype : 'combo',
                 fieldLabel : 'Compound',
                 name : 'Compound',
-                store : this.initializeCompoundStore(),
+                store : this.getCompoundStore(),
                 editable : false,
                 queryMode : 'local',
                 displayField : 'Name',
-                valueField : 'Name', //'RowId',
+                valueField : 'RowId',
                 emptyText : 'None'
             },{
                 xtype : 'numberfield',
@@ -97,7 +96,7 @@ Ext4.define('HPLC.view.StandardEntry', {
             },{
                 xtype : 'textfield',
                 fieldLabel : 'Dilutent',
-                name : 'dilutent'
+                name : 'Diluent'
             },{
                 xtype : 'hidden',
                 name : 'TestType',
@@ -115,7 +114,11 @@ Ext4.define('HPLC.view.StandardEntry', {
 
     },
 
-    initializeCompoundStore : function() {
+    getCompoundStore : function() {
+
+        if (this.compoundStore) {
+            return this.compoundStore;
+        }
 
         var config = {
             model   : 'HPLC.data.Compound',
@@ -135,7 +138,9 @@ Ext4.define('HPLC.view.StandardEntry', {
             }
         };
 
-        return Ext4.create('Ext.data.Store', config);
+        this.compoundStore = Ext4.create('Ext.data.Store', config);
+
+        return this.compoundStore;
     },
 
     _parseStandardName : function(name) {

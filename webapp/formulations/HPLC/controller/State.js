@@ -50,11 +50,17 @@ Ext4.define('HPLC.controller.State', {
             scope : me
         });
 
+        this.forward = Ext4.create('Ext.Button', {
+            text : 'Next',
+            handler : me.requestNext,
+            scope : me
+        });
+
         var tb = Ext4.create('Ext.toolbar.Toolbar', {
             dock  : 'bottom',
             items : ['->',
                 this.back,
-                {text: 'Next', handler: me.requestNext, scope: me}],
+                this.forward],
             scope : me
         });
 
@@ -110,7 +116,10 @@ Ext4.define('HPLC.controller.State', {
 
         this.back.setDisabled(this.activeIdx <= 0);
         this.application.tab.setActiveTab(this.activeIdx);
-        this.setActiveView(this.application.tab.getActiveTab().getXType());
+
+        var xtype = this.application.tab.getActiveTab().getXType();
+        this.forward.setDisabled((xtype == 'hplcreview'));
+        this.setActiveView(xtype);
     },
 
     createReviewView : function() {
@@ -137,15 +146,18 @@ Ext4.define('HPLC.controller.State', {
         var tabs = this.application.tab,
                 forms = [], f;
 
-        for (var i=1; i < tabs.items.length; i++)
-        {
-            if (tabs.items.items[i].xtype == xtype)
-            {
+        // skip initial page
+        for (var i=1; i < tabs.items.length; i++) {
+
+            if (tabs.items.items[i].xtype == xtype) {
+
                 f = tabs.items.items[i].getForm();
-                if (Ext4.isArray(f))
+                if (Ext4.isArray(f)) {
                     forms = forms.concat(f);
-                else
+                }
+                else {
                     forms.push(f);
+                }
             }
         }
 

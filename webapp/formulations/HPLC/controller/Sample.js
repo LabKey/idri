@@ -74,7 +74,6 @@ Ext4.define('HPLC.controller.Sample', {
                     var task = new Ext.util.DelayedTask(function() {
 
                         Ext4.getBody().on('click', function() {
-                            console.log('closing!');
                             previewWin.close();
                         }, null, {single: true});
 

@@ -24,5 +24,9 @@
             <exp:Query>Visit</exp:Query>
         </exp:FK>
     </exp:PropertyDescriptor>
-    <!-- Need to add associated Method file -->
+    <exp:PropertyDescriptor>
+        <exp:Name>Method</exp:Name>
+        <exp:Required>false</exp:Required>
+        <exp:RangeURI>http://cpas.fhcrc.org/exp/xml#fileLink</exp:RangeURI>
+    </exp:PropertyDescriptor>
 </ap:domain>
