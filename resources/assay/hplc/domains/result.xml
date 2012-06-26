@@ -1,6 +1,11 @@
 <ap:domain xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
     <exp:Description>HPLC Assay Results</exp:Description>
     <exp:PropertyDescriptor>
+        <exp:Name>Name</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
         <exp:Name>Dilution</exp:Name>
         <exp:Required>false</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
@@ -8,7 +13,7 @@
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
         <exp:Name>Diluent</exp:Name>
-        <exp:Required>true</exp:Required>
+        <exp:Required>false</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
@@ -32,5 +37,10 @@
         <exp:Name>Concentration</exp:Name>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
         <exp:Label>Compound Concentration</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>FilePath</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
     </exp:PropertyDescriptor>
 </ap:domain>

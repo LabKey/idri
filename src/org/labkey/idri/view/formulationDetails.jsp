@@ -165,7 +165,7 @@
             }
         });
 
-        new Ext.Panel({
+        var panel = new Ext.Panel({
             renderTo : 'machine-select',
             bodyStyle : 'background-color: transparent;',
             border: false,
@@ -176,7 +176,7 @@
         cb.setValue('aps');
         lookupAssayId(<%=PageFlowUtil.jsString(formulation.getBatch())%>, cb.getValue(), function(grid){});
         
-        new LABKEY.QueryWebPart({
+        var qwp = new LABKEY.QueryWebPart({
             renderTo   : 'concentrationDiv',
             schemaName : 'idri',
             queryName  : 'concentrations',

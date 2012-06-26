@@ -159,7 +159,6 @@ Ext4.define('HPLC.view.Upload', {
                 tooltip : 'Preview',
                 handler : function(grid, ridx, cidx) {
                     this.seePreviewVis(grid.getStore().getAt(ridx));
-//                    this.seePreview(grid.getStore().getAt(ridx));
                 },
                 scope : this
             }]
@@ -167,6 +166,7 @@ Ext4.define('HPLC.view.Upload', {
 
         var leftGrid = Ext4.create('Ext.grid.Panel', {
             /* panel configs */
+            itemId  : 'selGrid',
             title   : 'Selected Subfiles',
             width   : 325,
             border  : false, frame : false,
@@ -186,7 +186,7 @@ Ext4.define('HPLC.view.Upload', {
         });
 
         var rightPanel = Ext4.create('Ext.panel.Panel', {
-            margins : '0 0 0 3',
+//            margins : '0 0 0 3',
             layout: {
                 type: 'vbox',
                 align: 'stretch'

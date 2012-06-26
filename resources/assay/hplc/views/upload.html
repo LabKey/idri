@@ -70,15 +70,14 @@
     ];
 
     LABKEY.requiresScript(scripts);
-    LABKEY.requiresScript('formulations/HPLCUploadPanel.js');
 </script>
 <script type="text/javascript">
 
     (function(){
 
-        var initHPLCUPload = function()
-        {
-            var _fileBrowser, _fileSystem, NEW_APP = true;
+        var initHPLCUPload = function() {
+
+            var _fileBrowser, _fileSystem;
 
             Ext.onReady(function(){
 
@@ -102,8 +101,8 @@
 
             });
 
-            var createFileBrowser = function(pipeURL)
-            {
+            var createFileBrowser = function(pipeURL) {
+
                 _fileSystem = new LABKEY.FileSystem.WebdavFileSystem({
                     baseUrl : pipeURL
                 });
@@ -131,8 +130,8 @@
                 _fileBrowser.start();
             };
 
-            var onImport = function()
-            {
+            var onImport = function() {
+
                 var folder = _fileBrowser.grid.getSelectionModel().getSelected();
                 if (!folder) {
                     folder = _fileBrowser.selectedRecord;
@@ -143,83 +142,64 @@
                     // Switching to Ext 4 -- must ensure it is ready
                     Ext4.onReady(function(){
 
-                        if (NEW_APP) {
-                            Ext4.Loader.setConfig({
-                                enabled : true,
-                                paths : {
-                                    'HPLC' : LABKEY.contextPath + '/formulations/HPLC'
-                                }
-//                                ,disableCaching : false
-                            });
+                        Ext4.Loader.setConfig({
+                            enabled : true,
+                            paths : {
+                                'HPLC' : LABKEY.contextPath + '/formulations/HPLC'
+                            }
+//                            ,disableCaching : false
+                        });
 
-                            Ext4.require([
+                        Ext4.require([
+                            'HPLC.controller.AssayResolver',
+                            'HPLC.controller.Sample',
+                            'HPLC.controller.State'
+                        ]);
+
+                        Ext4.QuickTips.init();
+
+                        Ext4.application({
+                            name : 'HPLC',
+                            appFolder : 'HPLC',
+
+                            fileSystem : _fileSystem,
+                            targetFolder: folder,
+
+                            controllers : [
                                 'HPLC.controller.AssayResolver',
                                 'HPLC.controller.Sample',
                                 'HPLC.controller.State'
-                            ]);
+                            ],
 
-                            Ext4.QuickTips.init();
+                            launch : function() {
 
-                            Ext4.application({
-                                name : 'HPLC',
-                                appFolder : 'HPLC',
+                                this.tab = Ext4.create('Ext.tab.Panel', {
+                                    plain : true,
+                                    defaults : {
+                                        ui : 'custom'
+                                    }
+                                });
 
-                                fileSystem : _fileSystem,
-                                targetFolder: folder,
+                                this.win = Ext4.create('Ext.window.Window', {
+                                    title : 'HPLC Assay Upload',
+                                    height: 500,
+                                    width : 900,
+                                    modal : true,
+                                    layout: 'fit',
+                                    items : [this.tab]
+                                });
 
-                                controllers : [
-                                    'HPLC.controller.AssayResolver',
-                                    'HPLC.controller.Sample',
-                                    'HPLC.controller.State'
-                                ],
+                                this.win.show();
+                            },
 
-                                launch : function() {
-                                    a = this;
+                            getFileSystem : function() {
+                                return this.fileSystem;
+                            },
 
-                                    this.tab = Ext4.create('Ext.tab.Panel', {
-                                        plain : true,
-                                        defaults : {
-                                            ui : 'custom'
-                                        }
-                                    });
-
-                                    this.win = Ext4.create('Ext.window.Window', {
-                                        title : 'HPLC Assay Upload',
-                                        height: 500,
-                                        width : 900,
-                                        modal : true,
-                                        layout: 'fit',
-                                        items : [this.tab]
-                                    });
-
-                                    this.win.show();
-                                },
-
-                                getFileSystem : function() {
-                                    return this.fileSystem;
-                                },
-
-                                getFolder : function() {
-                                    return this.targetFolder;
-                                }
-                            });
-                        }
-                        else
-                        {
-                            var panel = Ext4.create('LABKEY.assay.HPLCUploadPanel', {
-                                targetFile : folder,
-                                fileSystem : _fileSystem
-                            });
-
-                            var win = Ext4.create('Ext.window.Window', {
-                                title : 'HPLC Assay Upload',
-                                height: 600,
-                                width : 800,
-                                layout: 'fit',
-                                items : [panel]
-                            });
-                            win.show();
-                        }
+                            getFolder : function() {
+                                return this.targetFolder;
+                            }
+                        });
                     });
                 }
                 else
