@@ -1,0 +1,15 @@
+<view xmlns="http://labkey.org/data/xml/view">
+    <dependencies>
+        <dependency path="Ext4ClientApi"/>
+        <dependency path="FileUploadField.js"/>
+        <dependency path="StatusBar.js"/>
+        <dependency path="fileBrowser.js"/>
+        <dependency path="Reorderer.js"/>
+        <dependency path="ToolbarDroppable.js"/>
+        <dependency path="ToolbarReorderer.js"/>
+        <dependency path="ActionsAdmin.js"/>
+        <dependency path="PipelineAction.js"/>
+        <dependency path="FileProperties.js"/>
+        <dependency path="FileContent.js"/>
+    </dependencies>
+</view>
