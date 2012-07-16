@@ -226,13 +226,13 @@ Ext4.define('HPLC.view.SampleEntry', {
     // private
     renderPreview : function(box) {
 
-        var path = LABKEY.ActionURL.decodePath(this.sample.uri.replace(LABKEY.ActionURL.getBaseURL(), '').replace("_webdav", ''));
-
+        var path = this.sample.path;
         var me = this;
 
         var partConfig = {
             reportId    : 'module:idri/schemas/assay/HPLC Data/Preview.r',
-            file        : path,
+            path        : path,
+            isPipeline  : true,
             showSection : 'peaks_png',
             beforeRender : function(resp) {
                 var text = resp.responseText;
@@ -267,7 +267,7 @@ Ext4.define('HPLC.view.SampleEntry', {
 
     initReplicateForm : function() {
 
-        var panel = Ext4.create('Ext.panel.Panel', {
+        return Ext4.create('Ext.panel.Panel', {
             items : [{
                 xtype : 'checkboxfield',
                 fieldLabel : 'Replicate',
@@ -279,8 +279,6 @@ Ext4.define('HPLC.view.SampleEntry', {
                 displayField : ''
             }]
         });
-
-        return panel;
     },
 
     initializeFormulationStore : function() {

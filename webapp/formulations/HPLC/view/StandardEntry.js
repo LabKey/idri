@@ -100,7 +100,7 @@ Ext4.define('HPLC.view.StandardEntry', {
                 hideTrigger : true
             },{
                 xtype : 'textfield',
-                fieldLabel : 'Dilutent',
+                fieldLabel : 'Diluent',
                 name : 'Diluent'
             },{
                 xtype : 'hidden',
