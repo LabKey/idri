@@ -43,8 +43,7 @@ public class idriContainerListener implements ContainerListener
         try
         {
             DbSchema schema = idriManager.getSchema();
-
-            Table.execute(schema, new SQLFragment("DELETE FROM idri.Concentrations;"));
+            Table.execute(schema, "DELETE FROM idri.Concentrations WHERE CONTAINER=?", c);
         }
         catch (SQLException e)
         {

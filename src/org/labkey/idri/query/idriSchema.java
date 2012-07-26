@@ -60,13 +60,13 @@ public class idriSchema extends UserSchema
     {
         super(NAME, DESCRIPTION, user, container, DbSchema.get(NAME));
     }
-    
+
     @Override
     protected TableInfo createTable(String name)
     {
         if (TABLE_CONCENTRATIONS.equalsIgnoreCase(name))
         {
-            return new ConcentrationsTable(getDbSchema().getTable(TABLE_CONCENTRATIONS), getContainer());
+            return new ConcentrationsTable(this);
         }
         else
         {

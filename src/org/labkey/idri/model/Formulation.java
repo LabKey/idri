@@ -210,15 +210,13 @@ public class Formulation
 
             JSONArray materials = json.getJSONArray("materials");
 
-            //when reconstructing from JSON, we want to avoid fetching
-            //the existing order items from the database, so initialize
-            //the items array so we don't fetch
             formulation._materials = new ArrayList<Material>();
             for (int idx = 0; idx < materials.length(); ++idx)
             {
                 JSONObject materialProps = materials.getJSONObject(idx);
                 Material material = new Material();
                 BeanUtils.populate(material, materialProps);
+                material.setType(idriManager.getMaterialType(material.getMaterialName()));
                 formulation.addMaterial(material);
             }
             

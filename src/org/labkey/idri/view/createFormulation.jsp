@@ -23,7 +23,19 @@
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.idri.model.Formulation" %>
 <%@ page import="org.labkey.api.data.Container" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+
+  public LinkedHashSet<ClientDependency> getClientDependencies()
+  {
+      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<ClientDependency>();
+      resources.add(ClientDependency.fromFilePath("FileUploadField.js"));
+      resources.add(ClientDependency.fromFilePath("/formulations/FormulationForm.js"));
+      return resources;
+  }
+%>
 <%
     ViewContext context = HttpView.currentContext();
     Container container = context.getContainer();
@@ -43,14 +55,6 @@
 
 </style>
 <script type="text/javascript">
-    LABKEY.requiresClientAPI(true);
-    LABKEY.requiresScript("FileUploadField.js");
-    LABKEY.requiresScript("formulations/FormulationForm.js");
-</script>
-<script type="text/javascript">
-
-    var _upload;
-    var _panel;
 
     Ext.onReady(function(){
 
@@ -66,7 +70,7 @@
         _formulations.push(<%=formulation.toJSON()%>);
     <%  } %>
 
-        _panel = new LABKEY.idri.FormulationPanel({
+        var panel = new LABKEY.idri.FormulationPanel({
             id : 'ext-formulation-panel',
             materials : _materials,
             formulations : _formulations,

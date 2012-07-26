@@ -60,7 +60,7 @@ public class Material
 
     public Integer getTypeKey()
     {
-        return _typeKey;
+        return (Integer) _type.get("Key");
     }
 
     public void setTypeKey(Integer typeKey)
