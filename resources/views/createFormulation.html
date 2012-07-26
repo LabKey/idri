@@ -1,11 +1,13 @@
 <script type="text/javascript">
 
+(function(){
+
     var _storeData = [];
     var FORM_NAME = 'formulation-entry-form';
     var _link = "";
     var _error = false;
 
-    function init()
+    var init = function()
     {
         Ext.QuickTips.init();
 
@@ -96,7 +98,7 @@
         });
     }
 
-    function addMaterialItem(done)
+    var addMaterialItem = function(done)
     {
         if (!done)
         {
@@ -140,7 +142,7 @@
             generateCombo();
     }
 
-    function generateCombo()
+    var generateCombo = function()
     {
         var form_panel = Ext.getCmp(FORM_NAME);
         form_panel.materialCount = form_panel.materialCount + 1;
@@ -165,9 +167,9 @@
         form_panel.doLayout();
     }
 
-    function submit()
+    var submit = function()
     {
-        showMsg(""); 
+        showMsg("");
         var form = Ext.getCmp(FORM_NAME);
 
         if (!form.getForm().isValid())
@@ -190,7 +192,7 @@
                     var mats = "";
                     var formValues = form.getForm().getValues(false);
                     var knownMats = [];
-                    
+
                     for (var value in formValues)
                     {
                         for (var i = 0; i < knownMats.length; i++)
@@ -246,7 +248,7 @@
                                         var row = data.rows[0];
                                         mainParams['rowId'] = row["RowId"].toString();
                                         _link = location.protocol + "//" + location.host + "/" + LABKEY.ActionURL.buildURL("experiment", "showMaterial.view", LABKEY.ActionURL.getContainer(), mainParams);
-                                        
+
                                         showMsg('Formulation: ' + "<a href='" + _link + "'>" + document.getElementById('Batch').value + '</a> created successfully.');
 
                                         if (Ext.getCmp('stabilityWatch').getValue())
@@ -310,7 +312,7 @@
             }});
     }
 
-    function showMsg(msg, error)
+    var showMsg = function(msg, error)
     {
         var elem = document.getElementById('formulation-entry-report');
         if (msg == "")
@@ -322,6 +324,9 @@
     }
 
     Ext.onReady(init);
+
+})();
+
 </script>
 <div id="formulation-entry-report"></div>
 <div id="formulation-entry-div" style="width: 405px;"></div>

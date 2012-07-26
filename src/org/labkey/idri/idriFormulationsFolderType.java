@@ -33,8 +33,8 @@ public class idriFormulationsFolderType extends DefaultFolderType
 {
     public idriFormulationsFolderType(idriModule module)
     {
-        super("IDRI Formulations Folder",
-                "Manage formulations data, modeling, and assays. One per site. (Requires the Formulations Module)",
+        super("IDRI Formulations",
+                "Manage formulations data, modeling, and assays. One per site.",
                 Arrays.asList(
                         Portal.getPortalPart("Formulation Search").createWebPart(),
                         Portal.getPortalPart("Sample Sets").createWebPart(),

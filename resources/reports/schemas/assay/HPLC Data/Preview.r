@@ -16,9 +16,9 @@
 library(Rlabkey)   # required for labkey.url.params && labkey.file.root
 library(hyperSpec)
 
-fileParam <- labkey.url.params$file
-#fileParam <- paste("C:/code/labkey/trunk/build/deploy/files", "/FormulationsTest/@files/HPLCRun1/3004837A.txt", sep="")
-filePath <- paste(labkey.file.root, fileParam, sep="")
+fileParam   <- labkey.url.params$file
+#fileParam  <- paste("C:/code/labkey/trunk/build/deploy/files", "/FormulationsTest/@files/HPLCRun1/3004837A.txt", sep="")
+filePath    <- paste(labkey.file.root, fileParam, sep="")
 
 spec <- scan.txt.Renishaw(file=filePath, data="spc")
 #spec <- scan.txt.Renishaw(file=fileParam, data="spc")

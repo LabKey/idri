@@ -16,6 +16,8 @@
 <script type="text/javascript">
     LABKEY.requiresClientAPI();
     LABKEY.requiresScript("formulations/SearchFormulation.js");
+</script>
+<script type="text/javascript">
 
     var _expGrid;                       // the experiment grid
     var _formulationsGrid;              // the formulation/experiment editor grid panel
@@ -25,8 +27,6 @@
     function formulationRenderer(data, cellMetaData, record, rowIndex, colIndex, store)
     {
         return _materialTemplate.apply(record.data) + _baseFormulationRenderer(data, cellMetaData, record, rowIndex, colIndex, store) + '</a>';
-        //var name = _baseFormulationRenderer(data, cellMetaData, record, rowIndex, colIndex, store);
-        //return '<a href="javascript:void(0);" onClick="getRunIdIfUnique(\'' + name + '\', \'Particle Size\');">' + name + '</a>';
     }
 
     function customizeColumnModel(colModel, index)
@@ -46,10 +46,6 @@
 
         // override the editor grid panel so we can provide our own lookup editor
         MyGridPanel = Ext.extend(LABKEY.ext.EditorGridPanel, {
-
-            constructor: function(config) {
-                MyGridPanel.superclass.constructor.call(this, config);
-            },
 
             getLookupEditor : function(col, meta) {
                 var store = this.store.getLookupStore(meta.name, !col.required);
