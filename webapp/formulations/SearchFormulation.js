@@ -14,7 +14,7 @@ function resolveView(queryString)
         {
             return "RM";
         }
-        else if(/(TD|QF)\d{1,3}\s*$/.test(queryString))
+        else if(/(TD|QF|QD)\d{1,3}\s*$/.test(queryString))
         {
             return "FORMULATION";
         }

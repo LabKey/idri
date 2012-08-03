@@ -28,9 +28,15 @@ function fileNameToBatchNumber(filename)
     }
     else if (/^QF/.test(filename))
     {
-        // QF is used as 1000-1999 test runs. HARD CODED.
+        // QF is used as 1000-1999 test runs.
         filename = filename.substring(2, filename.length);
         filename = '1' + filename;
+    }
+    else if (/^QD/.test(filename))
+    {
+        // QD is used as 2000-2999 test runs.
+        filename = filename.substring(2, filename.length);
+        filename = '2' + filename;
     }
 
     return filename;

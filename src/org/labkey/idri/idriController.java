@@ -260,8 +260,11 @@ public class idriController extends SpringActionController
             if (null == _formulation.getBatch() || _formulation.getBatch().length() == 0)
                 errors.reject(ERROR_MSG, "Formulation Provided does not have a lot name.");
 
-            if (!_formulation.getBatch().startsWith("QF") && !_formulation.getBatch().startsWith("TD"))
-                errors.reject(ERROR_MSG, "Formulations must start TD or QF");
+            String batch = _formulation.getBatch();
+            if (!batch.startsWith("QD") && !batch.startsWith("QF") && !batch.startsWith("TD"))
+            {
+                errors.reject(ERROR_MSG, "Formulations must start TD, QF, or QD.");
+            }
 
             validateSourceMaterials(errors);
         }
