@@ -9,18 +9,20 @@ Ext4.define('HPLC.controller.Sample', {
 
     views : ['SampleEntry', 'StandardEntry'],
 
+    sampleEntryMap : {},
+
     init : function() {
 
         this.control('window', {
             render : this.onWindowRender
         });
 
+        this.control('combo[name="replicatechoice"]', {
+            select : this.onReplicateSelect
+        });
     },
 
     createSampleView : function(samples, idx, standards) {
-
-        if (!this.sampleEntryMap)
-            this.sampleEntryMap = {};
 
         var smp = samples.getAt(idx);
 
@@ -98,5 +100,17 @@ Ext4.define('HPLC.controller.Sample', {
 
     onWindowRender : function(win) {
         this.win = win;
+    },
+
+    onReplicateSelect : function(cb, recs) {
+
+        if (this.sampleEntryMap[recs[0].data.name] && cb.getSamplePanel) {
+
+            if (cb.getSamplePanel().id != this.sampleEntryMap[recs[0].data.name].id) {
+                var vals = this.sampleEntryMap[recs[0].data.name].getForm();
+                cb.getSamplePanel().setForm(vals);
+            }
+
+        }
     }
 });

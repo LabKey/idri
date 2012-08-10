@@ -309,14 +309,23 @@ Ext4.define('HPLC.view.Upload', {
 
     getConfiguration : function(handler, scope) {
 
-        if (!this.targetFile || !this.targetFile.treeNode)
+        if (!this.targetFile)
         {
-            Ext4.Msg.alert('No Files', 'Please select a directory or file to import.');
+            alert('No Files. Please select a directory or file to import.');
             return;
         }
 
+        var pathId;
+        if (!this.targetFile.treeNode) {
+            var pipe = "%40pipeline";
+            pathId = this.targetFile.id.substr(this.targetFile.id.indexOf(pipe)+pipe.length);
+        }
+        else {
+            pathId = this.targetFile.treeNode.id;
+        }
+
         var fileConfig = {
-            path : this.targetFile.treeNode.id,
+            path : pathId,
             success : function(fs, path, files){
                 var _data = {}, _files = [];
                 for (var i = 0; i < files.length; i++){

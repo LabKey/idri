@@ -41,8 +41,6 @@ Ext4.define('HPLC.controller.State', {
         }
         this.activated = true;
 
-        console.log(this.application.getFolder());
-
         this.upload = Ext4.create('HPLC.view.Upload', {
             targetFile : this.application.getFolder(),
             fileSystem : this.application.getFileSystem()

@@ -71,7 +71,7 @@ Ext4.define('HPLC.view.SampleEntry', {
             region : 'east',
             border: false, frame : false,
             flex : 3,
-            items : [this.generatePreview()]
+            items : [this.getReplicatePanel(),this.generatePreview()]
         }];
 
         this.callParent();
@@ -79,6 +79,19 @@ Ext4.define('HPLC.view.SampleEntry', {
 
     getForm : function() {
         return this.getFormPanel().getValues();
+    },
+
+    setForm : function(values) {
+
+        // protected values
+        if (values.name)
+            delete values.name;
+        if (values.uri)
+            delete values.uri;
+        if (values.path)
+            delete values.path;
+
+        this.getFormPanel().getForm().setValues(values);
     },
 
     getFormPanel : function() {
@@ -136,11 +149,15 @@ Ext4.define('HPLC.view.SampleEntry', {
                 fieldLabel : 'Formulation',
                 name : 'formulation',
                 store : this.initializeFormulationStore(),
-                editable : false,
+                editable : true,
                 queryMode : 'local',
                 displayField : 'Batch',
                 valueField : 'Batch', // 'RowId'
-                emptyText : 'None'
+                emptyText : 'None',
+                typeAhead : true,
+                minChars : 1,
+                autoSelect : false,
+                typeAheadDelay : 75
             },{
                 xtype : 'textfield',
                 fieldLabel : 'Diluent',
@@ -182,6 +199,33 @@ Ext4.define('HPLC.view.SampleEntry', {
         });
 
         return this.formPanel;
+    },
+
+    getReplicatePanel : function() {
+
+        if (this.replicatePanel)
+            return this.replicatePanel;
+
+        var me = this;
+
+        this.replicatePanel = Ext4.create('Ext.form.Panel', {
+            border: false,
+            items : [{
+                xtype : 'combo',
+                name : 'replicatechoice',
+                width : 250,
+                emptyText : 'Choose Sample to replicate...',
+                store : this.samples,
+                queryMode : 'local',
+                displayField : 'name',
+                valueField : 'name',
+                getSamplePanel : function() {
+                    return me;
+                }
+            }]
+        });
+
+        return this.replicatePanel;
     },
 
     generatePreview : function() {
@@ -263,22 +307,6 @@ Ext4.define('HPLC.view.SampleEntry', {
         });
         wp.render();
 
-    },
-
-    initReplicateForm : function() {
-
-        return Ext4.create('Ext.panel.Panel', {
-            items : [{
-                xtype : 'checkboxfield',
-                fieldLabel : 'Replicate',
-                name : 'replicate'
-            },{
-                xtype : 'combo',
-                name : 'replicatechoice',
-                store : this.samples,
-                displayField : ''
-            }]
-        });
     },
 
     initializeFormulationStore : function() {

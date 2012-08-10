@@ -113,14 +113,12 @@ Ext4.define('HPLC.controller.AssayResolver', {
         LABKEY.Experiment.saveBatch({
             assayId : LABKEY.page.assay.id,
             batch   : LABKEY.page.batch,
-            success : function(batch, response) {
+            success : function(batch) {
                 LABKEY.page.batch = batch;
 
                 me.application.win.hide();
                 Ext.Msg.hide();
-                Ext.Msg.alert('Save Batch', 'Save Successful', function(){
-                     me.application.win.show();
-                });
+                Ext.Msg.alert('Save Batch', 'Save Successful');
             },
             failure : function(error) {
                 me.application.win.hide();
