@@ -18,7 +18,7 @@
         background: pink !important;
     }
 
-    .x4-tab-bar {
+    .hidetabs div.x4-tab-bar-default-plain {
         display: none;
     }
 
@@ -26,6 +26,7 @@
     .sample-header {
         font-size: 13pt;
         padding-left: 27px;
+        padding-top: 10px;
         background: white;
     }
 
@@ -40,12 +41,7 @@
 
     .x4-border-box .x4-reset .x4-form-text,
     .x4-border-box .x4-reset .x4-form-trigger {
-        height: 30px;
-    }
-
-    .x4-border-box .x4-reset .x4-form-text,
-    .x4-reset .x4-form-display-field {
-        font-size: 11pt;
+        height: 25px;
     }
 
 </style>
@@ -156,6 +152,7 @@
 
                                 this.tab = Ext4.create('Ext.tab.Panel', {
                                     plain : true,
+                                    cls   : 'hidetabs',
                                     defaults : {
                                         ui : 'custom'
                                     }

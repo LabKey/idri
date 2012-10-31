@@ -8,8 +8,6 @@ Ext4.define('HPLC.view.Review', {
 
     alias : 'widget.hplcreview',
 
-//    layout : 'border',
-
     border : false,
 
     frame  : false,
@@ -18,6 +16,7 @@ Ext4.define('HPLC.view.Review', {
 
         this.summary = Ext4.create('Ext.Component', {
             border: false, frame : false,
+            margin: 5,
             autoEl : {
                 tag : 'div',
                 html : 'Run Information'
@@ -42,7 +41,7 @@ Ext4.define('HPLC.view.Review', {
     updateRuns : function(runs) {
         this.runs = runs;
 
-        var loaded = this.getGrid();
+        var loaded = this.isLoaded();
 
         // Just update grids if they are already loaded
         if (loaded) {
@@ -50,12 +49,20 @@ Ext4.define('HPLC.view.Review', {
             this.runGrid.getStore().loadRawData(rawRuns.runs);
             this.resultGrid.getStore().loadRawData(rawRuns.results)
         }
+        else {
+            this.loadGrid();
+        }
     },
 
-    getGrid : function() {
+    isLoaded : function() {
+        // don't want to return the runGrid
+        return (this.runGrid ? true : false);
+    },
+
+    loadGrid : function() {
 
         if (this.runGrid) {
-            return true;
+            return;
         }
 
         Ext4.define('HPLC.model.Run', {
@@ -76,24 +83,23 @@ Ext4.define('HPLC.view.Review', {
             ]
         });
 
+        var rawRuns = this._processRawRuns(this.runs);
+
         var runStore = Ext4.create('Ext.data.Store', {
             model : 'HPLC.model.Run',
             proxy : {
                 type : 'memory'
-            }
+            },
+            data  : rawRuns.runs
         });
 
         var resultStore = Ext4.create('Ext.data.Store', {
             model : 'HPLC.model.Result',
-            proxy: {
+            proxy : {
                 type: 'memory'
-            }
+            },
+            data  : rawRuns.results
         });
-
-        var rawRuns = this._processRawRuns(this.runs);
-
-        runStore.loadRawData(rawRuns.runs);
-        resultStore.loadRawData(rawRuns.results);
 
         this.runGrid = Ext4.create('Ext.grid.Panel', {
             store : runStore,
@@ -133,6 +139,7 @@ Ext4.define('HPLC.view.Review', {
 
         this.add(Ext4.create('Ext.Component', {
             border: false, frame : false,
+            margin: 5,
             autoEl : {
                 tag : 'div',
                 html : 'Result Information'
@@ -140,8 +147,6 @@ Ext4.define('HPLC.view.Review', {
         }));
 
         this.add(this.resultGrid);
-
-        return false;
     },
 
     _processRawRuns : function(runs) {

@@ -233,78 +233,74 @@ Ext4.define('HPLC.view.Upload', {
     },
 
     seePreviewVis : function(record) {
+
+        var loadImgPath = LABKEY.contextPath + '/' + LABKEY.extJsRoot_41 + '/resources/themes/images/default/grid/loading.gif';
+
         this.plotRegion = Ext4.create('Ext.Component', {
             autoEl: {
                 tag : 'div',
-                cls : 'emptyplot plot'
+                style: 'margin-top: 90px; height: 200px; width: 400px; text-align: center;',
+                children : [{
+                    tag : 'img',
+                    src : loadImgPath,
+                    style: 'vertical-align: middle; padding-right: 3px;',
+                    height: 20,
+                    width: 20
+                },{
+                    tag : 'span',
+                    style : 'font-size: 7pt;',
+                    html : 'Loading Preview'
+                }]
             },
             listeners : {
-                afterrender : function(c){
-                    console.log(c.getId());
-                    this.plotid = c.getId();
+                afterrender : function(box){
+                    this.seePreview(record, box);
                 },
                 scope : this
             },
             scope : this
         });
+
         this.add(this.plotRegion);
         this.getLayout().setActiveItem(this.plotRegion);
-        console.log(record);
     },
 
-    seePreview : function(record) {
-        var r = record;
-        var preview = Ext4.create('Ext.panel.Panel', {
-            region : 'center',
-            layout: {
-                type: 'vbox',
-                align: 'center'
-            },
-            border : false,
-            frame  : false,
-            bodyStyle : 'margin-top: 100px',
-            items: [{
-                border: false,
-                frame : false,
-                html  : '',
-                width : 800,
-                height: 400,
-                listeners : {
-                    afterrender : function(p) {
-                        p.getEl().mask('Generating HPLC Preview...');
-                        console.log('rendering to ' + p.getEl().id);
-                        console.log(LABKEY.ActionURL.decodePath(r.data.uri.replace(LABKEY.ActionURL.getBaseURL(), '').replace("_webdav", ''))); // Ext4.htmlDecode does not seem to work
-                        var wp = new LABKEY.WebPart({
-                            renderTo : p.getEl().id,
-                            partName : 'Report',
-                            frame   : 'none',
-                            partConfig : {
-                                reportId : 'module:idri/schemas/assay/HPLC Data/Preview.r',
-                                'file'   : LABKEY.ActionURL.decodePath(r.data.uri.replace(LABKEY.ActionURL.getBaseURL(), '').replace("_webdav", '')), // container is a hack
-                                showSection : 'peaks_png'
-                            },
-                            success : function(x, y, z){
-                                p.getEl().unmask();
-                            },
-                            failure : function(){
-                                p.getEl().unmask();
-                            }
-                        });
-                        wp.render();
+    seePreview : function(record, box) {
+
+        var me = this;
+
+        var wp = new LABKEY.WebPart({
+            renderTo : box.getEl().id,
+            partName : 'Report',
+            frame    : 'none',
+            partConfig : {
+                reportId    : 'module:idri/schemas/assay/HPLC Data/XYPreview.r',
+                file        : record.data.path,
+                showSection : 'peaks_png',
+                beforeRender : function(resp) {
+                    var text = resp.responseText;
+                    if (text.indexOf('error') > -1) {
+                        box.update('<p style="margin-top: 35px; cursor: pointer;">Preview not Available. Click to Continue.</p>');
                     }
+                    else {
+                        var id = Ext4.id();
+                        box.update('<p style="text-align: center; font-size: 7pt; padding-bottom: 80px; margin-top: -80px; cursor: pointer;">Click Image to Close</p>' +
+                                   '<img id="' + id + '" style="margin-top: -80px;" height="400" width="800" src="' + text.split('src')[1].replace('=', '').split('"')[1] + '">');
+                        me.doComponentLayout();
+                    }
+                    box.getEl().on('click', function(el) {
+                        this.getLayout().setActiveItem(0);
+                        if (this.plotRegion) {
+                            this.remove(this.plotRegion);
+                        }
+                    }, me, {single: true});
+                    return false;
                 }
-            },{
-                xtype : 'button',
-                text  : 'Close Preview',
-                handler : function() {
-                    this.getLayout().setActiveItem(0);
-                    this.remove(preview);
-                },
-                scope : this
-            }]
+            },
+            success : function(){ },
+            failure : function(){ }
         });
-        this.add(preview);
-        this.getLayout().setActiveItem(preview);
+        wp.render();
     },
 
     getConfiguration : function(handler, scope) {

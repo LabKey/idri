@@ -52,7 +52,7 @@ Ext4.define('HPLC.view.SampleEntry', {
 
         this.sampleTitle = Ext4.create('Ext.Component', {
             region : 'north',
-            height : 60,
+            height : 45,
             autoEl : {
                 tag : 'span',
                 cls : 'sample-header',
@@ -65,7 +65,7 @@ Ext4.define('HPLC.view.SampleEntry', {
             region : 'center',
             flex : 3,
             border: false,
-            items : [this.getFormPanel()]
+            items : [this.getTabPanel()]
         },{
             xtype  : 'panel',
             region : 'east',
@@ -78,7 +78,10 @@ Ext4.define('HPLC.view.SampleEntry', {
     },
 
     getForm : function() {
-        return this.getFormPanel().getValues();
+        var formValues = this.getFormPanel().getForm().getFieldValues();
+        delete formValues[this.displayId + '-inputEl'];
+
+        return Ext4.merge(formValues, this.getStandardsPanel().getValues());
     },
 
     setForm : function(values) {
@@ -99,24 +102,12 @@ Ext4.define('HPLC.view.SampleEntry', {
         if (this.formPanel)
             return this.formPanel;
 
-        var stdItems = [];
-
-        for (var i=0; i < this.standards.getCount(); i++)
-        {
-            stdItems.push({
-                boxLabel : this._parseSampleName(this.standards.getAt(i).data.name),
-                name : 'std',
-                checked  : true,
-                width : 100,
-                uncheckedValue : '0'
-            });
-        }
-
+        this.displayId = Ext4.id();
         this.formPanel = Ext4.create('Ext.form.Panel', {
+            title : 'Sample',
             flex : 1,
-            border : false,
-            height : 350,
-            bodyStyle: 'padding-left: 27px; border: none;',
+            height : 364,
+            bodyStyle: 'padding-left: 27px; padding-top: 10px;',
             fieldDefaults : {
                 labelSeparator : '',
                 validateOnBlur: false,
@@ -129,19 +120,23 @@ Ext4.define('HPLC.view.SampleEntry', {
                 value : this._parseSampleName(this.sampleid),
                 name : 'name'
             },{
+                id    : this.displayId,
                 xtype : 'displayfield',
                 fieldLabel : 'File',
                 value : this.sample.path
             },{
                 xtype : 'hidden',
+                hidden: true,
                 name : 'uri',
                 value : this.sample.uri
             },{
                 xtype : 'hidden',
+                hidden: true,
                 name : 'filepath',
                 value : this.sample.path
             },{
                 xtype : 'hidden',
+                hidden: true,
                 name : 'TestType',
                 value : 'sample'
             },{
@@ -164,8 +159,10 @@ Ext4.define('HPLC.view.SampleEntry', {
                 name : 'Diluent'
             },{
                 xtype : 'numberfield',
-                fieldLabel : 'Dilution',
+                fieldLabel : 'Dilution Factor',
                 name : 'Dilution',
+                decimalPrecision: 0,
+                minValue : 0,
                 hideTrigger : true
             },{
                 xtype : 'combo',
@@ -187,9 +184,52 @@ Ext4.define('HPLC.view.SampleEntry', {
                 displayField : 'time',
                 valueField : 'time',
                 emptyText : 'Batch Timepoint'
-            },{
+            }]
+        });
+
+        return this.formPanel;
+    },
+
+    getTabPanel : function() {
+
+        if (this.tabPanel)
+            return this.tabPanel;
+
+        this.tabPanel = Ext4.create('Ext.tab.Panel', {
+            activeTab : 0,
+            border : false, frame: false,
+            items : [this.getFormPanel(), this.getStandardsPanel()]
+        });
+
+        return this.tabPanel;
+    },
+
+    getStandardsPanel : function() {
+
+        if (this.stdPanel)
+            return this.stdPanel;
+
+        var stdItems = [];
+
+        for (var i=0; i < this.standards.getCount(); i++)
+        {
+            stdItems.push({
+                boxLabel : this._parseSampleName(this.standards.getAt(i).data.name),
+                name : 'std',
+                checked  : true,
+                width : 100,
+                uncheckedValue : '0'
+            });
+        }
+
+        this.stdPanel = Ext4.create('Ext.form.Panel', {
+            title : 'Standards',
+            height : 364,
+            bodyStyle: 'padding-left: 27px; padding-top: 10px;',
+            items : [{
                 xtype : 'checkboxgroup',
-                fieldLabel : 'Standards',
+                fieldLabel : 'Standards for this Sample',
+                labelSeparator : '',
                 labelAlign : 'top',
                 colspan    : 1,
                 columns    : 2,
@@ -198,7 +238,7 @@ Ext4.define('HPLC.view.SampleEntry', {
             }]
         });
 
-        return this.formPanel;
+        return this.stdPanel;
     },
 
     getReplicatePanel : function() {
@@ -210,6 +250,7 @@ Ext4.define('HPLC.view.SampleEntry', {
 
         this.replicatePanel = Ext4.create('Ext.form.Panel', {
             border: false,
+            bodyStyle : 'padding-left: 27px; padding-top: 18px;',
             items : [{
                 xtype : 'combo',
                 name : 'replicatechoice',
@@ -274,8 +315,8 @@ Ext4.define('HPLC.view.SampleEntry', {
         var me = this;
 
         var partConfig = {
-            reportId    : 'module:idri/schemas/assay/HPLC Data/Preview.r',
-            path        : path,
+            reportId    : 'module:idri/schemas/assay/HPLC Data/XYPreview.r',
+            file        : path,
             isPipeline  : true,
             showSection : 'peaks_png',
             beforeRender : function(resp) {
@@ -285,7 +326,7 @@ Ext4.define('HPLC.view.SampleEntry', {
                 }
                 else {
                     var id = Ext4.id();
-                    box.update('<img id="' + id + '" style="margin-top: -35px;" height="200" width="400" src="' + text.split('src')[1].replace('=', '').split('"')[1] + '"><p style="text-align: center; font-size: 7pt;">Click Image to Enlarge</p>');
+                    box.update('<img id="' + id + '" style="margin-top: -35px; cursor: pointer;" height="200" width="400" src="' + text.split('src')[1].replace('=', '').split('"')[1] + '"><p style="text-align: center; font-size: 7pt;">Click Image to Enlarge</p>');
                     Ext4.get(id).on('click', function(el) {
                         this.fireEvent('preview', Ext4.get(id).dom.src);
                     }, me);
@@ -296,14 +337,12 @@ Ext4.define('HPLC.view.SampleEntry', {
         };
 
         var wp = new LABKEY.WebPart({
-            renderTo : box.getEl().id,
-            partName : 'Report',
-            frame   : 'none',
+            renderTo   : box.getEl().id,
+            partName   : 'Report',
+            frame      : 'none',
             partConfig : partConfig,
-            success : function() {
-            },
-            failure : function() {
-            }
+            success : function() { },
+            failure : function() { }
         });
         wp.render();
 

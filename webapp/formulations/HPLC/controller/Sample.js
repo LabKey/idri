@@ -94,10 +94,6 @@ Ext4.define('HPLC.controller.Sample', {
         });
     },
 
-    hidePreview : function(btn) {
-
-    },
-
     onWindowRender : function(win) {
         this.win = win;
     },

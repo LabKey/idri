@@ -88,11 +88,15 @@ Ext4.define('HPLC.view.StandardEntry', {
                 fieldLabel : 'Compound',
                 name : 'Compound',
                 store : this.getCompoundStore(),
-                editable : false,
+                editable : true,
                 queryMode : 'local',
                 displayField : 'Name',
                 valueField : 'RowId',
-                emptyText : 'None'
+                emptyText : 'None',
+                typeAhead : true,
+                minChars : 1,
+                autoSelect : false,
+                typeAheadDelay : 75
             },{
                 xtype : 'numberfield',
                 fieldLabel : 'Concentration',
