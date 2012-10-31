@@ -15,40 +15,31 @@
 ##
 # Z-Avg Graph.r
 # THIS CAN ONLY BE RUN ON THE SERVER -- due to usage of labkey.url.params
-
-folderPath <- "/Formulations"
-
-if(.Platform[1] == "windows"){
-    setwd("C:/code/labkey/trunk/build/deploy/files/FormulationsTest/@files/PSData")
-    folderPath <- "/FormulationsTest"
-} else setwd("/labkey/labkey/files/Formulations/@files/PSData")
-
 library(Rlabkey)
 
-# For development on a local windows dev environment.
-# Production in this case is -not- Windows.
-labkeyBaseUrl = ""
+relativeDirectory <- paste(labkey.url.path, "@files/PSData", sep="")
 
 if(.Platform[1] == "windows"){
-    labkeyBaseUrl = "http://localhost:8080/labkey"
-} else labkeyBaseUrl = "http://idri.labkey.com/"
+    setwd(paste("C:/code/labkey/122/build/deploy/files", relativeDirectory, sep=""))
+} else setwd(paste("/labkey/labkey/files", relativeDirectory, sep=""))
 
 searchParam      <- labkey.url.params$nameContains
 temperatureParam <- labkey.url.params$storageTemp
 toolParam        <- labkey.url.params$analysisTool
+exactName        <- labkey.url.params$exactName
 
-filter1 <- makeFilter(c("name", "CONTAINS", searchParam))
+filter1 <- makeFilter(c("name", "EQUALS", searchParam))
 filter2 <- makeFilter(c("StorageTemperature", "EQUALS", temperatureParam))
 filter3 <- makeFilter(c("AnalysisTool", "EQUALS", toolParam))
 
-mydata <- suppressWarnings(labkey.selectRows(baseUrl=labkeyBaseUrl,
-                            folderPath=folderPath,
+mydata <- suppressWarnings(labkey.selectRows(baseUrl=labkey.url.base,
+                            folderPath=labkey.url.path,
                             schemaName="assay",
                             queryName="R_ReportSummary",
                             colFilter=c(filter1,filter2,filter3)))
 
 if (0 == length(mydata[0])) {
-	warning(paste(searchParam,
+	warning(paste(exactName,
 			  "Particle Size data @",
 			  temperatureParam,
 			  "was not found for",
@@ -64,9 +55,9 @@ m <- data.matrix(mydata[4:(ncol(mydata))])
 
 # Generate bar plot with labels and time stamp
 if (toolParam == "nano") {
-	png(filename=paste(searchParam,"_nanoPS.png",sep=""),width=650)
+	png(filename=paste(exactName,"_nanoPS.png",sep=""),width=650)
 } else {
-	png(filename=paste(searchParam,"_apsPS.png",sep=""),width=650)
+	png(filename=paste(exactName,"_apsPS.png",sep=""),width=650)
 }
 
 	#Graphical parameters
@@ -82,7 +73,7 @@ if (toolParam == "nano") {
 		args.legend=list(horiz=TRUE),
 		ylim=c(0,200),
 		ylab="Z-Avg (nm)",
-		main=paste("PS ", toupper(searchParam), toolParam),
+		main=paste("PS ", toupper(exactName), toolParam),
 		xpd=FALSE,
 		axis.lty = 1,
 		col = c("royalblue4", "red4", "yellow1"))
@@ -123,7 +114,7 @@ if (toolParam == "nano") {
 		args.legend=list(horiz=TRUE),
 		ylim=c(0,200),
 		ylab="Z-Avg (nm)",
-		main=paste("PS ", toupper(searchParam), toolParam),
+		main=paste("PS ", toupper(exactName), toolParam),
 		xpd=FALSE,
 		axis.lty = 1,
 		col = c("royalblue4", "red4", "yellow1"))

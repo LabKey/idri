@@ -282,7 +282,8 @@ function buildPSReports(tempstr, name, machine, renderto, renderimg)
 function displayGraphic(name, temp, tool, imageElement, divElement)
 {
     var filters = [];
-    filters.push(LABKEY.Filter.create("name", name, LABKEY.Filter.Types.CONTAINS));
+    var _name = name + '.xls';
+    filters.push(LABKEY.Filter.create("name", _name, LABKEY.Filter.Types.EQUAL));
     filters.push(LABKEY.Filter.create("StorageTemperature", temp, LABKEY.Filter.Types.EQUAL));
     filters.push(LABKEY.Filter.create("AnalysisTool", tool, LABKEY.Filter.Types.EQUAL));
 
@@ -318,7 +319,8 @@ function displayGraphic(name, temp, tool, imageElement, divElement)
                             partConfig : {
                                 reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
                                 showSection   :'labkey' + tool + '_png',
-                                'nameContains': name,
+                                'nameContains': _name,
+                                'exactName'   : name,
                                 'storageTemp' : temp,
                                 'analysisTool': tool
                             }

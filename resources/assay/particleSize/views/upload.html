@@ -108,7 +108,8 @@
                                     partConfig : {
                                         reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
                                         showSection   :'labkey' + tools[i] + '_png',
-                                        'nameContains': sampleName.toUpperCase(),
+                                        'nameContains': sampleName.toUpperCase() + '.xls',
+                                        'exactName'   : sampleName.toUpperCase(),
                                         'storageTemp' : temp,
                                         'analysisTool': tools[i]
                                     }
