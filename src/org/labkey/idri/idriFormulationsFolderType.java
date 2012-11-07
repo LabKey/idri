@@ -16,7 +16,7 @@
 package org.labkey.idri;
 
 import org.labkey.api.data.Container;
-import org.labkey.api.module.DefaultFolderType;
+import org.labkey.api.module.MultiPortalFolderType;
 import org.labkey.api.security.User;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
@@ -29,7 +29,7 @@ import java.util.Arrays;
  * Date: Aug 25, 2010
  * Time: 3:51:22 PM
  */
-public class idriFormulationsFolderType extends DefaultFolderType
+public class idriFormulationsFolderType extends MultiPortalFolderType
 {
     public idriFormulationsFolderType(idriModule module)
     {
