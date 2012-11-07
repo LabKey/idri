@@ -72,20 +72,6 @@ public class idriController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
-    public class BeginAction extends SimpleViewAction
-    {
-        public ModelAndView getView(Object o, BindException errors) throws Exception
-        {
-            return new JspView("/org/labkey/idri/view/hello.jsp");
-        }
-
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return root;
-        }
-    }
-
     public static class ExpObjectForm
     {
         private int _rowId;
