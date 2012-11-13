@@ -94,7 +94,7 @@ Ext4.define('HPLC.controller.AssayResolver', {
                 for (j=0; j < sets[s].length; j++) {
 
                     /* fulfill runoutputs using PipelinePath */
-                    run.dataOutputs.push(new LABKEY.Exp.Data({pipelinePath: sets[s][j].filepath}));
+                    run.dataInputs.push(new LABKEY.Exp.Data({pipelinePath: sets[s][j].filepath}));
 
                     /* map associated standards */
                     if (Ext4.isArray(sets[s][j])) {
@@ -132,7 +132,9 @@ Ext4.define('HPLC.controller.AssayResolver', {
 
                 me.application.win.hide();
                 Ext.Msg.hide();
-                Ext.Msg.alert('Save Batch', 'Save Successful');
+                Ext.Msg.alert('Save Batch', 'Save Successful', function(){
+                    window.location.reload();
+                });
             },
             failure : function(error) {
                 me.application.win.hide();

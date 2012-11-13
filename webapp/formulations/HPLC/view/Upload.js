@@ -313,8 +313,15 @@ Ext4.define('HPLC.view.Upload', {
 
         var pathId;
         if (!this.targetFile.treeNode) {
-            var pipe = "%40pipeline";
-            pathId = this.targetFile.id.substr(this.targetFile.id.indexOf(pipe)+pipe.length);
+            // selected a folder
+            if (this.targetFile.id[this.targetFile.id.length-1] == '/') {
+                pathId = this.targetFile.id.split('/');
+                pathId = '/' + pathId[pathId.length-2] + '/';
+            }
+            else {
+                // selected a file --> move them to parent folder
+                pathId = this.targetFile.data.path.replace(this.targetFile.data.name, '');
+            }
         }
         else {
             pathId = this.targetFile.treeNode.id;
@@ -336,92 +343,6 @@ Ext4.define('HPLC.view.Upload', {
         this.fileSystem.listFiles(fileConfig);
     },
 
-    // This will save the assay run in it's current state
-    save : function() {
-        /* Validate */
-        if (this.dataView) {
-            var resultStore = this.dataView.getStore();
-            var errors;
-            for (i=0; i < resultStore.getCount(); i++) {
-                errors = resultStore.getAt(i).validate();
-                if (errors && !errors.isValid()) {
-                    this.dataView.select(i);
-
-                    return false;
-                }
-            }
-            if (!errors)
-                console.log('everything is valid');
-        }
-        else {
-            console.log('unable to find data view');
-            return;
-        }
-
-        /* Run info */
-//        var form = this.runInfoPanel.getComponent('runForm');
-//        form = form.getForm();
-//        if (!form.isValid || !form.store.getAt(0)) {
-//            console.log('the form is invalid');
-//            form.markInvalid();
-//            return false;
-//        }
-        return false;
-
-
-        var run = this._ensureRun(true);
-
-        var _rec = Ext4.create('HPLC.model.Run', form.store.getAt(0).data);
-
-        /* map run properties */
-        for (var i=0; i < _rec.fields.keys.length; i++)
-            run.properties[_rec.fields.keys[i]] = _rec.get(_rec.fields.keys[i]);
-        run.name = run.properties['LotNumber'];
-
-        run.properties["Method"] = this.mthdStore.getAt(0).get('uri');
-
-        /* fulfill runoutputs using PipelinePath */
-        for (i=0; i < this.smpStore.getCount(); i++)
-            run.dataOutputs.push(new LABKEY.Exp.Data({pipelinePath: this.smpStore.getAt(i).data.path}));
-
-        /* fulfill Assay Results */
-        if (this.dataView) {
-            for (i=0; i < resultStore.getCount(); i++) {
-                run.dataRows.push(resultStore.getAt(i).data);
-            }
-        }
-
-        //LABKEY.page.batch.runs[0] = run;
-        run.dataInputs = [ new LABKEY.Exp.Data() ];
-
-        Ext4.Ajax.request({
-            url: LABKEY.ActionURL.buildURL("assay", "assayFileUpload"),
-            params: { fileName: run.name + '.txt', fileContent: 'Placeholder' },
-            success: function(response, options) {
-                var data = new LABKEY.Exp.Data(Ext4.JSON.decode(response.responseText));
-
-                // now add the data as a dataInput to a LABKEY.Exp.Run
-                run.dataInputs = [ data ];
-
-                // add the new run to a LABKEY.Exp.Batch object here
-                LABKEY.Experiment.saveBatch({
-                    assayId : LABKEY.page.assay.id,
-                    batch   : LABKEY.page.batch,
-                    success : function(batch, response) {
-                        LABKEY.page.batch = batch;
-                        console.log('saved successfully.');
-                    },
-                    failure : function(error, opts, response) {
-                        var msg = error.exception;
-                        Ext.Msg.hide();
-                        console.log('error');
-                        alert(msg);
-                    }
-                });
-            }
-        });
-    },
-
     /* private */
     _defineModels : function() {
 
@@ -439,10 +360,11 @@ Ext4.define('HPLC.view.Upload', {
             if (Ext4.isBoolean(val))
                 return 'boolean';
             console.error('Unable to resolve the type of \'' + val + '\'');
-        }
+        };
 
         // Returns an array of properties and their associated type
-        var mapFolderRecord = function(record) {
+        var mapFolderRecord = function(record)
+        {
             var _results = [];
 
             if (record && record.data) {
@@ -462,39 +384,39 @@ Ext4.define('HPLC.view.Upload', {
             }
 
             return _results;
-        }
+        };
 
         var mapAssayRun = function()
         {
-            var fields = [], field;
-            var domain = LABKEY.page.assay.domains;
-            var name = LABKEY.page.assay.name;
-            var run = domain[name + ' Run Fields'];
-            for (var i=0; i < run.length; i++) {
-                field = {
+            var fields = [],
+                domain = LABKEY.page.assay.domains,
+                name   = LABKEY.page.assay.name,
+                run    = domain[name + ' Run Fields'], i;
+
+            for (i=0; i < run.length; i++) {
+                fields.push({
                     name : run[i].name,
                     type : run[i].typeName
-                };
-                fields.push(field);
+                });
             }
+
             return fields;
-        }
+        };
 
         // creates an array of {name, type} objects used to define fields in model
         var mapAssayResult = function()
         {
-            var fields = [], field;
-            var domain = LABKEY.page.assay.domains;
-            var name = LABKEY.page.assay.name;
-            var run = domain[name + ' Result Fields'];
-            for (var i=0; i < run.length; i++) {
-//                console.log(run[i]);
-                field = {
+            var fields = [],
+                domain = LABKEY.page.assay.domains,
+                name   = LABKEY.page.assay.name,
+                run    = domain[name + ' Result Fields'], i;
+
+            for (i=0; i < run.length; i++) {
+                fields.push({
                     name : run[i].name,
                     type : run[i].typeName,
                     required : run[i].required
-                };
-                fields.push(field);
+                });
             }
 
             // add file field
@@ -505,7 +427,7 @@ Ext4.define('HPLC.view.Upload', {
             });
 
             return fields;
-        }
+        };
 
         // TODO: This should extend OR be a model of the standard labkey ajax file object
         // reexamine this after fileBrowser has been updated to Ext4

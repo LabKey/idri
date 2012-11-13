@@ -87,7 +87,7 @@ Ext4.define('HPLC.view.StandardEntry', {
                 xtype : 'combo',
                 fieldLabel : 'Compound',
                 name : 'Compound',
-                store : this.getCompoundStore(),
+                store : this._getUniqueStore(),
                 editable : true,
                 queryMode : 'local',
                 displayField : 'Name',
@@ -129,6 +129,12 @@ Ext4.define('HPLC.view.StandardEntry', {
             return this.compoundStore;
         }
 
+        this.compoundStore = this._getUniqueStore();
+
+        return this.compoundStore;
+    },
+
+    _getUniqueStore : function() {
         var config = {
             model   : 'HPLC.data.Compound',
             autoLoad: true,
@@ -147,9 +153,7 @@ Ext4.define('HPLC.view.StandardEntry', {
             }
         };
 
-        this.compoundStore = Ext4.create('Ext.data.Store', config);
-
-        return this.compoundStore;
+        return Ext4.create('Ext.data.Store', config);
     },
 
     _parseStandardName : function(name) {

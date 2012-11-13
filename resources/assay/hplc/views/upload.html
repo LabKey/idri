@@ -109,9 +109,9 @@
 
             var onImport = function() {
 
-                var folder = _fileBrowser.grid.getSelectionModel().getSelected();
+                var folder = _fileBrowser.grid.getSelectionModel().getSelected(); // right-hand grid selection
                 if (!folder) {
-                    folder = _fileBrowser.selectedRecord;
+                    folder = _fileBrowser.selectedRecord; // left-hand tree selection
                 }
 
                 if (folder && folder.id != '/')
