@@ -109,6 +109,12 @@ Ext4.define('HPLC.controller.AssayResolver', {
 
                     /* fulfill Assay Results */
                     run.dataRows.push(sets[s][j]);
+
+                    for (var i=0; i < run.dataRows.length; i++) {
+                        if (run.dataRows[i]['TestType'] == 'standard') {
+                            run.dataRows[i]['Sample'] = sets[s][j]['name'];
+                        }
+                    }
                 }
 
                 runs.push(run);
