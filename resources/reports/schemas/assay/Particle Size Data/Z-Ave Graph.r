@@ -19,9 +19,11 @@ library(Rlabkey)
 
 relativeDirectory <- paste(labkey.url.path, "@files/PSData", sep="")
 
-if(.Platform[1] == "windows"){
-    setwd(paste("C:/code/labkey/122/build/deploy/files", relativeDirectory, sep=""))
-} else setwd(paste("/labkey/labkey/files", relativeDirectory, sep=""))
+#File path
+fileParam   <- labkey.url.params$file
+filePath    <- paste(labkey.file.root, fileParam, sep="")
+
+setwd(paste(filePath, relativeDirectory, sep=""))
 
 searchParam      <- labkey.url.params$nameContains
 temperatureParam <- labkey.url.params$storageTemp

@@ -215,15 +215,18 @@ Ext4.define('HPLC.view.Upload', {
                 itemId: 'smpGrid',
                 title : 'Samples',
                 store : this.smpStore,
-                columns : sampleCols
+                columns : sampleCols,
+                cls : 'samples-grid'
             },{
                 itemId: 'stdGrid',
                 title : 'Standards',
-                store : this.stdStore
+                store : this.stdStore,
+                cls : 'standards-grid'
             },{
                 itemId: 'mthdGrid',
                 title : 'Methods',
-                store : this.mthdStore
+                store : this.mthdStore,
+                cls : 'methods-grid'
             }],
             scope : this
         });
