@@ -282,7 +282,7 @@ function buildPSReports(tempstr, name, machine, renderto, renderimg)
 function displayGraphic(name, temp, tool, imageElement, divElement)
 {
     var filters = [];
-    var _name = name + '.xls';
+    var _name = name;
     filters.push(LABKEY.Filter.create("name", _name, LABKEY.Filter.Types.EQUAL));
     filters.push(LABKEY.Filter.create("StorageTemperature", temp, LABKEY.Filter.Types.EQUAL));
     filters.push(LABKEY.Filter.create("AnalysisTool", tool, LABKEY.Filter.Types.EQUAL));

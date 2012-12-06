@@ -15,10 +15,7 @@
 function fileNameToBatchNumber(filename)
 {
     // Edits the suffix of the filename
-    if (/\.xls$/.test(filename))
-    {
-        filename = filename.substring(0, filename.length - 4);
-    }
+    filename = filename.split('.')[0];
 
     // This checks the first part of the filename for specific run names.
     /* TODO: Change this check to a regular expression. The batchNumber might need to be rethought. */
@@ -67,11 +64,7 @@ function fetchMaterialRowIdAndSave(run, isNewRun, saveBatchFn)
 
     run.properties.IDRIBatchNumber = fileNameToBatchNumber(filename);
 
-    if (filename.indexOf(".xls") > 0) {
-        _batchName = filename.substring(0, filename.length - 4); // removes the .xls
-    }
-
-    _batchName = _batchName.toUpperCase();
+    _batchName = filename.split('.')[0].toUpperCase();
 
     // Study related fields
 

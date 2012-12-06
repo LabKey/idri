@@ -90,17 +90,32 @@
                 renderBatch();
                 LABKEY.setDirty(false);
 
-                var sampleName = LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "");
+                var filename = LABKEY.page.batch.runs[0].name.toLowerCase();
+                var fileparts = filename.split('.');
+                var sampleName = fileparts[0];
+                if (fileparts.length < 2)
+                    fileparts.push('');
                 var tools = ['aps', 'nano'];
+
+                var notFound = function()
+                {
+                    Ext.Msg.alert("Sample not Found",
+                            "Your data has been uploaded, however, the corresponding sample was not found for '" +
+                            sampleName + "'.");
+                };
+
                 LABKEY.Query.selectRows({
                     schemaName: 'samples',
                     queryName : 'Formulations',
                     filterArray : [LABKEY.Filter.create('name', sampleName, LABKEY.Filter.Types.STARTS_WITH)],
                     success   : function(data) {
                         if (data && data.rows && data.rows.length == 1) {
-                            var temp = '5C';
+                            var temp = '5C', el;
                             for (var i = 0; i < tools.length; i++) {
-                                document.getElementById(tools[i] + '-report-div').innerHTML = "<br/><span style='text-decoration: blink;'>Generating " + tools[i] +" Report...   </span>";
+                                el = Ext.get(tools[i] + '-report-div');
+                                if (el) {
+                                    el.update("<br/><span style='text-decoration: blink;'>Generating " + tools[i] +" Report...   </span>");
+                                }
                                 var wp = new LABKEY.WebPart({
                                     partName: 'Report',
                                     renderTo: tools[i] + '-report-div',
@@ -108,7 +123,7 @@
                                     partConfig : {
                                         reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
                                         showSection   :'labkey' + tools[i] + '_png',
-                                        'nameContains': sampleName.toUpperCase() + '.xls',
+                                        'nameContains': sampleName.toUpperCase() + fileparts[1],
                                         'exactName'   : sampleName.toUpperCase(),
                                         'storageTemp' : temp,
                                         'analysisTool': tools[i]
@@ -118,14 +133,10 @@
                             }
                         }
                         else {
-                            Ext.Msg.alert("Sample not Found", "Your data has been uploaded, however, the corresponding sample was not found for '" +
-                                    LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "") + "'.");
+                            notFound();
                         }
                     },
-                    failure : function(response){
-                        Ext.Msg.alert("Sample not Found", "Your data has been uploaded, however, the corresponding sample was not found for '" +
-                                LABKEY.page.batch.runs[0].name.toLowerCase().replace(".xls", "") + "'.");
-                    }
+                    failure : notFound
                 });
 
                 var uploadButtonDiv = document.getElementById("upload-run-form");
@@ -192,7 +203,7 @@
         var data = new LABKEY.Exp.Data(action.result);
 
         var run = new LABKEY.Exp.Run();
-        run.name = data.name || "[New]";
+        run.name = data.name.split('.')[0] || "[New]";
         run.dataInputs = run.dataInputs || [];
         run.dataInputs[0] = data;
 

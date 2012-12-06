@@ -37,6 +37,10 @@ function queryAssayGrid(assayRowId, formulationName, machine, callbackFn) {
                 }
                 for (tp in idx) {
                     var col = idx[tp];
+                    if (col.dataIndex == 'Mean') {
+                        col.hidden = true;
+                        return;
+                    }
                     col.renderer = function(data, cellMetaData, record, rowIndex, colIndex, store) {
                         var mean = record.get("Mean");
                         if (isNaN(data) || data == "" || data == null || cellMetaData.css.search("x-grid3-cell-last") != -1) {

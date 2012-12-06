@@ -323,7 +323,7 @@ Ext4.define('Formulation.panel.Summary', {
 
     displayGraphic : function(targetEl, temp, tool) {
         var filters = [];
-        var _name = this.formulation + '.xls';
+        var _name = this.formulation;
         filters.push(LABKEY.Filter.create("name", _name, LABKEY.Filter.Types.EQUAL));
         filters.push(LABKEY.Filter.create("StorageTemperature", temp, LABKEY.Filter.Types.EQUAL));
         filters.push(LABKEY.Filter.create("AnalysisTool", tool, LABKEY.Filter.Types.EQUAL));
@@ -357,7 +357,7 @@ Ext4.define('Formulation.panel.Summary', {
                     partConfig : {
                         reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
                         showSection   :'labkey' + tool + '_png',
-                        'nameContains': this.formulation + '.xls',
+                        'nameContains': this.formulation,
                         'exactName'   : this.formulation,
                         'storageTemp' : temp,
                         'analysisTool': tool

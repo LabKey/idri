@@ -75,7 +75,7 @@ if(error==TRUE){
 #plot data if no errors, otherwise print an error message
 if(error==FALSE){
 	png(filename="${imgout:peaks_png}", width=800, height=400)
-		plot(spec, type = "l", xlab = "Time (Minutes)", ylab = "Int.", col="red")
+		plot(spec, type = "l", xlab = "Time (Minutes)", ylab = "RIU", col="red")
 	dev.off()
 }else{print("Error generating view, could not understand the delimeter of data format.\nPlease reupload the data.")}
 
