@@ -521,7 +521,6 @@ public class idriController extends SpringActionController
             settings.setQueryName(ss.getName());
         }
         settings.setSchemaName(schema.getSchemaName());
-        settings.setAllowChooseQuery(false);
         QueryView materialsView = new QueryView(schema, settings, null)
         {
             protected TableInfo createTable()

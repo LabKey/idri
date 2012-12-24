@@ -45,7 +45,6 @@ public class ConcentrationsQueryView extends QueryView
         QuerySettings settings = new QuerySettings(getViewContext(), DATAREGION_NAME);
         settings.setSchemaName(schema.getSchemaName());
         settings.setQueryName("Concentrations");    
-        settings.setAllowChooseQuery(false);
 
         setSettings(settings);
     }
