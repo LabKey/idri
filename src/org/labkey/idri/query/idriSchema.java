@@ -75,7 +75,7 @@ public class idriSchema extends UserSchema
             if (null == tinfo)
                 return null;
 
-            FilteredTable ftable = new FilteredTable(tinfo, getContainer());
+            FilteredTable ftable = new FilteredTable<idriSchema>(tinfo, this);
             ftable.wrapAllColumns(true);
             return ftable;
         }

@@ -31,10 +31,8 @@ import java.util.Arrays;
  * Date: Aug 26, 2010
  * Time: 3:43:28 PM
  */
-public class ConcentrationsTable extends FilteredTable
+public class ConcentrationsTable extends FilteredTable<idriSchema>
 {
-    private final idriSchema _schema;
-
     private static final FieldKey[] defaultCols = new FieldKey[] {FieldKey.fromString("Compound"),
             FieldKey.fromString("Lot"),
             FieldKey.fromString("Concentration"),
@@ -42,8 +40,7 @@ public class ConcentrationsTable extends FilteredTable
 
     public ConcentrationsTable(idriSchema schema)
     {
-        super(schema.getDbSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), schema.getContainer());
-        _schema = schema;
+        super(schema.getDbSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), schema);
 
         addColumn(wrapColumn("rowId", getRealTable().getColumn("rowId")));
         ColumnInfo compoundCol = addColumn(wrapColumn("Compound", getRealTable().getColumn("Compound")));
@@ -52,7 +49,7 @@ public class ConcentrationsTable extends FilteredTable
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return new ExpSchema(_schema.getUser(), _schema.getContainer()).getTable("materials");
+                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials");
             }
         });
         ColumnInfo lotCol = addColumn(wrapColumn("Lot", getRealTable().getColumn("Lot")));
@@ -61,7 +58,7 @@ public class ConcentrationsTable extends FilteredTable
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return new ExpSchema(_schema.getUser(), _schema.getContainer()).getTable("materials");
+                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials");
             }
         });
         addColumn(wrapColumn("Concentration", getRealTable().getColumn("Concentration")));
@@ -72,7 +69,7 @@ public class ConcentrationsTable extends FilteredTable
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return new ExpSchema(_schema.getUser(), _schema.getContainer()).getTable("materials");
+                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials");
             }
         });
         addColumn(wrapColumn("IsTop", getRealTable().getColumn("istop")));
