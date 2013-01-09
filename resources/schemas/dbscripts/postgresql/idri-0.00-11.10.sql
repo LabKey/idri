@@ -20,7 +20,7 @@ CREATE TABLE idri."concentrations"
 (
     "rowId" serial NOT NULL,
     "concentration" double precision NOT NULL,
-    "unit" character varying(10) NOT NULL,
+    "unit" VARCHAR(10) NOT NULL,
     "compound" integer NOT NULL,
     "material" integer NOT NULL,
     "lot" integer NOT NULL,
