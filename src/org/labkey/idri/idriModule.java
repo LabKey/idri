@@ -107,6 +107,9 @@ public class idriModule extends DefaultModule
 
         // add folder types
         ModuleLoader.getInstance().registerFolderType(this, new idriFormulationsFolderType(this));
+
+        // listen for webdav events
+        // WebdavService.get().addWebdavListener(new idriWebdavListener());
     }
 
     @Override
