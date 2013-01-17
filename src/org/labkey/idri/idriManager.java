@@ -17,6 +17,7 @@ package org.labkey.idri;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.RuntimeSQLException;
@@ -24,6 +25,7 @@ import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.PropertyDescriptor;
 import org.labkey.api.exp.api.ExpMaterial;
@@ -34,6 +36,7 @@ import org.labkey.api.exp.list.ListService;
 import org.labkey.api.exp.query.SamplesSchema;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.UserSchema;
@@ -224,27 +227,32 @@ public class idriManager
         Study study = StudyService.get().getStudy(container);
         if (study != null)
         {
+            String DATASET_NAME = "FORM1";
+            String STUDY_COL_ID = "BatchId";
+
             UserSchema schema = QueryService.get().getUserSchema(user, container, "study");
-            TableInfo info = schema.getTable("FORM1");
+            TableInfo info = schema.getTable(DATASET_NAME);
             if (info != null)
             {
                 List<Map<String, Object>> _formulation = new ArrayList<Map<String, Object>>();
                 Map<String, Object> keys = new CaseInsensitiveHashMap<Object>(formulation.describe());
-                keys.put("BatchId", formulation.getBatch());
+                keys.put(STUDY_COL_ID, formulation.getBatch());
 
                 _formulation.add(keys);
                 try
                 {
-                    List<Map<String, Object>> result = info.getUpdateService().getRows(user, container, _formulation);
-                    if (result != null)
+                    SimpleFilter filter = new SimpleFilter(FieldKey.fromParts(STUDY_COL_ID), formulation.getBatch(), CompareType.EQUAL);
+                    String[] forms = new TableSelector(info, filter, null).getArray(String.class);
+                    if (null != forms)
                     {
                         BatchValidationException errors = new BatchValidationException();
-                        if (result.size() == 0)
+                        if (forms.length == 0)
                         {
                             info.getUpdateService().insertRows(user, container, _formulation, errors, new HashMap<String, Object>());
                         }
                         else
                         {
+                            List<Map<String, Object>> result = info.getUpdateService().getRows(user, container, _formulation);
                             info.getUpdateService().updateRows(user, container, _formulation, result, new HashMap<String, Object>());
                         }
                     }
