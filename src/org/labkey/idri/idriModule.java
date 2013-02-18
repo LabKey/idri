@@ -18,11 +18,9 @@ package org.labkey.idri;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
-import org.labkey.api.data.DbSchema;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
-import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.BaseWebPartFactory;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.Portal;
@@ -122,13 +120,6 @@ public class idriModule extends DefaultModule
     @NotNull
     public Set<String> getSchemaNames()
     {
-        return Collections.singleton("idri");
-    }
-
-    @Override
-    @NotNull
-    public Set<DbSchema> getSchemasToTest()
-    {
-        return PageFlowUtil.set(DbSchema.get(idriSchema.NAME));
+        return Collections.singleton(idriSchema.NAME);
     }
 }
