@@ -18,15 +18,21 @@ package org.labkey.idri;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
+import org.labkey.api.data.DbSchema;
+import org.labkey.api.exp.api.ExperimentService;
+import org.labkey.api.files.FileContentService;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.BaseWebPartFactory;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.view.WebPartView;
+import org.labkey.idri.assay.HPLCAssayDataHandler;
 import org.labkey.idri.formulations.FormulationSearchWebPart;
 import org.labkey.idri.query.ConcentrationsQueryView;
 import org.labkey.idri.query.idriSchema;
@@ -107,7 +113,10 @@ public class idriModule extends DefaultModule
         ModuleLoader.getInstance().registerFolderType(this, new idriFormulationsFolderType(this));
 
         // listen for webdav events
-        // ServiceRegistry.get(FileContentService.class).addFileListener(new idriFileListener());
+        ServiceRegistry.get(FileContentService.class).addFileListener(new idriFileListener());
+
+        // HPLC Assay Support
+        ExperimentService.get().registerExperimentDataHandler(new HPLCAssayDataHandler());
     }
 
     @Override
@@ -121,5 +130,12 @@ public class idriModule extends DefaultModule
     public Set<String> getSchemaNames()
     {
         return Collections.singleton(idriSchema.NAME);
+    }
+
+    @Override
+    @NotNull
+    public Set<DbSchema> getSchemasToTest()
+    {
+        return PageFlowUtil.set(DbSchema.get(idriSchema.NAME));
     }
 }
