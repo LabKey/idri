@@ -15,6 +15,7 @@
  */
 package org.labkey.idri;
 
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
@@ -63,6 +64,7 @@ import java.util.Set;
 public class idriManager
 {   
     private static final idriManager _instance = new idriManager();
+    static Logger _log = Logger.getLogger(idriManager.class);
 
     private idriManager()
     {
