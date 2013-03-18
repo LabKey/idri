@@ -21,7 +21,6 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.files.FileListener;
 import org.labkey.api.security.User;
-import org.labkey.api.view.HttpView;
 import org.labkey.idri.assay.HPLCManager;
 
 import java.io.File;
@@ -43,7 +42,7 @@ public class idriFileListener implements FileListener
     @Override
     public void fileCreated(@NotNull File created, @Nullable User user, @Nullable Container container)
     {
-        HPLCManager.get().load(created, HttpView.getRootContext());
+        HPLCManager.get().load(created, user, container);
     }
 
     @Override

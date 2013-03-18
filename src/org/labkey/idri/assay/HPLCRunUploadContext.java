@@ -30,7 +30,6 @@ import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.study.assay.AssayProvider;
 import org.labkey.api.study.assay.AssayRunUploadContext;
 import org.labkey.api.view.ActionURL;
-import org.labkey.api.view.ViewContext;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -48,7 +47,8 @@ public class HPLCRunUploadContext<ProviderType extends AssayProvider> implements
 {
     private ExpProtocol _protocol;
     private ProviderType _provider;
-    private ViewContext _context;
+    private Container _container;
+    private User _user;
     private Map _uploadedData;
     private String _comments;
     private String _name;
@@ -59,14 +59,15 @@ public class HPLCRunUploadContext<ProviderType extends AssayProvider> implements
     private Map<DomainProperty, String> _batchProperties;
 
     public HPLCRunUploadContext(
-            @NotNull ExpProtocol protocol, @NotNull ProviderType provider, ViewContext context,
+            @NotNull ExpProtocol protocol, @NotNull ProviderType provider, Container container, User user,
             String name, String comment,
             Map<String, String> runProperties,
             Map<String, String> batchProperties)
     {
         _protocol = protocol;
         _provider = provider;
-        _context = context;
+        _container = container;
+        _user = user;
 
         _name = name;
         _comments = comment;
@@ -145,25 +146,25 @@ public class HPLCRunUploadContext<ProviderType extends AssayProvider> implements
     @Override
     public User getUser()
     {
-        return _context.getUser();
+        return _user;
     }
 
     @Override
     public Container getContainer()
     {
-        return _context.getContainer();
+        return _container;
     }
 
     @Override
     public HttpServletRequest getRequest()
     {
-        return _context.getRequest();
+        return null;
     }
 
     @Override
     public ActionURL getActionURL()
     {
-        return _context.getActionURL();
+        return null;
     }
 
     @NotNull

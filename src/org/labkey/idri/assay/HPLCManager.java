@@ -17,6 +17,7 @@ package org.labkey.idri.assay;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.labkey.api.data.Container;
 import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.XarContext;
 import org.labkey.api.exp.api.DataType;
@@ -26,12 +27,12 @@ import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.api.ExpRun;
 import org.labkey.api.qc.DataLoaderSettings;
 import org.labkey.api.query.ValidationException;
+import org.labkey.api.security.User;
 import org.labkey.api.study.assay.AssayProvider;
 import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.study.assay.AssayUploadXarContext;
 import org.labkey.api.study.assay.DefaultAssayRunCreator;
 import org.labkey.api.view.ViewBackgroundInfo;
-import org.labkey.api.view.ViewContext;
 
 import java.io.File;
 import java.util.HashMap;
@@ -58,25 +59,25 @@ public class HPLCManager
         return _instance;
     }
 
-    public static void load(@NotNull File file, ViewContext context)
+    public static void load(@NotNull File file, User user, Container container)
     {
         // Listen for metadata file
         if (checkMetaFile(file))
         {
-            List<ExpProtocol> protocols = AssayService.get().getAssayProtocols(context.getContainer());
+            List<ExpProtocol> protocols = AssayService.get().getAssayProtocols(container);
 
             // Check only for HPLC assay
             for (ExpProtocol protocol : protocols)
             {
                 if (protocol.getName().equalsIgnoreCase("HPLC"))
                 {
-                    _instance.generateRun(protocol, file, context);
+                    _instance.generateRun(protocol, file, user, container);
                 }
             }
         }
     }
 
-    public static void generateRun(ExpProtocol protocol, File metadata, ViewContext ctx)
+    public static void generateRun(ExpProtocol protocol, File metadata, User user, Container container)
     {
         AssayProvider provider = AssayService.get().getProvider(protocol);
 
@@ -86,12 +87,13 @@ public class HPLCManager
             if (runName.length() > 0)
             {
                 // Create Run
-                ExpRun run = AssayService.get().createExperimentRun(runName, ctx.getContainer(), protocol, null);
+                ExpRun run = AssayService.get().createExperimentRun(runName, container, protocol, null); // Try 'metadata' file
                 Map<String, String> runProps = new HashMap<String, String>();
+                runProps.put("LotNumber", runName);
                 Map<String, String> batchProps = new HashMap<String, String>();
 
                 // Populate Upload Context
-                HPLCRunUploadContext context = new HPLCRunUploadContext(protocol,  provider, ctx,  runName, "",  runProps,  batchProps);
+                HPLCRunUploadContext context = new HPLCRunUploadContext(protocol,  provider, container, user,  runName, "",  runProps,  batchProps);
 
                 // Create ExpData and Data Handler for parsing Metadata file into maps
                 ExpData hplcData = DefaultAssayRunCreator.createData(
@@ -99,7 +101,7 @@ public class HPLCManager
                 );
                 HPLCAssayDataHandler dataHandler = new HPLCAssayDataHandler();
                 XarContext xarContext = new AssayUploadXarContext("HPLC Run Creation", context);
-                ViewBackgroundInfo info = new ViewBackgroundInfo(ctx.getContainer(), ctx.getUser(), ctx.getActionURL());
+                ViewBackgroundInfo info = new ViewBackgroundInfo(container, user, null);
 
                 try
                 {
@@ -108,10 +110,10 @@ public class HPLCManager
                     if (exp.getRuns().length > 0)
                     {
                         hplcData.setRun(run);
-                        hplcData.save(ctx.getUser());
+                        hplcData.save(user);
                         Map<DataType, List<Map<String, Object>>> validationMap = dataHandler.getValidationDataMap(hplcData, metadata, info, _log, xarContext, new DataLoaderSettings());
                         List<Map<String, Object>> rawData = validationMap.get(dataHandler.getDataType());
-                        dataHandler.importRows(hplcData, ctx.getUser(), run, protocol, provider, rawData);
+                        dataHandler.importRows(hplcData, user, run, protocol, provider, rawData);
                     }
                 }
                 catch (ValidationException x)
