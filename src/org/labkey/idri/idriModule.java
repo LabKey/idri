@@ -33,6 +33,7 @@ import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.view.WebPartView;
 import org.labkey.idri.assay.HPLCAssayDataHandler;
+import org.labkey.idri.assay.HPLCManager;
 import org.labkey.idri.formulations.FormulationSearchWebPart;
 import org.labkey.idri.query.ConcentrationsQueryView;
 import org.labkey.idri.query.idriSchema;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public class idriModule extends DefaultModule
@@ -137,5 +139,14 @@ public class idriModule extends DefaultModule
     public Set<DbSchema> getSchemasToTest()
     {
         return PageFlowUtil.set(DbSchema.get(idriSchema.NAME));
+    }
+
+    @NotNull
+    @Override
+    public Set<Class> getUnitTests()
+    {
+        return new HashSet<Class>(Arrays.asList(
+                HPLCManager.HPLCImportTestCase.class
+        ));
     }
 }

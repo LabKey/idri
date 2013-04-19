@@ -17,6 +17,9 @@ package org.labkey.idri.assay;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Test;
 import org.labkey.api.data.Container;
 import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.XarContext;
@@ -25,13 +28,16 @@ import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpExperiment;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.api.ExpRun;
+import org.labkey.api.files.FileContentService;
 import org.labkey.api.qc.DataLoaderSettings;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.study.assay.AssayProvider;
 import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.study.assay.AssayUploadXarContext;
 import org.labkey.api.study.assay.DefaultAssayRunCreator;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
@@ -146,5 +152,51 @@ public class HPLCManager
     {
         String[] splitPath = meta.getPath().split("[.]");
         return splitPath.length > 0  && splitPath[splitPath.length-1].equals("hplcmeta");
+    }
+
+
+
+    public static class HPLCImportTestCase extends Assert
+    {
+        private static final String FILE_ROOT_SUFFIX = "_HPLCImportTest";
+        private static final String META_FILE = "TD789.hplcmeta";
+
+        private File getTestRoot()
+        {
+            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
+            File siteRoot = service.getSiteDefaultRoot();
+            File testRoot = new File(siteRoot, FILE_ROOT_SUFFIX);
+            testRoot.mkdirs();
+            Assert.assertTrue("Unable to create test file root", testRoot.exists());
+
+            return testRoot;
+        }
+
+        @Test
+        public void testFileCheck() throws Exception
+        {
+            // pre-clean
+            cleanup();
+
+            File root = getTestRoot();
+            File metaFile = new File(root, META_FILE);
+            metaFile.createNewFile();
+
+            Assert.assertTrue("Invalid file name: " + metaFile.getName(), checkMetaFile(metaFile));
+            Assert.assertTrue("Invalid Run name: " + metaFile.getName(), getRunName(metaFile).length() > 0);
+        }
+
+        @After
+        public void cleanup()
+        {
+            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            Assert.assertNotNull(svc);
+
+            File testRoot = getTestRoot();
+            if (testRoot.exists())
+            {
+                FileUtil.deleteDir(testRoot);
+            }
+        }
     }
 }
