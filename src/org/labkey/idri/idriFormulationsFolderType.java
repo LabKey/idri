@@ -24,7 +24,6 @@ import org.labkey.api.view.ViewContext;
 import java.util.Arrays;
 
 /**
- * Created by IntelliJ IDEA.
  * User: jNicholas
  * Date: Aug 25, 2010
  * Time: 3:51:22 PM

@@ -26,7 +26,6 @@ import org.labkey.api.security.permissions.Permission;
 import java.util.Arrays;
 
 /**
- * Created by IntelliJ IDEA.
  * User: jNicholas
  * Date: Aug 26, 2010
  * Time: 3:43:28 PM

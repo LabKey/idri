@@ -23,7 +23,6 @@ import org.labkey.api.exp.api.ExpMaterial;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
  * User: jNicholas
  * Date: Oct 15, 2010
  * Time: 11:30:07 AM

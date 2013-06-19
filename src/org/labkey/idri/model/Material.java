@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
  * User: jNicholas
  * Date: Aug 26, 2010
  * Time: 4:30:24 PM

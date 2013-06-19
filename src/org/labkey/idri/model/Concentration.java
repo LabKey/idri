@@ -18,7 +18,6 @@ package org.labkey.idri.model;
 import org.labkey.api.data.Container;
 
 /**
- * Created by IntelliJ IDEA.
  * User: jNicholas
  * Date: Sep 1, 2010
  * Time: 2:17:36 PM
