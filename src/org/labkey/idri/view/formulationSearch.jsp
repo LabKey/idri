@@ -28,7 +28,7 @@
 
   public LinkedHashSet<ClientDependency> getClientDependencies()
   {
-      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<ClientDependency>();
+      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
       resources.add(ClientDependency.fromFilePath("/formulations/SearchFormulation.js"));
       resources.add(ClientDependency.fromFilePath("/formulations/FormulationForm.js"));
       return resources;

@@ -88,7 +88,7 @@ public class HPLCRunUploadContext<ProviderType extends AssayProvider> implements
     {
         if (_runProperties == null)
         {
-            Map<DomainProperty, String> properties = new HashMap<DomainProperty, String>();
+            Map<DomainProperty, String> properties = new HashMap<>();
             if (_rawRunProperties != null)
             {
                 for (DomainProperty prop : _provider.getRunDomain(_protocol).getProperties())
@@ -112,7 +112,7 @@ public class HPLCRunUploadContext<ProviderType extends AssayProvider> implements
     {
         if (_batchProperties == null)
         {
-            Map<DomainProperty, String> properties = new HashMap<DomainProperty, String>();
+            Map<DomainProperty, String> properties = new HashMap<>();
             if (_rawBatchProperties != null)
             {
                 for (DomainProperty prop : _provider.getBatchDomain(_protocol).getProperties())

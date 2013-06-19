@@ -117,7 +117,7 @@ public class idriController extends SpringActionController
 
             }
 
-            return new JspView<CompoundForm>("/org/labkey/idri/view/createCompound.jsp", compoundForm);
+            return new JspView<>("/org/labkey/idri/view/createCompound.jsp", compoundForm);
         }
 
         @Override
@@ -261,7 +261,7 @@ public class idriController extends SpringActionController
             if (materials.size() <= 0)
                 errors.reject(ERROR_MSG, "A minimum of one source material is required.");
 
-            Set<Material> setMaterial = new HashSet<Material>(materials);
+            Set<Material> setMaterial = new HashSet<>(materials);
             if (setMaterial.size() < materials.size())
                 errors.reject(ERROR_MSG, "Duplicate source materials are not allowed. Please check your source materials.");
             
@@ -332,7 +332,7 @@ public class idriController extends SpringActionController
                 return resp;
             }
 
-            Map<String, Object> responseMap = new HashMap<String, Object>();
+            Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("materialName", name);
             responseMap.put("typeID", type);
             responseMap.put("unit", unit);
@@ -388,7 +388,7 @@ public class idriController extends SpringActionController
     {
         // Filter out the generic unknown material, which is just a placeholder and doesn't represent a real
         // parent
-        ArrayList<ExpMaterial> result = new ArrayList<ExpMaterial>();
+        ArrayList<ExpMaterial> result = new ArrayList<>();
         for (ExpMaterial material : materials)
         {
             if (!isUnknownMaterial(material))
@@ -405,14 +405,14 @@ public class idriController extends SpringActionController
         {
             return Collections.emptySet();
         }
-        List<ExpRun> runsToInvestigate = new ArrayList<ExpRun>();
+        List<ExpRun> runsToInvestigate = new ArrayList<>();
         ExpRun parentRun = _material.getRun();
         if (parentRun != null)
         {
             runsToInvestigate.add(parentRun);
         }
-        Set<ExpRun> investigatedRuns = new HashSet<ExpRun>();
-        final Set<ExpMaterial> parentMaterials = new HashSet<ExpMaterial>();
+        Set<ExpRun> investigatedRuns = new HashSet<>();
+        final Set<ExpMaterial> parentMaterials = new HashSet<>();
         while (!runsToInvestigate.isEmpty())
         {
             ExpRun predecessorRun = runsToInvestigate.remove(0);
@@ -448,11 +448,11 @@ public class idriController extends SpringActionController
         {
             return Collections.emptySet();
         }
-        List<ExpRun> runsToInvestigate = new ArrayList<ExpRun>();
+        List<ExpRun> runsToInvestigate = new ArrayList<>();
         runsToInvestigate.addAll(Arrays.asList(ExperimentService.get().getRunsUsingMaterials(_material.getRowId())));
         runsToInvestigate.remove(_material.getRun());
-        Set<ExpMaterial> result = new HashSet<ExpMaterial>();
-        Set<ExpRun> investigatedRuns = new HashSet<ExpRun>();
+        Set<ExpMaterial> result = new HashSet<>();
+        Set<ExpRun> investigatedRuns = new HashSet<>();
 
         while (!runsToInvestigate.isEmpty())
         {
@@ -532,7 +532,7 @@ public class idriController extends SpringActionController
                 // to view
                 table.setContainerFilter(ContainerFilter.EVERYTHING);
 
-                List<FieldKey> defaultVisibleColumns = new ArrayList<FieldKey>();
+                List<FieldKey> defaultVisibleColumns = new ArrayList<>();
                 if (ss == null)
                 {
                     // The table columns without any of the active SampleSet property columns

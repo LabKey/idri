@@ -30,7 +30,7 @@
 
   public LinkedHashSet<ClientDependency> getClientDependencies()
   {
-      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<ClientDependency>();
+      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
       resources.add(ClientDependency.fromFilePath("FileUploadField.js"));
       resources.add(ClientDependency.fromFilePath("/formulations/FormulationForm.js"));
       return resources;

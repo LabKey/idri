@@ -127,7 +127,7 @@ public class Compound
         try
         {
             Map<String, ObjectProperty> values = sample.getObjectProperties();
-            Map<String, Object> properties = new CaseInsensitiveHashMap<Object>();
+            Map<String, Object> properties = new CaseInsensitiveHashMap<>();
 
             for(ObjectProperty prop : values.values())
             {

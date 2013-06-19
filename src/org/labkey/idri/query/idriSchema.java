@@ -75,7 +75,7 @@ public class idriSchema extends UserSchema
             if (null == tinfo)
                 return null;
 
-            FilteredTable ftable = new FilteredTable<idriSchema>(tinfo, this);
+            FilteredTable ftable = new FilteredTable<>(tinfo, this);
             ftable.wrapAllColumns(true);
             return ftable;
         }
@@ -84,6 +84,6 @@ public class idriSchema extends UserSchema
     @Override
     public Set<String> getTableNames()
     {
-        return new HashSet<String>(getDbSchema().getTableNames());
+        return new HashSet<>(getDbSchema().getTableNames());
     }
 }

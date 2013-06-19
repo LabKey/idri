@@ -94,9 +94,9 @@ public class HPLCManager
             {
                 // Create Run
                 ExpRun run = AssayService.get().createExperimentRun(runName, container, protocol, null); // Try 'metadata' file
-                Map<String, String> runProps = new HashMap<String, String>();
+                Map<String, String> runProps = new HashMap<>();
                 runProps.put("LotNumber", runName);
-                Map<String, String> batchProps = new HashMap<String, String>();
+                Map<String, String> batchProps = new HashMap<>();
 
                 // Populate Upload Context
                 HPLCRunUploadContext context = new HPLCRunUploadContext(protocol,  provider, container, user,  runName, "",  runProps,  batchProps);

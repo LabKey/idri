@@ -48,7 +48,7 @@ public class Formulation
     private String _materialsString;
     private Map _map;
     
-    private transient List<Material> _materials = new ArrayList<Material>();
+    private transient List<Material> _materials = new ArrayList<>();
 
     public int getRowID()
     {
@@ -209,7 +209,7 @@ public class Formulation
 
             JSONArray materials = json.getJSONArray("materials");
 
-            formulation._materials = new ArrayList<Material>();
+            formulation._materials = new ArrayList<>();
             for (int idx = 0; idx < materials.length(); ++idx)
             {
                 JSONObject materialProps = materials.getJSONObject(idx);
@@ -243,7 +243,7 @@ public class Formulation
         try
         {
             Map<String, ObjectProperty> values = sample.getObjectProperties();
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
 
             // Get the RowId -- must have a RowId
             properties.put("rowID", sample.getRowId());

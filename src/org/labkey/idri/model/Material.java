@@ -102,7 +102,7 @@ public class Material
         Map<String, Object> map;
         if (_type == null)
         {
-            map = new CaseInsensitiveHashMap<Object>();
+            map = new CaseInsensitiveHashMap<>();
             map.put("type", typeId);
             this.setType(map);
         }

@@ -139,8 +139,8 @@ public class idriManager
      */
     public static List<Material> getMaterials(Container container, String materialType)
     {
-        List<String> sources = new ArrayList<String>();
-        List<Material> materials = new ArrayList<Material>();
+        List<String> sources = new ArrayList<>();
+        List<Material> materials = new ArrayList<>();
 
         /* populate the known sources of materials */
         if (materialType != null)
@@ -185,7 +185,7 @@ public class idriManager
         ViewContext ctx = HttpView.getRootContext();        
         ExpMaterial form = ExperimentService.get().getSampleSet(ctx.getContainer(), idriSchema.TABLE_FORMULATIONS).getSample(materialName);
 
-        Map<String, Object> aggregate = new CaseInsensitiveHashMap<Object>();
+        Map<String, Object> aggregate = new CaseInsensitiveHashMap<>();
         aggregate.put("Type", "aggregate");
         aggregate.put("Units", "%v/vol");
 
@@ -236,8 +236,8 @@ public class idriManager
             TableInfo info = schema.getTable(DATASET_NAME);
             if (info != null)
             {
-                List<Map<String, Object>> _formulation = new ArrayList<Map<String, Object>>();
-                Map<String, Object> keys = new CaseInsensitiveHashMap<Object>(formulation.describe());
+                List<Map<String, Object>> _formulation = new ArrayList<>();
+                Map<String, Object> keys = new CaseInsensitiveHashMap<>(formulation.describe());
                 keys.put(STUDY_COL_ID, formulation.getBatch());
 
                 _formulation.add(keys);
@@ -286,7 +286,7 @@ public class idriManager
                 for (String key : formulationMap.keySet())
                     assert columnSet.contains(key) : "Cannot find '" + key + "' in " + idriSchema.TABLE_FORMULATIONS;
 
-                List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+                List<Map<String, Object>> rows = new ArrayList<>();
                 rows.add(formulationMap);
 
                 try
@@ -306,7 +306,7 @@ public class idriManager
                 for (String key : formulationMap.keySet())
                     assert columnSet.contains(key) : "Cannot find '" + key + "' in " + idriSchema.TABLE_FORMULATIONS;
                 
-                List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+                List<Map<String, Object>> rows = new ArrayList<>();
                 rows.add(formulationMap);
 
                 try
@@ -350,7 +350,7 @@ public class idriManager
                 closeConnection();
             }
 
-            List<Integer> invalids = new ArrayList<Integer>();
+            List<Integer> invalids = new ArrayList<>();
             SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE compound = ?");
             sql.add(formulation.getRowID());
 
@@ -420,7 +420,7 @@ public class idriManager
      */
     public static List<Formulation> getFormulations(Container container)
     {
-        List<Formulation> formulations = new ArrayList<Formulation>();
+        List<Formulation> formulations = new ArrayList<>();
 
         ExpSampleSet ss = ExperimentService.get().getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
         List<ExpMaterial> asMaterials = Arrays.asList(ss.getSamples());
@@ -439,7 +439,7 @@ public class idriManager
      */
     private static List<Concentration> calculateConcentrations(Formulation formulation, Container c, User u)
     {
-        List<Concentration> concentrations = new ArrayList<Concentration>();
+        List<Concentration> concentrations = new ArrayList<>();
 
         try
         {
@@ -456,8 +456,8 @@ public class idriManager
 
         DecimalFormat twoDForm = new DecimalFormat("#.###");
 
-        Map<Integer, Concentration> map = new HashMap<Integer, Concentration>();
-        List<Concentration> tops = new ArrayList<Concentration>();
+        Map<Integer, Concentration> map = new HashMap<>();
+        List<Concentration> tops = new ArrayList<>();
         for (Concentration conc : concentrations)
         {
             conc.setContainer(c);
@@ -478,7 +478,7 @@ public class idriManager
                 map.put(conc.getMaterial(), conc);
         }
 
-        concentrations = new ArrayList<Concentration>();
+        concentrations = new ArrayList<>();
         for (Concentration top : tops)
         {
             top.setLot(-1);
@@ -507,7 +507,7 @@ public class idriManager
         if (m == null)
             return Collections.emptyList();
 
-        List<Concentration> concentrations = new ArrayList<Concentration>();
+        List<Concentration> concentrations = new ArrayList<>();
         SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE lot = ? AND istop = ?");
         try
         {
@@ -526,7 +526,7 @@ public class idriManager
     private static List<Concentration> getConcentrations(Material material, Container c, User u)
     {
         ExperimentService.Interface service = ExperimentService.get();
-        List<Concentration> concentrations = new ArrayList<Concentration>();
+        List<Concentration> concentrations = new ArrayList<>();
         ExpMaterial m = service.getSampleSet(c, idriSchema.TABLE_RAW_MATERIALS).getSample(material.getMaterialName());
         
         if (m == null)
@@ -664,14 +664,14 @@ public class idriManager
             if (pd.getName().equalsIgnoreCase("compoundLookup"))
             {
                 ListDefinition ld = ListService.get().getList(Compound.getContainer(), idriSchema.LIST_MATERIAL_TYPES);
-                Map<String, Object> type = new CaseInsensitiveHashMap<Object>();
+                Map<String, Object> type = new CaseInsensitiveHashMap<>();
                 if (ld != null)
                 {
                     User u = HttpView.currentContext().getUser();
                     Container c = Compound.getContainer();
 
-                    List<Map<String, Object>> types = new ArrayList<Map<String, Object>>();
-                    Map<String, Object> keys = new CaseInsensitiveHashMap<Object>();
+                    List<Map<String, Object>> types = new ArrayList<>();
+                    Map<String, Object> keys = new CaseInsensitiveHashMap<>();
                     keys.put("Key", values.get(pd));
                     types.add(keys);
 
@@ -696,13 +696,13 @@ public class idriManager
     public static Map<String, Object> getCompoundType(Integer key, Container c)
     {
         ListDefinition ld = ListService.get().getList(c, idriSchema.LIST_MATERIAL_TYPES);
-        Map<String, Object> type = new CaseInsensitiveHashMap<Object>();
+        Map<String, Object> type = new CaseInsensitiveHashMap<>();
         if (ld != null)
         {
             User u = HttpView.currentContext().getUser();
 
-            List<Map<String, Object>> types = new ArrayList<Map<String, Object>>();
-            Map<String, Object> keys = new CaseInsensitiveHashMap<Object>();
+            List<Map<String, Object>> types = new ArrayList<>();
+            Map<String, Object> keys = new CaseInsensitiveHashMap<>();
             keys.put("Key", key);
             types.add(keys);
 
@@ -747,7 +747,7 @@ public class idriManager
             if (compoundsSS == null)
             {
                 // Definition -- 'Compounds' Sample Set
-                properties = new ArrayList<GWTPropertyDescriptor>();
+                properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Compound Name", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Full Name", "http://www.w3.org/2001/XMLSchema#string"));
 //                properties.add(new GWTPropertyDescriptor("Type of Material", "http://www.w3.org/2001/XMLSchema#string"));
@@ -760,7 +760,7 @@ public class idriManager
 
             if (rawMaterialsSS == null)
             {
-                properties = new ArrayList<GWTPropertyDescriptor>();
+                properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Identifier", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Material Name", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Supplier", "http://www.w3.org/2001/XMLSchema#string"));
@@ -774,7 +774,7 @@ public class idriManager
 
             if (formulationsSS == null)
             {
-                properties = new ArrayList<GWTPropertyDescriptor>();
+                properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Batch", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("DM", "http://www.w3.org/2001/XMLSchema#dateTime"));
                 properties.add(new GWTPropertyDescriptor("batchsize", "http://www.w3.org/2001/XMLSchema#string"));
