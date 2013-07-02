@@ -47,39 +47,6 @@
                 }]
         });
 
-        /*
-        var mydiv = [];
-        var tables = [];
-        var rows = [];
-
-        rows.push({
-            tag : 'tr',
-            children : [
-                {
-                    tag : 'td',
-                    colspan : 4,
-                    html : 'This is html in a td.'
-                }
-            ]
-        });
-        tables.push({
-            tag : 'table',
-            children : [
-                {
-                    tag : 'tbody',
-                    children : rows
-                }]});
-        mydiv.push({
-            tag : 'div',
-            children : tables
-        });
-        
-        form.render("reportDivTop");
-        
-        var elem = Ext.get('formulation-data-table');
-        elem.createChild(mydiv);
-        */
-
         form.render("reportDivTop");
     }
 
@@ -103,8 +70,6 @@
             /* Initialize the temperature select combo box. */
             function refreshChart(combo, record, index)
             {
-                var config = {};
-
                 var tempstr = '5C';   // DEFAULT temperature
 
                 if(combo != null)
@@ -115,30 +80,6 @@
                 buildPSReports(tempstr, currentFormulation);
 //                buildHPLCReports(tempstr);
             }
-
-            /* The following defines the Temperature drop-down selection
-            _newStoreX = new LABKEY.ext.Store({
-                schemaName: 'assay',
-                queryName: 'resolveTemperatures',
-                filterArray: [LABKEY.Filter.create('RowId',LABKEY.ActionURL.getParameter('rowId'),LABKEY.Filter.Types.EQUAL)]
-            });
-
-            var comboBoxX = new Ext.form.ComboBox({
-                triggerAction: 'all',
-                renderTo: 'menuDiv',
-                editable: false,
-                valueField: 'StorageTemperature',
-                displayField: 'StorageTemperature',
-                autoHeight: true,
-                mode: 'remote',
-                emptyText: 'Select temperature...',
-                lazyInit: true,
-                store: _newStoreX,
-                listeners: {
-                    select : refreshChart
-                }
-            });
-            */
 
             refreshChart(null, null, null);
         }
