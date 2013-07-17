@@ -54,15 +54,15 @@ function showInSearchView(resolvedView, data)
     {
         var row = data.rows[0];
         var runId = row["RowId"].toString();
-        document.getElementById('topDiv').style.display = "block";
+        var topEl = document.getElementById('topDiv');
+        topEl.style.display = "block";
         if (parseInt(row["RunProperties/ZAveMean"]) >= 0)
         {
-            var stability_url = getSummaryViewURL(runId);
             buildPSReports('5C', globalQueryConfig.srchstr);
-            document.getElementById('topDiv').innerHTML = "<p style='float: left;'>[<a href=" + stability_url + ">Stability report</a>]&nbsp</p>";
+            topEl.innerHTML = "<p style='float: left;'>[<a href=" + getSummaryViewURL(runId) + ">Stability report</a>]&nbsp</p>";
         }
         else
-            document.getElementById('topDiv').innerHTML = "<span style='color:red;'>" + row["Name"] + " contains errors. No stability report available.</span>";
+            topEl.innerHTML = "<span style='color:red;'>" + row["Name"] + " contains errors. No stability report available.</span>";
 
         var hemoDiv = document.getElementById('hemoSearch');
         if (hemoDiv)
@@ -136,8 +136,7 @@ function getRunIdIfUnique(srchstr, assayName)
             return false;
         }
 
-        LABKEY.Query.selectRows(
-        {
+        LABKEY.Query.selectRows({
             schemaName      : globalQueryConfig.schemaName,
             queryName       : globalQueryConfig.queryName,
             successCallback : onSuccess,
@@ -199,7 +198,7 @@ function getSummaryViewURL(rowId)
     if (searchString != undefined)
         params['nameContains'] = searchString.value;
 
-    return LABKEY.ActionURL.buildURL(globalQueryConfig.controller, globalQueryConfig.action, LABKEY.ActionURL.getContainer() ,params);
+    return LABKEY.ActionURL.buildURL(globalQueryConfig.controller, globalQueryConfig.action, LABKEY.ActionURL.getContainer(), params);
 }
 
 var reportObjects = {};
@@ -211,71 +210,16 @@ function registerReportObject(name, newObject)
 
 function getReportObject(name)
 {
-    if(reportObjects[name])
+    if (reportObjects[name])
         return reportObjects[name];
     return null;
 }
 
-function showValues(reportStore,reportRecords,opts)
+function buildPSReports(tempstr, name, machine, renderImage)
 {
-    alert(reportRecords.length);
-    for(i=0;i<reportRecords.length;i++)
-    {
-        alert(reportRecords[i].get("RowId") + " " + reportRecords[i].get("StorageTemperature"));
-    }
-}
+    var nameCont = (name ? name : LABKEY.ActionURL.getParameter('nameContains'));
 
-function buildPSReports(tempstr, name, machine, renderto, renderimg)
-{
-    /* Clear out what is currently in the div */
-    if (renderto) {
-        if(reportObjects[renderto])
-            getReportObject(renderto).destroy();
-    }
-
-    // Configuration for Ext.Grid
-    var config = {};
-    config.schemaName = 'assay';
-    config.queryName = 'ReportSummary';
-
-    var nameCont = "";
-    if(name)
-        nameCont = name;
-    else
-        nameCont = LABKEY.ActionURL.getParameter('nameContains');
-
-    var dataRegionDivObj = null;
-
-    mystore = new LABKEY.ext.Store({
-        schemaName: config.schemaName,
-        queryName: config.queryName,
-        filterArray: [ LABKEY.Filter.create('Name', nameCont, LABKEY.Filter.Types.CONTAINS),
-            LABKEY.Filter.create('StorageTemperature',tempstr,LABKEY.Filter.Types.EQUAL),
-            LABKEY.Filter.create('AnalysisTool', machine, LABKEY.Filter.Types.EQUAL)
-        ]
-    });
-
-    if (renderto) {
-        dataRegionDivObj = new LABKEY.ext.EditorGridPanel({
-            store: mystore,
-            renderTo: renderto,
-            autoHeight: true,
-            width: 1000,
-            title: 'Summary ',
-            editable: false,
-            lookups: false,
-            enableFilters: false,
-            header: false,
-            fbar: [],
-            bbar: [],
-            tbar: [],
-            footer: true
-        });
-
-        registerReportObject(renderto,dataRegionDivObj);
-    }
-
-    displayGraphic(nameCont, tempstr, machine, machine+"-image", renderimg);
+    displayGraphic(nameCont, tempstr, machine, machine+"-image", renderImage);
 }
 
 // Specifically Displays the PS charts
@@ -292,7 +236,7 @@ function displayGraphic(name, temp, tool, imageElement, divElement)
         schemaName     : 'assay',
         queryName      : 'R_ReportSummary',
         filterArray    : filters,
-        successCallback: function(data) {
+        success : function(data) {
             if (data.rowCount > 0)
             {
                 /* Check if there is a cached image */

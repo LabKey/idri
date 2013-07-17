@@ -28,8 +28,19 @@
 <%@ page import="org.labkey.api.exp.api.ExpSampleSet" %>
 <%@ page import="org.labkey.api.exp.api.ExperimentService" %>
 <%@ page import="org.labkey.api.portal.ProjectUrls" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ page import="org.labkey.api.exp.api.ExperimentUrls" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+    public LinkedHashSet<ClientDependency> getClientDependencies()
+    {
+        LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
+        resources.add(ClientDependency.fromFilePath("Ext3"));
+        resources.add(ClientDependency.fromFilePath("formulations/SearchFormulation.js")); // buildPSReports
+        return resources;
+    }
+%>
 <%
     JspView<ExpObjectForm> me = (JspView<ExpObjectForm>) HttpView.currentView();
     ExpObjectForm form = me.getModelBean();
@@ -45,7 +56,7 @@
     <%=textLink("Browse Formulations", PageFlowUtil.urlProvider(ExperimentUrls.class).getShowSampleSetURL(ss))%>
     <%=textLink("Sample View", "#", "getOldView();", null)%>
 </div>
-<div id="formulationInformation" style="padding: 5px 0px 0px 20px;">
+<div style="padding: 5px 0px 0px 20px;">
     <table>
         <tr>
             <td style="vertical-align:top;">
@@ -111,87 +122,91 @@
 </table>
 </div>
 <script type="text/javascript">
-    LABKEY.requiresScript("formulations/failure/GridQuery.js");
-    LABKEY.requiresScript("formulations/SearchFormulation.js");
-</script>
-<script type="text/javascript">
 
-    Ext.onReady(function(){
 
-        <%--Ext.Ajax.request({--%>
-            <%--url : LABKEY.ActionURL.buildURL('idri', 'getDerivationGraphDescription.api'),--%>
-            <%--params : {--%>
-                <%--materialName : <%= PageFlowUtil.jsString(formulation.getBatch()) %>--%>
-            <%--},--%>
-            <%--success : function(response) {--%>
-                <%--var json = Ext.decode(response.responseText);--%>
-                <%--console.log('success');--%>
-                <%--console.log(json.description);--%>
-                <%--Ext.Ajax.request({--%>
-                    <%--url    : LABKEY.ActionURL.buildURL('util', 'dotSvg.post'),--%>
-                    <%--method : 'POST',--%>
-                    <%--params : { dot : json.description },--%>
-                    <%--success: function(response, conn) {--%>
-                        <%--Ext.get('concentrationDiv').update(response.responseText);--%>
-                    <%--}--%>
-                <%--});--%>
+    Ext.onReady(function() {
 
-            <%--},--%>
-            <%--failure : function() {--%>
-                <%--console.log('failure');--%>
-            <%--}--%>
-        <%--});--%>
+        var lookupAssayId = function(name, machine) {
 
-        var cb = new Ext.form.ComboBox({
-            mode: 'local',
-            width: 80,
-            store : new Ext.data.ArrayStore({
-                fields : [ 'machine' ],
-                data : [['aps'],['nano']]
-            }),
-            valueField : 'machine',
-            displayField : 'machine',
-            triggerAction : 'all',
-            listeners : {
-                select : function(cb, rec, idx) {
-                    var grid = Ext.getCmp('query-assay-grid');
-                    if (grid) {
-                        grid.destroy();
-                        var el = Ext.get('testdiv');
-                        el.mask('Loading ' + cb.getValue());
+            LABKEY.Query.selectRows({
+                schemaName: 'assay',
+                queryName : 'Particle Size Runs',
+                filterArray: [ LABKEY.Filter.create('Name', name, LABKEY.Filter.Types.STARTS_WITH) ],
+                success : function(data) {
+                    if (data.rows.length < 1) {
+                        Ext.get('testdiv').update('No Particle Size results available for ' + name);
+                        return;
                     }
-                    lookupAssayId(<%=PageFlowUtil.jsString(formulation.getBatch())%>, cb.getValue(), function(grid){});
+
+                    return new LABKEY.QueryWebPart({
+                        renderTo: 'testdiv',
+                        schemaName: 'assay',
+                        queryName: 'MachineAssayStability',
+                        parameters: {
+                            'AssayRowId': data.rows[0].RowId,
+                            'MachineType': machine
+                        },
+                        frame: 'none',
+                        buttonBar: {
+                            position: 'none'
+                        }
+                    });
                 }
-            }
-        });
+            });
+        };
+
+        var assayId = <%=PageFlowUtil.jsString(formulation.getBatch())%>;
 
         var panel = new Ext.Panel({
             renderTo : 'machine-select',
             bodyStyle : 'background-color: transparent;',
             border: false,
             frame : false,
-            items : [ cb ]
+            items : [{
+                xtype: 'combo',
+                mode: 'local',
+                width: 80,
+                editable: false,
+                store : new Ext.data.ArrayStore({
+                    fields : [ 'machine' ],
+                    data : [['aps'],['nano']]
+                }),
+                valueField : 'machine',
+                displayField : 'machine',
+                triggerAction : 'all',
+                listeners : {
+                    afterrender : function(cb) {
+                        cb.setValue('aps');
+                        cb.fireEvent('select', cb);
+                    },
+                    select : function(cb) {
+                        var grid = Ext.getCmp('query-assay-grid');
+                        if (grid) {
+                            grid.destroy();
+                            var el = Ext.get('testdiv');
+                            el.mask('Loading ' + cb.getValue());
+                        }
+                        lookupAssayId(assayId, cb.getValue());
+                    }
+                }
+            }]
         });
-
-        cb.setValue('aps');
-        lookupAssayId(<%=PageFlowUtil.jsString(formulation.getBatch())%>, cb.getValue(), function(grid){});
         
-        var qwp = new LABKEY.QueryWebPart({
+        new LABKEY.QueryWebPart({
             renderTo   : 'concentrationDiv',
             schemaName : 'idri',
             queryName  : 'concentrations',
             buttonBarPosition: 'none',
+            frame: 'none',
             showPagination : false,
-            filters    : [ LABKEY.Filter.create("Lot/Name", <%=PageFlowUtil.jsString(formulation.getBatch())%>, LABKEY.Filter.Types.CONTAINS)]
+            filters    : [ LABKEY.Filter.create('Lot/Name', assayId, LABKEY.Filter.Types.CONTAINS) ]
         });
 
-        buildPSReports('5C', <%=PageFlowUtil.jsString(formulation.getBatch())%>, 'aps', null, 'aps-report');
-        buildPSReports('5C', <%=PageFlowUtil.jsString(formulation.getBatch())%>, 'nano', null, 'nano-report');
+        buildPSReports('5C', assayId, 'aps', 'aps-report');
+        buildPSReports('5C', assayId, 'nano', 'nano-report');
     });
 
     function getOldView() {
-        var params = {};
-        params["rowId"] = <%=formulation.getRowID()%>;
-        window.location = LABKEY.ActionURL.buildURL("experiment", "showMaterial", LABKEY.ActionURL.getContainer(), params);
+        window.location = LABKEY.ActionURL.buildURL("experiment", "showMaterial", null, { "rowId" : <%=formulation.getRowID()%> });
     }
 </script>

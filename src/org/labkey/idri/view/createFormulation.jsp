@@ -27,10 +27,10 @@
 <%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
-
   public LinkedHashSet<ClientDependency> getClientDependencies()
   {
       LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
+      resources.add(ClientDependency.fromFilePath("Ext3"));
       resources.add(ClientDependency.fromFilePath("FileUploadField.js"));
       resources.add(ClientDependency.fromFilePath("/formulations/FormulationForm.js"));
       return resources;
@@ -54,6 +54,9 @@
     }
 
 </style>
+<div id ="formulation-upload"></div>
+<div id="formulation-panel"></div>
+<div id="form-example"></div>
 <script type="text/javascript">
 
     Ext.onReady(function(){
@@ -79,6 +82,3 @@
     });
 
 </script>
-<div id ="formulation-upload"></div>
-<div id="formulation-panel"></div>
-<div id="form-example"></div>

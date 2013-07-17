@@ -14,37 +14,49 @@
 #  limitations under the License.
 ##
 # Z-Avg Graph.r
-# THIS CAN ONLY BE RUN ON THE SERVER -- due to usage of labkey.url.params
+
 library(Rlabkey)
 
+# Relative Directory to where Particle Size Images are stored
 relativeDirectory <- paste(labkey.url.path, "@files/PSData", sep="")
 
-if(.Platform[1] == "windows"){
-    setwd(paste("C:/code/labkey/123/build/deploy/files", relativeDirectory, sep=""))
-} else setwd(paste("/labkey/labkey/files", relativeDirectory, sep=""))
+# Base Server URL
+baseURL <- labkey.url.base
+
+if(.Platform[1] == "windows") {
+    relativeDirectory <- paste("C:/code/labkey/modules132/build/deploy/files", relativeDirectory, sep="")
+    baseURL <- "http://localhost:8080/labkey/"
+} else {
+    relativeDirectory <- paste("/labkey/labkey/files", relativeDirectory, sep="")
+}
+
+setwd(relativeDirectory)
 
 searchParam      <- labkey.url.params$nameContains
 temperatureParam <- labkey.url.params$storageTemp
 toolParam        <- labkey.url.params$analysisTool
 exactName        <- labkey.url.params$exactName
 
+cat("searchParam:", searchParam, "\n")
+cat("temperatureParam:", temperatureParam, "\n")
+cat("toolParam:", toolParam, "\n")
+cat("exactName:", exactName, "\n")
+cat("base URL:", baseURL, "\n")
+cat("folder:", labkey.url.path, "\n")
+
 filter1 <- makeFilter(c("name", "EQUALS", searchParam))
 filter2 <- makeFilter(c("StorageTemperature", "EQUALS", temperatureParam))
 filter3 <- makeFilter(c("AnalysisTool", "EQUALS", toolParam))
 
-mydata <- suppressWarnings(labkey.selectRows(baseUrl=labkey.url.base,
+cat("Filter 1:", filter1, "\n")
+cat("Filter 2:", filter2, "\n")
+cat("Filter 3:", filter3, "\n")
+
+mydata <- suppressWarnings(labkey.selectRows(baseUrl=baseURL,
                             folderPath=labkey.url.path,
                             schemaName="assay",
                             queryName="R_ReportSummary",
                             colFilter=c(filter1,filter2,filter3)))
-
-if (0 == length(mydata[0])) {
-	warning(paste(exactName,
-			  "Particle Size data @",
-			  temperatureParam,
-			  "was not found for",
-			  toolParam, "data."))
-}
 
 # This is NOT GOOD - view-dependence.
 # There should only be a certian set of columns in the default view

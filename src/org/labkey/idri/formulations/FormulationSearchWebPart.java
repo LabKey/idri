@@ -18,7 +18,7 @@ package org.labkey.idri.formulations;
 import org.labkey.api.view.JspView;
 
 /**
- * User: jNicholas
+ * User: Nick Arnold
  * Date: Aug 26, 2010
  * Time: 11:21:39 AM
  */

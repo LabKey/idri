@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.api.view.HttpView" %>
-<%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ page import="org.labkey.api.view.template.ClientDependency" %>
 <%@ page import="org.labkey.idri.idriController" %>
 <%@ page import="java.util.LinkedHashSet" %>
@@ -33,11 +30,6 @@
       resources.add(ClientDependency.fromFilePath("/formulations/FormulationForm.js"));
       return resources;
   }
-%>
-<%
-    ViewContext ctx = HttpView.getRootContext();
-    Container c = ctx.getContainer();
-    ActionURL createURL = new ActionURL(idriController.CreateFormulationAction.class, c);
 %>
 <form method="get" action="../formulations" onsubmit="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;">
     <table cols="3">
@@ -55,7 +47,7 @@
 </form>
 <div id="SearchStatusDiv"></div>
 <div id="SearchStatusDiv2"></div>
-<div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", createURL)%></div>
+<div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", new ActionURL(idriController.CreateFormulationAction.class, getViewContext().getContainer()))%></div>
 <div id="topDiv"></div>
 <div id="errorDiv"></div>
 <div id="dataRegionDiv" style="float: left;"></div>

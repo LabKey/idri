@@ -98,35 +98,6 @@ public class idriController extends SpringActionController
         }
     }
 
-    public static class CompoundForm extends ExpObjectForm
-    {}
-
-    @RequiresPermissionClass(ReadPermission.class)
-    public class UpdateCompoundAction extends SimpleViewAction<CompoundForm>
-    {
-        @Override
-        public ModelAndView getView(CompoundForm compoundForm, BindException errors) throws Exception
-        {
-            
-            if (compoundForm.getRowId() != 0)
-            {
-
-            }
-            else if (compoundForm.getName() != null)
-            {
-
-            }
-
-            return new JspView<>("/org/labkey/idri/view/createCompound.jsp", compoundForm);
-        }
-
-        @Override
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-    }
-
     @RequiresPermissionClass(ReadPermission.class)
     public class GetDerivationGraphDescriptionAction extends ApiAction<MaterialTypeForm>
     {
