@@ -75,7 +75,7 @@ public class HPLCManager
             // Check only for HPLC assay
             for (ExpProtocol protocol : protocols)
             {
-                if (protocol.getName().equalsIgnoreCase("HPLC"))
+                if (protocol.getLSIDNamespacePrefix().equalsIgnoreCase("Provisional HPLCProtocol"))
                 {
                     _instance.generateRun(protocol, file, user, container);
                 }
@@ -95,7 +95,7 @@ public class HPLCManager
                 // Create Run
                 ExpRun run = AssayService.get().createExperimentRun(runName, container, protocol, null); // Try 'metadata' file
                 Map<String, String> runProps = new HashMap<>();
-                runProps.put("LotNumber", runName);
+                runProps.put("RunIdentifier", runName);
                 Map<String, String> batchProps = new HashMap<>();
 
                 // Populate Upload Context
