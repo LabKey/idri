@@ -237,7 +237,7 @@ Ext4.define('HPLC.view.Upload', {
 
     seePreviewVis : function(record) {
 
-        var loadImgPath = LABKEY.contextPath + '/' + LABKEY.extJsRoot_41 + '/resources/themes/images/default/grid/loading.gif';
+        var loadImgPath = LABKEY.contextPath + '/' + LABKEY.extJsRoot_42 + '/resources/ext-theme-classic-sandbox/images/grid/loading.gif';
 
         this.plotRegion = Ext4.create('Ext.Component', {
             autoEl: {
