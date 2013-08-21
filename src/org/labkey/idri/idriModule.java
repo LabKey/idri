@@ -63,6 +63,7 @@ public class idriModule extends DefaultModule
         return true;
     }
 
+    @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
         return new ArrayList<WebPartFactory>(Arrays.asList(
@@ -119,6 +120,7 @@ public class idriModule extends DefaultModule
         ExperimentService.get().registerExperimentDataHandler(new HPLCAssayDataHandler());
     }
 
+    @NotNull
     @Override
     public Collection<String> getSummary(Container c)
     {
