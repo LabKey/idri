@@ -6,7 +6,7 @@
 Ext4.define('HPLC.controller.AssayResolver', {
     extend : 'Ext.app.Controller',
 
-    views  : ['Review'],
+//    views  : ['Review'],
 
     init : function() {
 

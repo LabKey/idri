@@ -7,7 +7,7 @@ Ext4.define('HPLC.controller.Sample', {
 
     extend : 'Ext.app.Controller',
 
-    views : ['SampleEntry', 'StandardEntry'],
+//    views : ['SampleEntry', 'StandardEntry'],
 
     sampleEntryMap : {},
 

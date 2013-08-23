@@ -49,7 +49,18 @@
 <div id="hplc-upload-content"></div>
 <div id="pipelineBrowser" class="extContainer"></div>
 <script type="text/javascript">
-
+    LABKEY.requiresScript([
+        'formulations/HPLC/controller/AssayResolver.js',
+        'formulations/HPLC/controller/Sample.js',
+        'formulations/HPLC/controller/State.js',
+        'formulations/HPLC/panel/StandardPicker.js',
+        'formulations/HPLC/view/Review.js',
+        'formulations/HPLC/view/SampleEntry.js',
+        'formulations/HPLC/view/StandardEntry.js',
+        'formulations/HPLC/view/Upload.js'
+    ]);
+</script>
+<script type="text/javascript">
     (function(){
 
         var initHPLCUPload = function() {
@@ -119,20 +130,6 @@
                     // Switching to Ext 4 -- must ensure it is ready
                     Ext4.onReady(function(){
 
-                        Ext4.Loader.setConfig({
-                            enabled : true,
-                            paths : {
-                                'HPLC' : LABKEY.contextPath + '/formulations/HPLC'
-                            }
-//                            ,disableCaching : false
-                        });
-
-                        Ext4.require([
-                            'HPLC.controller.AssayResolver',
-                            'HPLC.controller.Sample',
-                            'HPLC.controller.State'
-                        ]);
-
                         Ext4.QuickTips.init();
 
                         Ext4.application({
@@ -185,7 +182,7 @@
                     Ext.Msg.alert('Select Folder', 'Please select a folder containing HPLC run information.');
                 }
             }
-        }
+        };
 
         initHPLCUPload();
 

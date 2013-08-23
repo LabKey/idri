@@ -7,7 +7,7 @@ Ext4.define('HPLC.controller.State', {
 
     extend : 'Ext.app.Controller',
 
-    views : ['Upload'],
+//    views : ['Upload'],
 
     refs : [{
         selector : 'window',
