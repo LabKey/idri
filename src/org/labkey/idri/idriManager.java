@@ -24,6 +24,7 @@ import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
@@ -55,6 +56,7 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -354,16 +356,9 @@ public class idriManager
             SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE compound = ?");
             sql.add(formulation.getRowID());
 
-            try
-            {
-                Concentration[] concArray = Table.executeQuery(getSchema(), sql, Concentration.class);
-                for (Concentration conc : concArray)
-                    invalids.add(conc.getLot());
-            }
-            catch (SQLException e)
-            {
-                throw new RuntimeSQLException(e);
-            }
+            Collection<Concentration> concCollection = new SqlSelector(getSchema(), sql).getCollection(Concentration.class);
+            for (Concentration conc : concCollection)
+                invalids.add(conc.getLot());
 
             for (Integer i : invalids)
                 processInvalid(i, user, container);
@@ -509,17 +504,10 @@ public class idriManager
 
         List<Concentration> concentrations = new ArrayList<>();
         SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE lot = ? AND istop = ?");
-        try
-        {
-            sql.add(service.getExpMaterialsByName(f.getBatch(), c, u).get(0).getRowId());
-            sql.add(isTopOnly);
-            Concentration[] concArray = Table.executeQuery(getSchema(), sql, Concentration.class);
-            concentrations.addAll(Arrays.asList(concArray));
-        }
-        catch (SQLException e)
-        {
-            throw new RuntimeSQLException(e);
-        }
+        sql.add(service.getExpMaterialsByName(f.getBatch(), c, u).get(0).getRowId());
+        sql.add(isTopOnly);
+        Collection<Concentration> concCollection = new SqlSelector(getSchema(), sql).getCollection(Concentration.class);
+        concentrations.addAll(concCollection);
         return concentrations;
     }
     
@@ -536,22 +524,15 @@ public class idriManager
                 throw new RuntimeException("The material received is not valid.");
 
             SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE lot = ? AND istop = 'false'");
-            try
-            {
-                sql.add(service.getExpMaterialsByName(material.getMaterialName(), c, u).get(0).getRowId());
-                Concentration[] concArray = Table.executeQuery(getSchema(), sql, Concentration.class);
-                concentrations.addAll(Arrays.asList(concArray));
+            sql.add(service.getExpMaterialsByName(material.getMaterialName(), c, u).get(0).getRowId());
+            Collection<Concentration> concCollection = new SqlSelector(getSchema(), sql).getCollection(Concentration.class);
+            concentrations.addAll(concCollection);
 
-                double concVal;
-                for(Concentration concentration : concentrations)
-                {
-                    concVal = ((concentration.getConcentration()/100.0) * (material.getConcentration()/100.0));
-                    concentration.setConcentration((concVal * 100.0));
-                }
-            }
-            catch (SQLException e)
+            double concVal;
+            for(Concentration concentration : concentrations)
             {
-                throw new RuntimeSQLException(e);
+                concVal = ((concentration.getConcentration()/100.0) * (material.getConcentration()/100.0));
+                concentration.setConcentration((concVal * 100.0));
             }
         }
         else
