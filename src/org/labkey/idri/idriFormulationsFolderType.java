@@ -52,9 +52,9 @@ public class idriFormulationsFolderType extends MultiPortalFolderType
     }
 
     @Override
-    public void configureContainer(Container c, User user)
+    public void configureContainer(Container c, User user, boolean forceCreate)
     {
-        super.configureContainer(c, user);
+        super.configureContainer(c, user, forceCreate);
 
         idriManager.initializeSampleSets(c);
     }
