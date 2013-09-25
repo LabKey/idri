@@ -400,10 +400,10 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Copy to Study");
         selectOptionByText(Locator.name("targetStudy"), "/" + getProjectName() + "/" + FOLDER_NAME + " (" + FOLDER_NAME + " Study)");
         clickButton("Next", 0);
-        Locator.name("participantId").waitForElmement(_driver, WAIT_FOR_JAVASCRIPT);
+        Locator.name("participantId").waitForElmement(getDriver(), WAIT_FOR_JAVASCRIPT);
 
-        List<WebElement> ptidFields = _driver.findElements(By.name("participantId"));
-        List<WebElement> visitFields = _driver.findElements(By.name("visitId"));
+        List<WebElement> ptidFields = getDriver().findElements(By.name("participantId"));
+        List<WebElement> visitFields = getDriver().findElements(By.name("visitId"));
         for (WebElement el: ptidFields)
         {
             el.sendKeys("placeholder");
@@ -469,8 +469,8 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Next", 0);
 
         waitForText("What temperatures are you examining?");
-        WebElement radio = Locator.radioButtonByNameAndValue("time", "1 mo").findElement(_driver);
-        _shortWait.until(LabKeyExpectedConditions.animationIsDone(Locator.css(("#card-1-fieldset-2"))));
+        WebElement radio = Locator.radioButtonByNameAndValue("time", "1 mo").findElement(getDriver());
+        shortWait().until(LabKeyExpectedConditions.animationIsDone(Locator.css(("#card-1-fieldset-2"))));
         radio.click();
         clickButton("Next", 0);
         waitForText("Please complete this page to continue.");
@@ -582,26 +582,26 @@ public class FormulationsTest extends BaseWebDriverTest
         _extHelper.waitForExtDialog("HPLC Assay Upload", WAIT_FOR_JAVASCRIPT);
 
         // move files to appropriate locations for samples/standards/methods
-        Actions builder = new Actions(_driver);
+        Actions builder = new Actions(getDriver());
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).waitForElmement(_driver, WAIT_FOR_JAVASCRIPT))
-            .release(Locator.css(".samples-grid .x4-grid-view").findElement(_driver))
+            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).waitForElmement(getDriver(), WAIT_FOR_JAVASCRIPT))
+            .release(Locator.css(".samples-grid .x4-grid-view").findElement(getDriver()))
             .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE1).waitForElmement(_driver, WAIT_FOR_JAVASCRIPT))
-            .release(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).findElement(_driver))
+            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE1).waitForElmement(getDriver(), WAIT_FOR_JAVASCRIPT))
+            .release(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).findElement(getDriver()))
             .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(_driver))
-            .release(Locator.css(".standards-grid .x4-grid-view").findElement(_driver))
+            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
+            .release(Locator.css(".standards-grid .x4-grid-view").findElement(getDriver()))
             .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD1).findElement(_driver))
-            .release(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(_driver))
+            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD1).findElement(getDriver()))
+            .release(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
             .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_METHOD).findElement(_driver))
-            .release(Locator.css(".methods-grid .x4-grid-view").findElement(_driver))
+            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_METHOD).findElement(getDriver()))
+            .release(Locator.css(".methods-grid .x4-grid-view").findElement(getDriver()))
             .build().perform();
 
         clickButton("Next", 0);
@@ -657,7 +657,7 @@ public class FormulationsTest extends BaseWebDriverTest
         waitForElement(methodLink);
         try
         {
-            int responseCode = WebTestHelper.getHttpGetResponse(methodLink.findElement(_driver).getAttribute("href"));
+            int responseCode = WebTestHelper.getHttpGetResponse(methodLink.findElement(getDriver()).getAttribute("href"));
             Assert.assertEquals("Bad response from method link: " + responseCode, HttpStatus.SC_OK, responseCode);
         }
         catch (IOException e)
@@ -675,7 +675,7 @@ public class FormulationsTest extends BaseWebDriverTest
         DataRegionTable table = new DataRegionTable("Data", this);
         Assert.assertEquals("Unexpected number of result rows", 6, table.getDataRowCount());
 
-        List<WebElement> rows = Locator.css(".labkey-row, .labkey-alternate-row").findElements(_driver);
+        List<WebElement> rows = Locator.css(".labkey-row, .labkey-alternate-row").findElements(getDriver());
 
         for (int i = 0; i < rows.size(); i++)
         {
