@@ -110,9 +110,11 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String VIS_ASSAY      = "Visual";
     private static final String VIS_ASSAY_DESC = "IDRI Visual Data.";
 
-    private static final String HPLC_ASSAY      = "HPLC";
+    private static final String HPLC_ASSAY = "HPLC";
+    private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
     private static final String HPLC_PIPELINE_PATH = getSampledataPath() + "/HPLC";
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
+    private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
     private static final String HPLC_SAMPLE1 = "3004837A.CSV";
     private static final String HPLC_SAMPLE2 = "3004837B.CSV";
     private static final String HPLC_STANDARD1 = "STD1.CSV";
@@ -124,7 +126,7 @@ public class FormulationsTest extends BaseWebDriverTest
     {
         deleteProject(getProjectName(), afterTest);
     }
-    
+
     @Override
     protected void doTestSteps() throws Exception
     {
@@ -142,9 +144,10 @@ public class FormulationsTest extends BaseWebDriverTest
         uploadVisualAssayData();
         validateVisualAssayData();
 
+        defineProvisionalHPLCAssay();
         defineHPLCAssay();
-        uploadHPLCAssayData();
-        validateHPLCAssayData();
+//        uploadHPLCAssayData();
+//        validateHPLCAssayData();
     }
 
     @LogMethod
@@ -522,6 +525,48 @@ public class FormulationsTest extends BaseWebDriverTest
         assertTextPresent("Color changed.");
         assertTextPresent(TRICKY_CHARACTERS);
         assertTextPresent("This is a passing comment.");
+    }
+
+    @LogMethod
+    protected void defineProvisionalHPLCAssay()
+    {
+        clickProject(PROJECT_NAME);
+
+        log("Defining Provisional HPLC Assay");
+        clickAndWait(Locator.linkWithText("Manage Assays"));
+        clickButton("New Assay Design");
+
+        assertTextPresent("High performance liquid chromotography assay");
+        checkRadioButton("providerName", "Provisional HPLC");
+        clickButton("Next");
+
+        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
+        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), PROVISIONAL_HPLC_ASSAY);
+        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), PROVISIONAL_HPLC_ASSAY_DESC);
+        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+
+        // Batch Properties
+        assertTextPresent("No fields have been defined.");
+
+        // Run Properties
+        assertTextPresent("RunIdentifier");
+        assertTextPresent("Method");
+
+        // Result Properties
+        assertTextPresent("Dilution");
+        assertTextPresent("DataFile");
+//        assertTextPresent("Concentration");
+
+        // Make Runs/Results editable
+        checkCheckbox("editableRunProperties");
+        checkCheckbox("editableResultProperties");
+
+        clickButton("Save", 0);
+        waitForText("Save successful.", 10000);
+        clickButton("Save & Close");
+
+        // Set pipeline path
+        setPipelineRoot(HPLC_PIPELINE_PATH);
     }
 
     @LogMethod

@@ -21,7 +21,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.files.FileListener;
 import org.labkey.api.security.User;
-import org.labkey.idri.assay.HPLCManager;
+import org.labkey.idri.assay.hplc.HPLCManager;
 
 import java.io.File;
 import java.util.Collection;

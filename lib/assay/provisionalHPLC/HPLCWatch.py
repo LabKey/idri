@@ -34,12 +34,12 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.events import LoggingEventHandler
 from watchdog.events import PatternMatchingEventHandler
 
-server       = '' # required
+server       = '' # required, leave off any http(s)://
 target_dir   = '' # required
 user         = '' # required
 password     = '' # required
 
-context_path = ''
+context_path = '' # optional
 filepatterns = ["*.txt", "*.csv"]
 
 class HPLCHandler(PatternMatchingEventHandler):
@@ -76,8 +76,12 @@ class HPLCHandler(PatternMatchingEventHandler):
         ctx = '/' + context + '/' if len(context) > 0 else ''
         return 'http://' + server + '/' + context + '/' + target + '/'
 
+    def requestPipeline(self):
+        url = self.buildURL(server, context_path, target_dir)
+
         
 if __name__ == "__main__":
+
     path = "."
     if len(sys.argv) > 1:
         path = sys.argv[1]
@@ -87,6 +91,7 @@ if __name__ == "__main__":
 
     obs.schedule(HPLCHandler(), path=path, recursive=True)
     obs.start()
+
     try:
         while True:
             time.sleep(60)

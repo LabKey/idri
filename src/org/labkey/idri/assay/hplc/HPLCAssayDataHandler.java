@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.idri.assay;
+package org.labkey.idri.assay.hplc;
 
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.study.assay.AbstractAssayTsvDataHandler;
