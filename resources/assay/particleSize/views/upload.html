@@ -78,7 +78,7 @@
     };
 
     var saveBatch = function() {
-        if (!LABKEY.dirty) return;
+        if (!LABKEY.isDirty()) return;
 
         // XXX: do some basic validation before saving...
         LABKEY.Experiment.saveBatch({

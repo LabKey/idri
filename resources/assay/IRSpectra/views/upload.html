@@ -156,7 +156,7 @@
 
     function saveSpectraBatch()
     {
-        if(!LABKEY.dirty)
+        if(!LABKEY.isDirty())
         {
             console.info("Not dirty");
             return;
