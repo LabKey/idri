@@ -35,6 +35,8 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpMaterialTable;
 import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.exp.query.SamplesSchema;
+import org.labkey.api.pipeline.PipeRoot;
+import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
@@ -46,6 +48,7 @@ import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.WebPartView;
+import org.labkey.idri.assay.hplc.HPLCAssayDataHandler;
 import org.labkey.idri.model.Formulation;
 import org.labkey.idri.model.Material;
 import org.springframework.validation.BindException;
@@ -530,5 +533,34 @@ public class idriController extends SpringActionController
         materialsView.setButtonBarPosition(DataRegion.ButtonBarPosition.BOTTOM);
         materialsView.setTitle(title);
         return materialsView;
+    }
+
+    /**
+     * Meant to mimic PipelineController.getPipelineContainerAction but with the incorporated HPLC path context
+     */
+    @RequiresPermissionClass(ReadPermission.class)
+    public class getHPLCPipelineContainerAction extends ApiAction
+    {
+        public ApiResponse execute(Object form, BindException errors) throws Exception
+        {
+            ApiSimpleResponse resp = new ApiSimpleResponse();
+            PipeRoot root = PipelineService.get().findPipelineRoot(getViewContext().getContainer());
+
+            String containerPath = null;
+            String webdavURL = null;
+
+            if (null != root)
+            {
+                containerPath = root.getContainer().getPath();
+                webdavURL = root.getWebdavURL();
+                if (HPLCAssayDataHandler.NAMESPACE.length() > 0)
+                    webdavURL += HPLCAssayDataHandler.NAMESPACE;
+            }
+
+            resp.put("containerPath", containerPath);
+            resp.put("webDavURL", webdavURL);
+
+            return resp;
+        }
     }
 }

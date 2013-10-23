@@ -25,31 +25,41 @@
 # Depedendencies:
 #   requests : http://docs.python-requests.org/en/latest/
 #   watchdog : http://packages.python.org/watchdog/
+# Depdenencies can normally be installed using the pip package manager (e.g. $> pip install requests)
 
 import sys, time, os
 import requests
+import logging
 
+from datetime import datetime
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from watchdog.events import LoggingEventHandler
 from watchdog.events import PatternMatchingEventHandler
 
-server       = '' # required, leave off any http(s)://
+server       = '' # required, leave off any http(s):// and include any ports (e.g. :8000)
 target_dir   = '' # required
 user         = '' # required
 password     = '' # required
 
 context_path = '' # optional
 filepatterns = ["*.txt", "*.csv"]
+sleep_interval = 60
 
 class HPLCHandler(PatternMatchingEventHandler):
 
     def __init__(self, patterns=filepatterns):
         super(HPLCHandler, self).__init__(patterns=patterns)
-                        
-    def on_modified(self, event):
-        super(HPLCHandler, self).on_modified(event)
+        self.pipelinePath = self.requestPipeline()                    
+
+    def on_created(self, event):
+        super(HPLCHandler, self).on_any_event(event)
         self.handleUpload(event)
+
+    # def on_modified(self, event):
+    #     super(HPLCHandler, self).on_created(event)
+
+    # def on_deleted(self, event):
+    #     super(HPLCHandler, self).on_deleted(event)
+    #     print "File has been deleted"
 
     def handleUpload(self, event):        
         if event.is_directory == False and len(event.src_path) > 0:
@@ -57,44 +67,80 @@ class HPLCHandler(PatternMatchingEventHandler):
             if (len(split_path) > 0):
                 name = str(split_path[len(split_path)-1])                
                 if name.find('~') == -1:
-                    print name
-                    time.sleep(60)
+                    logging.info("Preparing to send " + name)
                     files = {'file' : (name, open(name, 'rb'))}
-                    url = self.buildURL(server, context_path, target_dir)
+                    url = 'http://' + server + self.pipelinePath + '/' #self.buildURL(server, context_path, target_dir)
                     r = requests.post(url, files=files, auth=(user, password))
                     s = r.status_code
                     if s == 207 or s == 200:
-                        print name, "Uploaded Successfully."
+                        logging.info(str(s), " Uploaded Successfully: " + name)
+                        print s, "Uploaded Successfully:", name
                     elif s == 401:
-                        print "Authentication failed. Check user and password."
+                        logging.error(str(s) + " Authentication failed. Check user and password.")
+                        print s, "Authentication failed. Check user and password."
                     elif s == 404:
-                        print "Location not found. URL:", url
+                        logging.error(str(s) + " Location not found. URL: " + url)
+                        print s, "Location not found. URL:", url
                     else:
-                        print name, "Failed:", s
+                        logging.error(str(s) + " Failed: " + name)
+                        print s, "Failed:", name
+
+    def getBaseURL(self, context):
+        ctx = '/' + context + '/' if len(context) > 0 else ''
+        return 'http://' + server + '/' + context
 
     def buildURL(self, server, context, target):
-        ctx = '/' + context + '/' if len(context) > 0 else ''
-        return 'http://' + server + '/' + context + '/' + target + '/'
+        return self.getBaseURL(context) + '/' + target + '/'
+
+    def buildActionURL(self, controller, action):
+        return self.getBaseURL(context_path) + '/' + controller + '/' + target_dir + '/' + action + '.api'
 
     def requestPipeline(self):
-        url = self.buildURL(server, context_path, target_dir)
+        actionURL = self.buildActionURL('idri', 'getHPLCPipelineContainer')
+        logging.info("...Requesting Pipeline Configuration")
+        r = requests.get(actionURL, auth=(user, password))
+        logging.info("...done. Status: " + str(r.status_code))
+        pipe = r.json()['webDavURL']
+        logging.info("Pipeline Path: " + pipe)
+        return pipe
 
         
 if __name__ == "__main__":
 
+    #
+    # Configure Logging
+    #
+    logging.basicConfig(filename='watch.log', level=logging.DEBUG)
+    logging.info('\n\n\nStarting HPLCWatch: ' + str(datetime.now()))
+
+    #
+    # Configure path being watched
+    #
     path = "."
     if len(sys.argv) > 1:
         path = sys.argv[1]
+    else:
+        path = os.path.abspath(path)
 
+    logging.info(" Watching: " + path)
+    logging.info(" File Matchers: " + str(filepatterns))
+    logging.info(" sleep_interval: " + str(sleep_interval))
+
+    #
+    # Start observing the configured path
+    #
     obs = Observer()
-    print "Watching", path
-
     obs.schedule(HPLCHandler(), path=path, recursive=True)
     obs.start()
 
+    #
+    # Let the command line user know it is responding
+    #
+    print "Configuration complete. Listening in", path
+
     try:
         while True:
-            time.sleep(60)
+            time.sleep(sleep_interval)
     except KeyboardInterrupt:
         obs.stop()
     obs.join()
