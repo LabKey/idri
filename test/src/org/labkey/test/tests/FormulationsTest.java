@@ -621,7 +621,7 @@ public class FormulationsTest extends BaseWebDriverTest
         assertElementPresent(Locator.css("#dataregion_Runs > tbody > tr").containing("No runs to show."));
 
         clickButton("Import Data");
-        _fileBrowserHelper.selectFileBrowserItem("HPLCRun/");
+        _extHelper.selectFileBrowserItem("HPLCRun/");
 
         clickButton("Import HPLC", 0);
         _extHelper.waitForExtDialog("HPLC Assay Upload", WAIT_FOR_JAVASCRIPT);
