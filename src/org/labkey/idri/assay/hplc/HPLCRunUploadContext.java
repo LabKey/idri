@@ -149,6 +149,7 @@ public class HPLCRunUploadContext<ProviderType extends AssayProvider> implements
         return _user;
     }
 
+    @NotNull
     @Override
     public Container getContainer()
     {
