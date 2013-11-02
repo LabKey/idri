@@ -403,7 +403,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Copy to Study");
         selectOptionByText(Locator.name("targetStudy"), "/" + getProjectName() + "/" + FOLDER_NAME + " (" + FOLDER_NAME + " Study)");
         clickButton("Next", 0);
-        Locator.name("participantId").waitForElmement(getDriver(), WAIT_FOR_JAVASCRIPT);
+        Locator.name("participantId").waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT);
 
         List<WebElement> ptidFields = getDriver().findElements(By.name("participantId"));
         List<WebElement> visitFields = getDriver().findElements(By.name("visitId"));
@@ -629,11 +629,11 @@ public class FormulationsTest extends BaseWebDriverTest
         // move files to appropriate locations for samples/standards/methods
         Actions builder = new Actions(getDriver());
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).waitForElmement(getDriver(), WAIT_FOR_JAVASCRIPT))
+            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
             .release(Locator.css(".samples-grid .x4-grid-view").findElement(getDriver()))
             .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE1).waitForElmement(getDriver(), WAIT_FOR_JAVASCRIPT))
+            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE1).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
             .release(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).findElement(getDriver()))
             .build().perform();
         builder
