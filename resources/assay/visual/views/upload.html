@@ -28,18 +28,16 @@
 
     p { margin: 0px; text-align: left;}
 </style>
-<script type="text/javascript">
-    LABKEY.requiresScript("StatusBar.js");
-    LABKEY.requiresScript("formulations/IDRIComponents.js");
-</script>
+<div id="submit-window-div"></div>
 <script type="text/javascript">
 
-    Ext.QuickTips.init();
     var _lotID;
     var timeStore;
     var tempStore;
 
     function init(valid) {
+
+        Ext.QuickTips.init();
 
         if (!valid) {
             var reported = 0;
@@ -110,16 +108,16 @@
                 var temps = Ext.getCmp('card-1-fieldset-2');
                 if (temps && !temps.isVisible()) {
                     temps.show();
-                    temps.getEl().slideIn();
+                    temps.getEl().slideIn('t', { callback: function() { temps.doLayout(); } });
 
-                    temps = Ext.getCmp('card-1-fieldset-3');
-                    if (temps && !temps.isVisible()) {
-                        temps.show();
-                        temps.getEl().slideIn();
+                    var fs3 = Ext.getCmp('card-1-fieldset-3');
+                    if (fs3 && !fs3.isVisible()) {
+                        fs3.show();
+                        fs3.getEl().slideIn('t', { callback: function() { fs3.doLayout(); } });
                     }
                 }
                 else {
-                    if(doContinue && !this.getForm().isValid()) {
+                    if (doContinue && !this.getForm().isValid()) {
                         presentMsg("Please complete this page to continue.");
                     }
                 }
@@ -288,9 +286,9 @@
                 hidden: true,
                 layout: 'form',
                 items : [{
+                    xtype : 'radiogroup',
                     width : 410,
                     columns : [80, 80, 80, 80, 80],
-                    xtype : 'radiogroup',
                     allowBlank : false,
                     hideLabel : true,
                     validateOnBlur : false,
@@ -935,4 +933,3 @@
 
     Ext.onReady(init);
 </script>
-<div id="submit-window-div"></div>       
