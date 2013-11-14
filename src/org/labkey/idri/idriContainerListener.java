@@ -22,6 +22,7 @@ import org.labkey.api.data.ContainerManager.ContainerListener;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.Table;
 import org.labkey.api.security.User;
 
@@ -40,16 +41,7 @@ public class idriContainerListener implements ContainerListener
     @Override
     public void containerDeleted(Container c, User user)
     {
-        try
-        {
-            DbSchema schema = idriManager.getSchema();
-            Table.execute(schema, "DELETE FROM idri.Concentrations WHERE CONTAINER=?", c);
-        }
-        catch (SQLException e)
-        {
-            _log.error("Failure cleaning up IDRI data when deleting container " + c.getPath(), e);
-            throw new RuntimeSQLException(e);
-        }
+        new SqlExecutor(idriManager.getSchema()).execute("DELETE FROM idri.Concentrations WHERE Container = ?", c);
     }
 
     @Override
