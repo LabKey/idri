@@ -15,7 +15,6 @@
  */
 package org.labkey.test.tests;
 
-import org.junit.Assert;
 import org.apache.http.HttpException;
 import org.apache.http.HttpStatus;
 import org.junit.experimental.categories.Category;
@@ -39,6 +38,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * User: Nick
@@ -397,7 +398,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText(PS_ASSAY));
 
         DataRegionTable runs = new DataRegionTable("Runs", this);
-        Assert.assertEquals("Wrong number of " + PS_ASSAY + " runs", 1, runs.getDataRowCount());
+        assertEquals("Wrong number of " + PS_ASSAY + " runs", 1, runs.getDataRowCount());
         runs.checkCheckbox(0);
 
         clickButton("Copy to Study");
@@ -703,7 +704,7 @@ public class FormulationsTest extends BaseWebDriverTest
         try
         {
             int responseCode = WebTestHelper.getHttpGetResponse(methodLink.findElement(getDriver()).getAttribute("href"));
-            Assert.assertEquals("Bad response from method link: " + responseCode, HttpStatus.SC_OK, responseCode);
+            assertEquals("Bad response from method link: " + responseCode, HttpStatus.SC_OK, responseCode);
         }
         catch (IOException e)
         {
@@ -718,13 +719,13 @@ public class FormulationsTest extends BaseWebDriverTest
         waitForElement(Locator.linkWithText("Alum"));
 
         DataRegionTable table = new DataRegionTable("Data", this);
-        Assert.assertEquals("Unexpected number of result rows", 6, table.getDataRowCount());
+        assertEquals("Unexpected number of result rows", 6, table.getDataRowCount());
 
         List<WebElement> rows = Locator.css(".labkey-row, .labkey-alternate-row").findElements(getDriver());
 
         for (int i = 0; i < rows.size(); i++)
         {
-            Assert.assertEquals("Unexpected row data", HPLC_ROWS[i], rows.get(i).getText());
+            assertEquals("Unexpected row data", HPLC_ROWS[i], rows.get(i).getText());
         }
 
 
