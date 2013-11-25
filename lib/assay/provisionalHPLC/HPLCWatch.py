@@ -27,7 +27,7 @@
 #   watchdog : http://packages.python.org/watchdog/
 # Depdenencies can normally be installed using the pip package manager (e.g. $> pip install requests)
 
-import sys, time, os
+import sys, time, os, threading
 import requests
 import logging
 
@@ -39,16 +39,24 @@ server       = '' # required, leave off any http(s):// and include any ports (e.
 target_dir   = '' # required
 user         = '' # required
 password     = '' # required
-
 context_path = '' # optional
+
 filepatterns = ["*.txt", "*.csv"]
 sleep_interval = 60
+success_interval = 60
 
 class HPLCHandler(PatternMatchingEventHandler):
 
     def __init__(self, patterns=filepatterns):
         super(HPLCHandler, self).__init__(patterns=patterns)
-        self.pipelinePath = self.requestPipeline()                    
+        self.pipelinePath = self.requestPipeline() 
+        self.successTimerDelay = success_interval # time in seconds
+        self.runFiles = []
+
+        #
+        # Initialize the run task    
+        #
+        self.checkTask = 0
 
     def on_created(self, event):
         super(HPLCHandler, self).on_any_event(event)
@@ -69,6 +77,7 @@ class HPLCHandler(PatternMatchingEventHandler):
                 if name.find('~') == -1:
                     logging.info("Preparing to send " + name)
                     files = {'file' : (name, open(name, 'rb'))}
+                    self.addRunFile(files)
                     url = 'http://' + server + self.pipelinePath + '/' #self.buildURL(server, context_path, target_dir)
                     r = requests.post(url, files=files, auth=(user, password))
                     s = r.status_code
@@ -100,9 +109,38 @@ class HPLCHandler(PatternMatchingEventHandler):
         logging.info("...Requesting Pipeline Configuration")
         r = requests.get(actionURL, auth=(user, password))
         logging.info("...done. Status: " + str(r.status_code))
-        pipe = r.json()['webDavURL']
-        logging.info("Pipeline Path: " + pipe)
-        return pipe
+
+        if r.status_code == 200:
+            pipe = r.json()['webDavURL']
+            logging.info("Pipeline Path: " + pipe)
+            return pipe
+        else:
+            msg = "\nUnable to process pipeline configuration.\n" + str(r.status_code) + ": " + actionURL
+            msg += "\nCheck that this URL resolves and/or the IDRI module is properly installed on the server."
+
+            logging.error(msg)
+            raise Exception(msg)
+
+    def addRunFile(self, fileJSON):
+        if len(self.runFiles) == 0:
+            print "Starting new run"
+        self.runFiles.append(fileJSON)
+        self.reset()
+
+    def reset(self):
+        if self.checkTask != 0:
+            self.checkTask.cancel()
+        self.checkTask = self.getCheckTask()
+        self.checkTask.start()
+
+    def getCheckTask(self):
+        return threading.Timer(self.successTimerDelay, self.runOver)
+
+    def runOver(self):
+        print "The current run is over, no other files were uploaded"
+        print str(self.runFiles)
+        self.runFiles = []
+        self.checkTask = 0
 
         
 if __name__ == "__main__":
