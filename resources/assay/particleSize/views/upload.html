@@ -54,11 +54,6 @@
     <li>Z-Average value for each entry must be greater than or equal to 1.0 nm.</li>
 </ol>
 
-
-<script type="text/javascript">
-    LABKEY.requiresScript("formulations/materials.js");
-    LABKEY.requiresScript("FileUploadField.js");
-</script>
 <script type="text/javascript">
 
 (function(){
@@ -457,14 +452,16 @@
         // Need to check if there is already a run that we need to replace.
         var queryName = LABKEY.page.assay.name + " Runs";
 
-        LABKEY.Query.selectRows({
+        var selectRowsConfig = {
             schemaName: 'assay',
             queryName: queryName,
             successCallback: querySuccess,
             failureCallback: queryFailure,
-            filterArray: [LABKEY.Filter.create('name', run.name)],
+            filterArray: [ LABKEY.Filter.create('name', run.name) ],
             columns:'name,batch/rowId,rowId'
-        });
+        };
+
+        LABKEY.Query.selectRows(selectRowsConfig);
     };
 
     var handleRunContent2 = function(run, data) {

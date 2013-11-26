@@ -7,11 +7,19 @@ Ext.namespace("LABKEY.idri");
 
 LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
+    //
+    // Array of currently available formulations
+    //
+    formulations: [],
+
+    buttonAlign: 'left',
+
+    border: false,
+
+    frame: false,
+
     initComponent : function()
-    {       
-        this.items = [];
-        this.border = false;
-        this.frame  = false;
+    {
         this.materialCount = -1;
         this.lastChecked = "";
         this.isUpdate = false;
@@ -22,11 +30,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             data   : this.materials
         });
 
-        this.formulationStore = new Ext.data.JsonStore({
-            fields : ['comments', {name: 'dm', type:'date'}, 'batch', 'batchsize', 'rowID'],
-            idProperty : 'batch',
-            data   : this.formulations
-        });
+        this.formulationStore = this.getFormulationsStore();
 
         this.dialogPanel = new Ext.Panel({
             html:"",
@@ -42,11 +46,6 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         this.formPanel = this.getFormulationItems();
         this.materialsPanel = this.getFormItems();
 
-        this.items.push(this.dialogPanel);
-        this.items.push(this.formPanel);
-        this.items.push(this.materialsPanel);
-
-        this.buttonAlign = "left";
         this.buttons = [{
             id : 'add-button',
             text : 'Add Another Material',
@@ -63,9 +62,11 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             scope : this
         }];
 
+        this.items = [this.dialogPanel, this.formPanel, this.materialsPanel];
+
         LABKEY.idri.FormulationPanel.superclass.initComponent.apply(this, arguments);
 
-        this.on('afterrender', function(panel){
+        this.on('afterrender', function(){
             var urlRowID = LABKEY.ActionURL.getParameter("RowId");
             if (urlRowID)
             {
@@ -75,32 +76,37 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     var first = collection.first();
                     if (first)
                     {
-                        this.getEl().mask("Loading Formulation...");
-                        this.formPanel.getForm().load({
-                            url : LABKEY.ActionURL.buildURL('idri', 'getFormulation.api'),
-                            method : 'GET',
-                            params : {materialName: first.json.batch},
-                            success : function(panel, form) {
-                                this.getEl().unmask();
-                                var cmp = Ext.getCmp('submit-formulation-btn');
-                                if (cmp)
-                                {
-                                    this.isUpdate = true;
-                                    cmp.setText("Save Changes");
-                                }
-                            },
-                            failure : function()
-                            {
-                                console.info("Failed to retrieve formulation.");
-                                this.getEl().unmask();
-                            },
-                            scope : this
-                        });
+                        this.loadFormulation(first.json.batch);
                     }
                 }
             }
-        }, this);
-    },    
+        }, this, {single: true});
+    },
+
+    loadFormulation : function(materialName)
+    {
+        this.getEl().mask("Loading Formulation...");
+        this.formPanel.getForm().load({
+            url : LABKEY.ActionURL.buildURL('idri', 'getFormulation.api'),
+            method : 'GET',
+            params : {materialName: materialName},
+            success : function(panel, form) {
+                this.getEl().unmask();
+                var cmp = Ext.getCmp('submit-formulation-btn');
+                if (cmp)
+                {
+                    this.isUpdate = true;
+                    cmp.setText("Save Changes");
+                }
+            },
+            failure : function()
+            {
+                console.info("Failed to retrieve formulation.");
+                this.getEl().unmask();
+            },
+            scope : this
+        });
+    },
 
     showMsg : function(msg, error)
     {
@@ -134,11 +140,20 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             }
         }
     },
-    
+
+    getFormulationsStore : function()
+    {
+        return new Ext.data.JsonStore({
+            fields : ['comments', {name: 'dm', type:'date'}, 'batch', 'batchsize', 'rowID'],
+            idProperty : 'batch',
+            data   : this.formulations
+        });
+    },
+
     getFormulationItems : function()
     {
         var ff = this;
-        var fp = new Ext.FormPanel({
+        return new Ext.FormPanel({
             labelAlign : 'top',
             width : 575,
             border: false,
@@ -206,38 +221,18 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                                                 msg: 'That formulation already exists. Would you like to load the formulation?',
                                                 buttons: Ext.Msg.YESNO,
                                                 fn: function(id) {
+
+                                                    this.formPanel.getForm().reset();
+                                                    this.resetMaterials();
+
                                                     if (id == 'yes')
                                                     {
                                                         this.showMsg("");
-                                                        this.getEl().mask('loading formulation...');
-                                                        this.formPanel.getForm().reset();
-                                                        this.resetMaterials();
-                                                        this.formPanel.getForm().load({
-                                                            url : LABKEY.ActionURL.buildURL('idri', 'getFormulation.api'),
-                                                            method : 'GET',
-                                                            params : {materialName: val},
-                                                            success : function(panel, form) {
-                                                                this.getEl().unmask();
-                                                                var cmp = Ext.getCmp('submit-formulation-btn');
-                                                                if (cmp)
-                                                                {
-                                                                    this.isUpdate = true;
-                                                                    cmp.setText("Save Changes");
-                                                                }
-                                                            },
-                                                            failure : function()
-                                                            {
-                                                                console.info("Failed to retrieve formulation.");
-                                                                this.getEl().unmask();
-                                                            },
-                                                            scope : this
-                                                        });
+                                                        this.loadFormulation(val);
                                                     }
                                                     else
                                                     {
                                                         this.isUpdate = false;
-                                                        this.formPanel.getForm().reset();
-                                                        this.resetMaterials();
                                                         field.setValue(val);
                                                         var cmp = Ext.getCmp('submit-formulation-btn');
                                                         if (cmp)
@@ -316,8 +311,6 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             }],
             scope : this
         });
-        
-        return fp;
     },
 
     getMaterialItems : function(parentID)
@@ -418,96 +411,109 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
         if (formulation)
         {
-            var fp = this;
-            function onFailure(response)
+            var me = this;
+            var onFailure = function(response)
             {
-                fp.getEl().unmask();
+                me.getEl().unmask();
                 if (response && response.responseText) {
                     var decode = Ext.decode(response.responseText);
                     if (decode && decode.errors) {
-                        fp.showMsg(decode.errors[0].message, true);
+                        me.showMsg(decode.errors[0].message, true);
                         return;
                     }
                 }
-                fp.showMsg("Failed to Save.", true);
-            }
+                me.showMsg("Failed to Save.", true);
+            };
 
             this.getEl().mask("Saving Formulation...");
             Ext.Ajax.request({
                 method : 'POST',
                 url : LABKEY.ActionURL.buildURL("idri", "saveFormulation.api"),
                 jsonData : formulation,
-                success : function(response)
-                {
-                    var obj = Ext.decode(response.responseText);
-                    if (obj.errors)
-                    {
-                        onFailure(response);
-                        return;
-                    }
-                    this.formulations.push(obj.formulation);
-                    this.formulationStore = new Ext.data.JsonStore({
-                        fields : ['comments', {name: 'dm', type:'date'}, 'batch', 'batchsize'],
-                        idProperty : 'batch',
-                        data   : this.formulations
-                    });
-                    this.getEl().unmask();
-                    var mainParams = {};
-                    mainParams['rowId'] = obj.formulation.rowID;
-                    var _link = location.protocol + "//" + location.host + "/" + LABKEY.ActionURL.buildURL("idri", "formulationDetails.view", LABKEY.ActionURL.getContainer(), mainParams);
-                    this.showMsg("Formulation : <a href='" + _link + "'>" + obj.formulation.batch + "</a> has been " + (this.isUpdate ? "updated." : "created."), false);
-                    var cmp = Ext.getCmp('stability-check');
-                    if (cmp && cmp.getValue())
-                    {
-                        LABKEY.Security.getUsers({
-                            groupId : 1043, // 'Stability'
-                            successCallback : function(usersInfo, response)
-                            {
-                                var users = usersInfo.users;
-                                var recipients = [];
-                                for (var i = 0; i < users.length; i++)
-                                    recipients.push(LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, users[i].email));
-
-                                var val = obj.formulation.batch;
-                                LABKEY.Message.sendMessage({
-                                    msgFrom : 'ops@labkey.com',
-                                    msgSubject : 'Formulation added on LabKey',
-                                    msgRecipients : recipients,
-                                    msgContent : [
-                                        LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, "<h4>Stability Review Requested</h4>" +
-                                                "Formulation : <a href='" + _link + "'>" + val + "</a> has been processed.<br/><br/>IDRI LabKey Administration Team")
-                                    ],
-                                    successCallback : function(result) {
-                                        console.info("Email(s) sent successfully.");
-                                    },
-                                    errorCallback : function(errorInfo, responseObj)
-                                    {
-                                        LABKEY.Utils.displayAjaxErrorResponse(responseObj, errorInfo);
-                                    }
-                                });
-                            },
-                            errorCallback : function(errorInfo, response)
-                            {
-                                console.info("Failed to send email.");
-                            },
-                            scope: this
-                        });
-                    }
-
-                    cmp = Ext.getCmp('submit-formulation-btn');
-                    if (cmp)
-                    {
-                        cmp.setText('Create');
-                    }
-                    this.isUpdate = false;
-                    this.formPanel.getForm().reset();
-                    this.resetMaterials();
-                },
+                success : this.onSaveFormulation,
                 failure : onFailure,
                 scope: this
             });
         }
     },
+
+
+    //
+    // Expects response of idri/saveFormulation action
+    //
+    onSaveFormulation : function(response)
+    {
+        var obj = Ext.decode(response.responseText);
+        if (obj.errors)
+        {
+            onFailure(response);
+            return;
+        }
+        this.formulations.push(obj.formulation);
+        this.formulationStore = this.getFormulationsStore();
+        this.getEl().unmask();
+        var mainParams = {
+            'rowId': obj.formulation['rowID']
+        };
+        var _link = LABKEY.ActionURL.buildURL("idri", "formulationDetails.view", LABKEY.ActionURL.getContainer(), mainParams);
+        this.showMsg("Formulation : <a href='" + _link + "'>" + obj.formulation.batch + "</a> has been " + (this.isUpdate ? "updated." : "created."), false);
+        var cmp = Ext.getCmp('stability-check');
+        if (cmp && cmp.getValue())
+        {
+            this.informStabilityGroup();
+        }
+
+        cmp = Ext.getCmp('submit-formulation-btn');
+        if (cmp)
+        {
+            cmp.setText('Create');
+        }
+        this.isUpdate = false;
+        this.formPanel.getForm().reset();
+        this.resetMaterials();
+    },
+
+
+    informStabilityGroup : function()
+    {
+        var getUserConfig = {
+            groupId : 1043, // 'Stability'
+            success : function(usersInfo, response)
+            {
+                var users = usersInfo.users;
+                var recipients = [];
+                for (var i = 0; i < users.length; i++)
+                    recipients.push(LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, users[i].email));
+
+                var val = obj.formulation.batch;
+                LABKEY.Message.sendMessage({
+                    msgFrom : 'ops@labkey.com',
+                    msgSubject : 'Formulation added on LabKey',
+                    msgRecipients : recipients,
+                    msgContent : [
+                        LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, "<h4>Stability Review Requested</h4>" +
+                                "Formulation : <a href='" + _link + "'>" + val + "</a> has been processed.<br/><br/>IDRI LabKey Administration Team")
+                    ],
+                    successCallback : function(result)
+                    {
+                        console.info("Email(s) sent successfully.");
+                    },
+                    errorCallback : function(errorInfo, responseObj)
+                    {
+                        LABKEY.Utils.displayAjaxErrorResponse(responseObj, errorInfo);
+                    }
+                });
+            },
+            failure : function(errorInfo, response)
+            {
+                console.info("Failed to send email.");
+            },
+            scope: this
+        };
+
+        LABKEY.Security.getUsers(getUserConfig);
+    },
+
 
     onMaterialLoad : function(combo, material)
     {
@@ -570,7 +576,8 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         parent.doLayout();
         parent.conc.clearInvalid();
     },
-    
+
+
     onMaterialSelect : function(cb, rec, idx)
     {
         var parent = Ext.getCmp(cb.parentId);
@@ -583,7 +590,8 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             success: function(response, e)
             {
                 var json = Ext.util.JSON.decode(response.responseText);
-                if (parent.conc){
+                if (parent.conc)
+                {
                     parent.conc.setValue(undefined);
                     parent.conc.clearInvalid();
                     parent.unittype.update("<span>" + json.material.unit + "</span>");
@@ -591,7 +599,8 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     parent.getEl().unmask();
                     parent.doLayout();
                 }
-                else {
+                else
+                {
                     parent.remove(parent.removebtn);
                     this.onMaterialLoad(cb, json);
                 }
