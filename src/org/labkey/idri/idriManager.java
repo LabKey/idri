@@ -21,6 +21,7 @@ import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
@@ -83,21 +84,6 @@ public class idriManager
         return DbSchema.get(idriSchema.NAME);
     }
 
-    public static void ensureTransaction() throws SQLException
-    {
-        getSchema().getScope().ensureTransaction();
-    }
-
-    public static void commitTransaction() throws SQLException
-    {
-        getSchema().getScope().commitTransaction();
-    }
-
-    public static void closeConnection()
-    {
-        getSchema().getScope().closeConnection();
-    }
-    
     public static ExpMaterial getFormulationAsSample(Formulation formulation)
     {
         ExperimentService.Interface service = ExperimentService.get();
@@ -327,10 +313,8 @@ public class idriManager
 
             List<Concentration> concentrations = calculateConcentrations(formulation, container, user);
 
-            try
+            try (DbScope.Transaction transaction = getSchema().getScope().ensureTransaction())
             {
-                ensureTransaction();
-
                 // Delete all rows for the current formulation
                 SimpleFilter filter = new SimpleFilter("lot", formulation.getRowID());
                 Table.delete(getSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), filter);
@@ -341,15 +325,11 @@ public class idriManager
                     Table.insert(user, getSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), conc);
                 }
 
-                commitTransaction();
+                transaction.commit();
             }
             catch (SQLException e)
             {
                 throw new RuntimeSQLException(e);
-            }
-            finally
-            {
-                closeConnection();
             }
 
             List<Integer> invalids = new ArrayList<>();
