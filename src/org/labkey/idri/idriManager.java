@@ -43,7 +43,11 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.security.LimitedUser;
 import org.labkey.api.security.User;
+import org.labkey.api.security.UserManager;
+import org.labkey.api.security.roles.EditorRole;
+import org.labkey.api.security.roles.RoleManager;
 import org.labkey.api.study.Study;
 import org.labkey.api.study.StudyService;
 import org.labkey.api.view.HttpView;
@@ -691,9 +695,6 @@ public class idriManager
      */
     public static void initializeSampleSets(Container c)
     {
-        User u = HttpView.currentContext().getUser();
-        List<GWTPropertyDescriptor> properties;
-
         // Create the Compounds Sample Set
         ExpSampleSet compoundsSS = ExperimentService.get().getSampleSet(c, idriSchema.TABLE_COMPOUNDS);
 
@@ -705,6 +706,9 @@ public class idriManager
 
         try
         {
+            List<GWTPropertyDescriptor> properties;
+            User u = new LimitedUser(UserManager.getGuestUser(), new int[0], Collections.singleton(RoleManager.getRole(EditorRole.class)), false);
+
             if (compoundsSS == null)
             {
                 // Definition -- 'Compounds' Sample Set

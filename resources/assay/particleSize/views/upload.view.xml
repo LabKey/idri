@@ -1,6 +1,5 @@
 <view xmlns="http://labkey.org/data/xml/view">
     <dependencies>
-        <dependency path="formulations/materials.js"/>
         <dependency path="FileUploadField.js"/>
     </dependencies>
 </view>

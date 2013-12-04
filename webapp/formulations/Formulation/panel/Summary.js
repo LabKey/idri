@@ -322,11 +322,13 @@ Ext4.define('Formulation.panel.Summary', {
     },
 
     displayGraphic : function(targetEl, temp, tool) {
-        var filters = [];
         var _name = this.formulation;
-        filters.push(LABKEY.Filter.create("name", _name, LABKEY.Filter.Types.EQUAL));
-        filters.push(LABKEY.Filter.create("StorageTemperature", temp, LABKEY.Filter.Types.EQUAL));
-        filters.push(LABKEY.Filter.create("AnalysisTool", tool, LABKEY.Filter.Types.EQUAL));
+
+        var filters = [
+            LABKEY.Filter.create("name", _name, LABKEY.Filter.Types.EQUAL),
+            LABKEY.Filter.create("StorageTemperature", temp, LABKEY.Filter.Types.EQUAL),
+            LABKEY.Filter.create("AnalysisTool", tool, LABKEY.Filter.Types.EQUAL)
+        ];
 
         /* First check to make sure there are results for the given params */
         LABKEY.Query.selectRows({

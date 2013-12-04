@@ -72,6 +72,89 @@
         window.location = LABKEY.ActionURL.buildURL("assay", "assayRuns", LABKEY.ActionURL.getContainer(), LABKEY.ActionURL.getParameters());
     };
 
+    /*
+     * helper functions to add a formulation ID if it doesn't exist.
+     * Requires the following to be in scope:
+     * - LABKEY.page.assay
+     * - LABKEY.page.batch
+     * - saveBatch()
+     */
+    var fileNameToBatchNumber = function(filename) {
+        // Edits the suffix of the filename
+        filename = filename.split('.')[0];
+
+        // This checks the first part of the filename for specific run names.
+        /* TODO: Change this check to a regular expression. The batchNumber might need to be rethought. */
+        if (/^TD/.test(filename))
+        {
+            filename = filename.substring(2, filename.length);
+        }
+        else if (/^QF/.test(filename))
+        {
+            // QF is used as 1000-1999 test runs.
+            filename = filename.substring(2, filename.length);
+            filename = '1' + filename;
+        }
+        else if (/^QD/.test(filename))
+        {
+            // QD is used as 2000-2999 test runs.
+            filename = filename.substring(2, filename.length);
+            filename = '2' + filename;
+        }
+
+        return filename;
+    };
+
+    var fetchMaterialRowIdAndSave = function(run, isNewRun, saveBatchFn) {
+
+        var onSuccess = function(data) {
+            var success = true;
+            if (data.rows.length > 0)
+            {
+                // We have a matching sample
+                var run = LABKEY.page.batch.runs[LABKEY.page.batch.runs.length - 1];
+                run.materialInputs = [ { rowId: data.rows[0].RowId } ];
+                saveBatchFn();
+            }
+            else
+            {
+                Ext.Msg.hide();
+                Ext.Msg.alert("Failed to Save", "This formulation does not exist.");
+                success = false;
+            }
+            return success;
+        };
+
+        var filename = run.name, _batchName;
+
+        run.properties.IDRIBatchNumber = fileNameToBatchNumber(filename);
+
+        _batchName = filename.split('.')[0].toUpperCase();
+
+        // Study related fields
+
+        LABKEY.page.batch.runs = LABKEY.page.batch.runs || [];
+        if (isNewRun)
+        {
+            LABKEY.page.batch.runs.push(run);
+        }
+
+        LABKEY.setDirty(true);
+
+        var selectRowsConfig = {
+            schemaName: 'Samples',
+            queryName: 'Formulations',
+            success: onSuccess,
+            failure: function(errorInfo) {
+                Ext.Msg.hide();
+                Ext.Msg.alert("Couldn't find matching sample", "An error occurred while fetching the contents of the data file: " + errorInfo.exception);
+            },
+            filterArray: [LABKEY.Filter.create('Batch', _batchName)]
+        };
+
+        LABKEY.Query.selectRows(selectRowsConfig);
+    };
+
     var saveBatch = function() {
         if (!LABKEY.isDirty()) return;
 
@@ -178,7 +261,10 @@
             });
         }
 
-        if (webpart) webpart.render();
+        if (webpart)
+        {
+            webpart.render();
+        }
     };
 
     var handleDataUpload = function(f, action) {
@@ -204,7 +290,7 @@
 
         if (!data.content)
         {
-            data.getContent({
+            var contentConfig = {
                 format: 'jsonTSV',
                 successCallback: function (content, format)
                 {
@@ -216,7 +302,9 @@
                     Ext.Msg.hide();
                     Ext.Msg.alert("Upload Failed", "An error occurred while fetching the contents of the data file: " + error.exception);
                 }
-            });
+            };
+
+            data.getContent(contentConfig);
         }
         else
         {
@@ -670,7 +758,6 @@
             }
         }
 
-        // See materials.js
         fetchMaterialRowIdAndSave(run, true, saveBatch);
     };
 

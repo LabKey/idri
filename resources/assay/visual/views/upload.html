@@ -48,9 +48,25 @@
                     init(true);
                 }
             }
-            tempStore = getTemperatureStore();
+
+            //
+            // Stores a list of temperatures that are tested against
+            //
+            tempStore = new LABKEY.ext.Store({
+                schemaName : 'lists',
+                queryName  : 'Temperatures',
+                sort       : '[+]temperature'
+            });
             tempStore.load({callback : processStore});
-            timeStore = getTimeStore();
+
+            //
+            // Stores a list of timepoints
+            //
+            timeStore = new LABKEY.ext.Store({
+                schemaName : 'lists',
+                queryName  : 'Timepoints',
+                sort       : '[+]sort'
+            });
             timeStore.load({callback : processStore});
             return;
         }

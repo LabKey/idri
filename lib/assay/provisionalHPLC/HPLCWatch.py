@@ -104,7 +104,32 @@ class HPLCHandler(PatternMatchingEventHandler):
         # Ensure that the resource is closed so files can be moved/deleted
         #
         _file = fileJSON['file'][1]
-        _file.close()     
+        _file.close()   
+
+    def getDataFileURL(self, fileJSON, folder):
+        logging.info(" Requesting file data...")
+
+        fileName = fileJSON['file'][0]
+
+        #
+        # Account for context path since server does recognize on webdav path
+        #
+        subPipelinePath = self.pipelinePath
+        if len(context_path) > 0:
+            subPipelinePath = self.pipelinePath.replace('/' + context_path, '')
+
+        davPath = subPipelinePath + '/' + folder + '/' + fileName
+
+        url = self.buildActionURL('idri', 'getHPLCResource')
+        url += '?path=' + davPath        
+
+        r = requests.get(url, auth=(user, password))
+        s = r.status_code
+        if s == 200:
+            decoded = json.JSONDecoder().decode(r.text)
+            return decoded[u'DataFileUrl']
+
+        logging.info("...done")
 
     def getBaseURL(self, context):
         ctx = '/' + context + '/' if len(context) > 0 else ''
@@ -169,42 +194,49 @@ class HPLCHandler(PatternMatchingEventHandler):
             for f in self.runFiles:
                 self.upload(f, self.folder)
 
+            #
+            # Move all files into a run folder
+            #
+            os.mkdir(self.folder)
+            cwd = os.getcwd()
+            
+            #
+            # OS delimiter
+            #
+            delmiter = '/'
+            if sys.platform == "win32":
+                delimiter = "\\"
+
+            destPath = cwd + delimiter + self.folder + delimiter
+            print "Destination:", destPath
+
+            for f in self.runFiles:
+                fileName = f['file'][0]
+                dest = destPath + fileName
+                source = cwd + delimiter + fileName
+                print "Source:", source
+                shutil.move(source, dest)
+
+            #
+            # Now iterate over each file and determine the dataFileURL
+            #
+            for i in range(len(self.runFiles)):
+                d = self.getDataFileURL(self.runFiles[i], self.folder)
+                self.runFiles[i]['DataFileUrl'] = d
+                    
+            #
+            # Files are fully processed, now update run information in Assay
+            #
+            hplcRun = self.createHPLCRun()
+
+            saveURL = self.buildActionURL('assay', 'saveAssayBatch')
+
+            hplcRun.save(saveURL)
+
             logging.info("...done");
         else:
             logging.error(" Failed to created folder (" + self.folder + ") in " + folderURL)
             print "Failed to create folder:", self.folder
-
-        #
-        # Move all files into a run folder
-        #
-        os.mkdir(self.folder)
-        cwd = os.getcwd()
-        
-        #
-        # OS delimiter
-        #
-        delmiter = '/'
-        if sys.platform == "win32":
-            delimiter = "\\"
-
-        destPath = cwd + delimiter + self.folder + delimiter
-        print "Destination:", destPath
-
-        for f in self.runFiles:
-            fileName = f['file'][0]
-            dest = destPath + fileName
-            source = cwd + delimiter + fileName
-            print "Source:", source
-            shutil.move(source, dest)
-
-        #
-        # Files are fully processed, now update run information in Assay
-        #
-        hplcRun = self.createHPLCRun()
-
-        saveURL = self.buildActionURL('assay', 'saveAssayBatch')
-
-        hplcRun.save(saveURL)
 
         self.runFiles = []
         self.checkTask = 0
@@ -234,12 +266,18 @@ class HPLCHandler(PatternMatchingEventHandler):
         # Prepare result level information
         #
         dataRows = []
+        dataInputs = []
         for runFile in self.runFiles:
-            f = runFile['file'][0]
-            data = {"Name": f, "DataFile": f, "TestType": "SMP"}
+            fName = runFile['file'][0]
+            data = {"Name": fName, "DataFile": fName, "TestType": "SMP"}
             dataRows.append(data)
 
+            f = runFile['DataFileUrl']
+            data = {"dataFileURL": f, "name": fName}
+            dataInputs.append(data)
+
         hplcRun.setResult(dataRows)
+        hplcRun.setDataInputs(dataInputs)
 
         return hplcRun
 
@@ -274,9 +312,9 @@ class HPLCRun():
     def save(self, saveURL):
         print "Saving HPLC Run...", saveURL
         payload = {}
-        payload['assayId'] = 112 # TODO: Get this from Assay object
+        payload['assayId'] = 86 # TODO: Get this from Assay object
 
-        batch = {'batchProtocolId': 112}
+        batch = {'batchProtocolId': 86}
 
         #
         # This is the only run in this batch
@@ -284,11 +322,16 @@ class HPLCRun():
         me = {"name": self.name}
         me["properties"] = self.properties
         me["dataRows"] = self.dataRows
+        me["dataInputs"] = self.dataInputs
 
         batch['runs'] = [me]
         payload['batch'] = batch
 
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+
+        print "****** PAYLOAD ********"
+        print json.dumps(payload)
+
         r = requests.post(saveURL, data=json.dumps(payload), headers=headers, auth=(user, password))
         s = r.status_code
 
@@ -311,6 +354,9 @@ class HPLCRun():
     def setRunIdentifier(self, identifier):
         self.name = identifier
         self.properties["RunIdentifier"] = identifier
+
+    def setDataInputs(self, dataInputs):
+        self.dataInputs = dataInputs
 
 class HPLCAssay():
 

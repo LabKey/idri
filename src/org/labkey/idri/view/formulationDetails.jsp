@@ -132,6 +132,7 @@
                 schemaName: 'assay',
                 queryName : 'Particle Size Runs',
                 filterArray: [ LABKEY.Filter.create('Name', name, LABKEY.Filter.Types.STARTS_WITH) ],
+                maxRows: 1,
                 success : function(data) {
                     if (data.rows.length < 1) {
                         Ext.get('testdiv').update('No Particle Size results available for ' + name);

@@ -26,28 +26,38 @@ import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DataRegion;
+import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpMaterial;
 import org.labkey.api.exp.api.ExpRun;
 import org.labkey.api.exp.api.ExpSampleSet;
 import org.labkey.api.exp.api.ExperimentService;
+import org.labkey.api.exp.query.ExpDataTable;
 import org.labkey.api.exp.query.ExpMaterialTable;
 import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.exp.query.SamplesSchema;
+import org.labkey.api.files.FileContentService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QuerySettings;
+import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
+import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.util.FileUtil;
+import org.labkey.api.util.Path;
+import org.labkey.api.util.UnexpectedException;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.WebPartView;
+import org.labkey.api.webdav.WebdavResource;
+import org.labkey.api.webdav.WebdavService;
 import org.labkey.idri.assay.hplc.HPLCAssayDataHandler;
 import org.labkey.idri.model.Formulation;
 import org.labkey.idri.model.Material;
@@ -55,6 +65,8 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -559,6 +571,86 @@ public class idriController extends SpringActionController
 
             resp.put("containerPath", containerPath);
             resp.put("webDavURL", webdavURL);
+
+            return resp;
+        }
+    }
+
+    public static class HPLCResourceForm
+    {
+        public String _path;
+
+        public String getPath()
+        {
+            return _path;
+        }
+
+        public void setPath(String path)
+        {
+            _path = path;
+        }
+    }
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class getHPLCResourceAction extends ApiAction<HPLCResourceForm>
+    {
+        @Override
+        public ApiResponse execute(HPLCResourceForm form, BindException errors) throws Exception
+        {
+            String path = form.getPath();
+            WebdavResource resource = WebdavService.get().lookup(path);
+            Map<String, String> props = new HashMap<>();
+
+            if (null != resource)
+            {
+                FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+                ExpData data = svc.getDataObject(resource, getContainer());
+
+                if (null != data)
+                {
+                    TableInfo ti = ExpSchema.TableType.Data.createTable(new ExpSchema(getUser(), getContainer()), ExpSchema.TableType.Data.toString());
+                    QueryUpdateService qus = ti.getUpdateService();
+
+                    try
+                    {
+                        File canonicalFile = FileUtil.getAbsoluteCaseSensitiveFile(resource.getFile());
+                        String url = canonicalFile.toURI().toURL().toString();
+                        Map<String, Object> keys = Collections.singletonMap(ExpDataTable.Column.DataFileUrl.name(), (Object) url);
+                        List<Map<String, Object>> rows = qus.getRows(getUser(), getContainer(), Collections.singletonList(keys));
+
+                        if (rows.size() == 1)
+                        {
+                            for (Map.Entry<String, Object> entry : rows.get(0).entrySet())
+                            {
+                                Object value = entry.getValue();
+
+                                if (null != value)
+                                {
+                                    props.put(entry.getKey(), String.valueOf(value));
+                                }
+                            }
+                        }
+                    }
+                    catch (MalformedURLException e)
+                    {
+                        throw new UnexpectedException(e);
+                    }
+                    catch (SQLException e)
+                    {
+                        throw new RuntimeSQLException(e);
+                    }
+                    catch (RuntimeException re)
+                    {
+                        throw re;
+                    }
+                    catch (Exception e)
+                    {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+            ApiSimpleResponse resp = new ApiSimpleResponse(props);
 
             return resp;
         }
