@@ -320,7 +320,7 @@ public class idriManager
             try (DbScope.Transaction transaction = getSchema().getScope().ensureTransaction())
             {
                 // Delete all rows for the current formulation
-                SimpleFilter filter = new SimpleFilter("lot", formulation.getRowID());
+                SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("lot"), formulation.getRowID());
                 Table.delete(getSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), filter);
                 
                 // Add all the new concentration values
