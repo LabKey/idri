@@ -1,6 +1,277 @@
-Quality Control porition of HPLC Pipeline.
+<script type="text/javascript">
+    LABKEY.requiresVisualization();
+</script>
+<style type="text/css">
+    .column {
+        display: inline-block;
+        vertical-align: top;
+        width: 934px;
+    }
+
+    .block {
+        margin: 5px 0 10px 0;
+        padding: 0;
+        position: relative;
+        background-color: #e5e5e5;
+    }
+
+    .blockcontent {
+        border-radius: 3px;
+        box-sizing: border-box;
+        background-color: #ffffff;
+        border: 1px solid #d8d8d8;
+        border-bottom-width: 2px;
+        border-top-width: 0;
+        vertical-align: top;
+        padding: 3px;
+
+        opacity: 1;
+        position: relative;
+        visibility: visible;
+        z-index: auto;
+    }
+
+    .title {
+        font: normal 17px Roboto,arial,sans-serif;
+    }
+    .sub {
+        opacity: 0.3;
+    }
+</style>
+<div id="resultDisplay" class="column">
+</div>
 <script type="text/javascript">
 
-    Ext4.onReady(function() { });
+    var XX, SS;
+
+    Ext4.onReady(function() {
+
+        var RUN_ID, ASSAY_ID, BATCH, PIPELINE_CONTAINER;
+
+        var DATA_TPL = new Ext4.XTemplate(
+                '<tpl for=".">',
+                    '<div class="block">',
+                        '<div class="blockcontent">',
+                            '<div class="title">{Name}<span class="sub">.{FileExt}</span></div>',
+                            '<div><a target="_blank" href="{FilePath}">View File</a></div>',
+                            '<br/>',
+                            '<div class="toolbar">',
+                                '<button onclick="loadGraph(this, \'{GraphId}\');">View Chromatogram</button>',
+                            '</div>',
+                            '<div id="{GraphId}"></div>',
+                            '<br/>',
+                            '<div class="toolbar">',
+                                '<button>Verified</button>',
+                            '</div>',
+                        '</div>',
+                    '</div>',
+                '</tpl>'
+        );
+
+        var processRawDataResults = function() {
+
+            //
+            // Transform select rows result into a structure the Ext store can accept
+            //
+            var d = [];
+            var runs = BATCH.runs, runIdentifier, run;
+
+            //
+            // Find the associated run
+            //
+            for (var r=0; r < runs.length; r++) {
+                if (runs[r].id == RUN_ID) {
+                    runIdentifier = runs[r].name;
+                    run = runs[r];
+                    break;
+                }
+            }
+
+            for (r=0; r < run.dataRows.length; r++) {
+                var name = run.dataRows[r]['Name'].split('.');
+                var fileExt = name[1];
+                name = name[0];
+                var filePath = "";
+                var dataFile = run.dataRows[r]['DataFile'];
+                filePath = PIPELINE_CONTAINER + "/" + runIdentifier + "/" + dataFile;
+
+                //
+                // Link the associated LABKEY.Exp.Data object (the data file)
+                //
+                var ExpDataRun;
+                for (var i=0; i < run.dataInputs.length; i++) {
+                    if (run.dataInputs[i].name == dataFile) {
+                        ExpDataRun = run.dataInputs[i];
+                    }
+                }
+
+                d.push([name, fileExt, run.dataRows[r]['RowId'], filePath, ExpDataRun, Ext4.id()]);
+            }
+
+            var store = Ext4.create('Ext.data.ArrayStore', {
+                fields: [
+                    {name: 'Name'},
+                    {name: 'FileExt'},
+                    {name: 'RowId', type: 'int'},
+                    {name: 'FilePath'},
+                    {name: 'ExpDataRun'},
+                    {name: 'GraphId'}
+                ],
+                data: d
+            });
+
+            SS = store;
+
+            var view = Ext4.create('Ext.view.View', {
+                renderTo: 'resultDisplay',
+                tpl: DATA_TPL,
+                itemSelector: 'div.block',
+                store: store
+            });
+        };
+
+        //
+        // Get the selected assay runs
+        //
+        var selectionKey = LABKEY.ActionURL.getParameter('selectionKey');
+        LABKEY.DataRegion.getSelected({
+            selectionKey: selectionKey,
+            success: function(selectionResponse) {
+                var selected = selectionResponse.selected; // array
+
+                if (selected.length != 1) {
+                    alert('Can only process 1 run at a time currently. Please return to runs grid and select one run.');
+                    return;
+                }
+
+                RUN_ID = selected[0];
+
+                var process = function() {
+                    if (BATCH && PIPELINE_CONTAINER) {
+                        processRawDataResults();
+                    }
+                };
+
+//                //
+//                // Get the associated Result Data
+//                //
+//                var dataConfig = {
+//                    schemaName: LABKEY.ActionURL.getParameter('schemaName'),
+//                    queryName: 'Data',
+//                    success: function(data) {
+//                        rawData = data;
+//                        process();
+//                    },
+//                    filterArray: [ LABKEY.Filter.create('Run/RowId', RUN_ID) ]
+//                };
+//
+//                LABKEY.Query.selectRows(dataConfig);
+
+                //
+                // Get the associated HPLC configuration
+                //
+                Ext4.Ajax.request({
+                    url: LABKEY.ActionURL.buildURL('idri', 'getHPLCPipelineContainer.api'),
+                    success: function(response) {
+                        var data = Ext4.decode(response.responseText);
+                        PIPELINE_CONTAINER = data.webDavURL;
+                        console.log(PIPELINE_CONTAINER);
+                        process();
+                    }
+                });
+
+                //
+                // Get the associated Batch information
+                //
+                var batchConfig = {
+                    assayId: 155,
+                    batchId: 36,
+                    success: function(RunGroup) {
+                        BATCH = RunGroup;
+                        process();
+                    }
+                };
+
+                LABKEY.Experiment.loadBatch(batchConfig);
+            }
+        });
+    });
+
+    var renderPlot = function(fileContent, targetId, btn) {
+
+        var data = fileContent.sheets[0].data;
+        data.shift(); // get rid of column headers
+        var newData = [];
+        for (var d=0; d < data.length; d++) {
+            if (d%3 == 0)
+                newData.push(data[d]);
+        }
+        data = newData;
+
+        //
+        // Create the point layer
+        //
+        var pointLayer = new LABKEY.vis.Layer({
+            geom: new LABKEY.vis.Geom.Point({
+                size: 1,
+                color: '#ff0000'
+            })
+        });
+
+        var plotConfig = {
+            renderTo: targetId,
+            aes: {
+                x: function(r) { return r[0]; },
+                y: function(r) { return r[1]; }
+            },
+            width: 750,
+            height: 500,
+            margins: {top: 10},
+            data: data,
+            layers: [ pointLayer ],
+            legendPos: 'none'
+        };
+
+        var plot = new LABKEY.vis.Plot(plotConfig);
+        PP = plot;
+
+        try {
+            plot.render();
+        }
+        catch(err) {
+            alert('Plot Failed.');
+        }
+
+        btn.up('.toolbar').setStyle('display', 'none');
+    };
+
+    var loadGraph = function(btn, graphId) {
+
+        var b = Ext4.get(btn);
+        b.update('Rendering...');
+
+        console.log(graphId);
+        var idx = SS.findExact('GraphId', graphId);
+
+        //
+        // Load the data record for one
+        //
+        var sample = SS.getAt(idx);
+        var sampleData = sample.get('ExpDataRun');
+
+        if (sampleData) {
+            var config = {
+                format: 'jsonTSV',
+                successCallback: function(content) {
+                    renderPlot(content, graphId, b);
+                },
+                failureCallback: function(error) {
+                    alert('Failed to Load File Contents');
+                }
+            };
+
+            sampleData.getContent(config);
+        }
+    }
 
 </script>

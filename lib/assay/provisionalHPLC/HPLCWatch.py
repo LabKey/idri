@@ -51,6 +51,8 @@ class HPLCHandler(PatternMatchingEventHandler):
 
     def __init__(self, patterns=filepatterns):
         super(HPLCHandler, self).__init__(patterns=patterns)
+
+        self.assayId = self.requestAssay()
         self.pipelinePath = self.requestPipeline() 
         self.successTimerDelay = success_interval # time in seconds
         self.runFiles = []
@@ -140,6 +142,34 @@ class HPLCHandler(PatternMatchingEventHandler):
 
     def buildActionURL(self, controller, action):
         return self.getBaseURL(context_path) + '/' + controller + '/' + target_dir + '/' + action + '.api'
+
+    def requestAssay(self):
+        assayURL = self.buildActionURL('assay', 'assayList')
+        logging.info("...Requesting Assay Metadata")
+
+        payload = {}
+        payload['type'] = "Provisional HPLC"
+
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}        
+        r = requests.post(assayURL, data=json.dumps(payload), headers=headers, auth=(user, password))
+        s = r.status_code
+        if s == 200:
+            decoded = json.JSONDecoder().decode(r.text)
+            definitions = decoded[u'definitions']
+            if len(definitions) != 1:
+                msg = "Unable to determine target Assay. Ensure there is one and only one 'Provisional HPLC' assay present."
+                logging.error(msg)
+                raise Exception(msg)
+
+            #
+            # Get the definition ID
+            #        
+            logging.info('Done. AssayID: ' + str(definitions[0][u'id']))
+            return definitions[0][u'id']
+        else:
+            msg = "Unable to determine target Assay. Request status (" + str(s) + ")"
+            logging.error(msg)
+            raise Exception(msg)            
 
     def requestPipeline(self):
         actionURL = self.buildActionURL('idri', 'getHPLCPipelineContainer')
@@ -254,7 +284,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         return name
 
     def createHPLCRun(self):
-        hplcRun = HPLCRun()
+        hplcRun = HPLCRun(self.assayId)
 
         #
         # Prepare run level information
@@ -288,7 +318,8 @@ class HPLCHandler(PatternMatchingEventHandler):
 #
 class HPLCRun():
     
-    def __init__(self):
+    def __init__(self, assayId):
+        self.assayId = assayId
         self.comment = None
         self.created = None
         self.createdBy = None
@@ -312,9 +343,9 @@ class HPLCRun():
     def save(self, saveURL):
         print "Saving HPLC Run...", saveURL
         payload = {}
-        payload['assayId'] = 86 # TODO: Get this from Assay object
+        payload['assayId'] = self.assayId
 
-        batch = {'batchProtocolId': 86}
+        batch = {'batchProtocolId': self.assayId}
 
         #
         # This is the only run in this batch
