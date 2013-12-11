@@ -19,15 +19,10 @@ package org.labkey.idri;
 import org.apache.log4j.Logger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager.ContainerListener;
-import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.RuntimeSQLException;
-import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SqlExecutor;
-import org.labkey.api.data.Table;
 import org.labkey.api.security.User;
 
 import java.beans.PropertyChangeEvent;
-import java.sql.SQLException;
 
 public class idriContainerListener implements ContainerListener
 {
