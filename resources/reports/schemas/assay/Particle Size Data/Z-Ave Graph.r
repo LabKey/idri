@@ -24,7 +24,7 @@ relativeDirectory <- paste(labkey.url.path, "@files/PSData", sep="")
 baseURL <- labkey.url.base
 
 if(.Platform[1] == "windows") {
-    relativeDirectory <- paste("C:/code/labkey/modules132/build/deploy/files", relativeDirectory, sep="")
+    relativeDirectory <- paste("C:/code/labkey/modules133/build/deploy/files", relativeDirectory, sep="")
     baseURL <- "http://localhost:8080/labkey/"
 } else {
     relativeDirectory <- paste("/labkey/labkey/files", relativeDirectory, sep="")
@@ -54,8 +54,8 @@ cat("Filter 3:", filter3, "\n")
 
 mydata <- suppressWarnings(labkey.selectRows(baseUrl=baseURL,
                             folderPath=labkey.url.path,
-                            schemaName="assay",
-                            queryName="R_ReportSummary",
+                            schemaName="assay.particleSize.Particle Size",
+                            queryName="R_ReportSummaryNonParameter",
                             colFilter=c(filter1,filter2,filter3)))
 
 # This is NOT GOOD - view-dependence.

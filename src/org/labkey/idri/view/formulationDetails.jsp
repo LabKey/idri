@@ -37,6 +37,7 @@
     {
         LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
         resources.add(ClientDependency.fromFilePath("Ext3"));
+        resources.add(ClientDependency.fromFilePath("Ext4"));
         resources.add(ClientDependency.fromFilePath("formulations/SearchFormulation.js")); // buildPSReports
         return resources;
     }
@@ -50,6 +51,18 @@
     Formulation formulation = idriManager.getFormulation(form.getRowId());
     ExpSampleSet ss = ExperimentService.get().getSampleSet(c, "Formulations");
 %>
+<style type="text/css">
+    table.stabilitytable,
+    table.stabilitytable th,
+    table.stabilitytable td
+    {
+        border: 1px solid #a9a9a9;
+        border-collapse: collapse;
+        background-color: #ffffff;
+        padding: 5px;
+    }
+
+</style>
 <div style="padding: 20px 0px 0px 20px;">
     <%=textLink("Home Page", PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(c))%>
     <%=textLink("Edit " + formulation.getBatch(), new ActionURL(idriController.CreateFormulationAction.class, c).addParameter("RowId", formulation.getRowID()))%>
@@ -66,19 +79,19 @@
                         <td class="labkey-form-label">Date of Manufacture</td><td><%=formulation.getDm()%></td>
                     </tr>
                     <tr>
-                        <td class="labkey-form-label">Type</td><td><%=formulation.getType()%></td>
+                        <td class="labkey-form-label">Type</td><td><%=h(formulation.getType())%></td>
                     </tr>
                     <tr>
-                        <td class="labkey-form-label">Lot Size</td><td><%=formulation.getBatchsize()%></td>
+                        <td class="labkey-form-label">Lot Size</td><td><%=h(formulation.getBatchsize())%></td>
                     </tr>
                     <tr>
-                        <td class="labkey-form-label">Notebook Page</td><td><%=(formulation.getNbpg() != null ? formulation.getNbpg() : "[Not provided]")%></td>
+                        <td class="labkey-form-label">Notebook Page</td><td><%=h((formulation.getNbpg() != null ? formulation.getNbpg() : "[Not provided]"))%></td>
                     </tr>
                     <tr>
-                        <td class="labkey-form-label">Comments</td><td><%=(formulation.getComments() != null ? formulation.getComments() : "[Not provided]")%></td>
+                        <td class="labkey-form-label">Comments</td><td><%=h((formulation.getComments() != null ? formulation.getComments() : "[Not provided]"))%></td>
                     </tr>
                     <tr>
-                        <td class="labkey-form-label">Raw Materials</td><td><%=formulation.getMaterialsString()%></td>
+                        <td class="labkey-form-label">Raw Materials</td><td><%=h(formulation.getMaterialsString())%></td>
                     </tr>
                 </table>
             </td>
@@ -100,8 +113,18 @@
                     <tr>
                         <div id="machine-select"></div>
                         <td style="float: right;">
+                            <%--<table class="stabilitytable">--%>
+                                <%--<tr>--%>
+                                    <%--<td>Indicates within 1.5x of the mean</td>--%>
+                                    <%--<td style="background-color: green;">&nbsp;&nbsp;&nbsp;</td>--%>
+                                <%--</tr>--%>
+                                <%--<tr>--%>
+                                    <%--<td>Indicates greater than 1.5x the mean</td>--%>
+                                    <%--<td style="background-color: red;">&nbsp;&nbsp;&nbsp;</td>--%>
+                                <%--</tr>--%>
+                            <%--</table>--%>
                             <div id="stabilityDiv" style="float: right;">
-                                <div id="testdiv" style="height: 190px; width: 600px;"></div>
+                                <div id="owngrid"></div>
                             </div>
                         </td>
                     </tr>
@@ -126,6 +149,89 @@
 
     Ext.onReady(function() {
 
+        var stabilityTpl = new Ext4.XTemplate(
+                '<table class="stabilitytable">',
+                    '<th>Temperature</th>',
+                    '<th>DM</th>',
+                    '<th>1 wk</th>',
+                    '<th>2 wk</th>',
+                    '<th>1 mo</th>',
+                    '<th>3 mo</th>',
+                    '<th>6 mo</th>',
+                    '<th>12 mo</th>',
+                    '<th>Mean</th>',
+                    '<tpl for=".">',
+                        '<tr class="temprow">',
+                            '<td>{Temperature}</td>',
+                            '{[this.val(values, "DM")]}',
+                            '{[this.val(values, "1 wk")]}',
+                            '{[this.val(values, "2 wk")]}',
+                            '{[this.val(values, "1 mo")]}',
+                            '{[this.val(values, "3 mo")]}',
+                            '{[this.val(values, "6 mo")]}',
+                            '{[this.val(values, "12 mo")]}',
+                            '<td>{Mean}</td>',
+                        '</tr>',
+                    '</tpl>',
+                '</table>',
+                {
+                    val: function(m, k) {
+                        var compare = m['Mean'] * 1.5;
+                        var data = m[k];
+
+                        var style = 'style="color: white; ';
+                        if (compare > data) {
+                            style += 'background-color: green;';
+                        }
+                        else if (compare < data)  {
+                            style += 'background-color: red;';
+                        }
+                        style += '"';
+
+                        return '<td ' + style + '>' + m[k] + '</td>';
+                    }
+                }
+        );
+
+        if (!Ext4.ModelManager.isRegistered('IDRI.Stability')) {
+            Ext4.define('IDRI.Stability', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    {name: 'Temperature'},
+                    {name: 'DM', type: 'int'},
+                    {name: '1 wk', type: 'int'},
+                    {name: '2 wk', type: 'int'},
+                    {name: '1 mo', type: 'int'},
+                    {name: '3 mo', type: 'int'},
+                    {name: '6 mo', type: 'int'},
+                    {name: '12 mo', type: 'int'},
+                    {name: 'Mean', type: 'int'}
+                ]
+            });
+        }
+
+        var renderStability = function(rows) {
+            Ext4.onReady(function() {
+                var el = Ext4.get('owngrid');
+                if (el) {
+
+                    var store = Ext4.create('Ext.data.Store', {
+                        model: 'IDRI.Stability',
+                        data: rows
+                    });
+
+                    el.update('');
+
+                    Ext4.create('Ext.view.View', {
+                        renderTo: el,
+                        tpl: stabilityTpl,
+                        itemSelector: 'tr.temprow',
+                        store: store
+                    });
+                }
+            });
+        };
+
         var lookupAssayId = function(name, machine) {
 
             LABKEY.Query.selectRows({
@@ -139,18 +245,14 @@
                         return;
                     }
 
-                    return new LABKEY.QueryWebPart({
-                        renderTo: 'testdiv',
+                    LABKEY.Query.selectRows({
                         schemaName: 'assay',
                         queryName: 'MachineAssayStability',
                         parameters: {
                             'AssayRowId': data.rows[0].RowId,
                             'MachineType': machine
                         },
-                        frame: 'none',
-                        buttonBar: {
-                            position: 'none'
-                        }
+                        success: function(d) { renderStability(d.rows); }
                     });
                 }
             });

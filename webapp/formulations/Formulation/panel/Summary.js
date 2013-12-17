@@ -324,17 +324,17 @@ Ext4.define('Formulation.panel.Summary', {
     displayGraphic : function(targetEl, temp, tool) {
         var _name = this.formulation;
 
-        var filters = [
-            LABKEY.Filter.create("name", _name, LABKEY.Filter.Types.EQUAL),
-            LABKEY.Filter.create("StorageTemperature", temp, LABKEY.Filter.Types.EQUAL),
-            LABKEY.Filter.create("AnalysisTool", tool, LABKEY.Filter.Types.EQUAL)
-        ];
+        var parameters = {
+            'RunName': _name,
+            'StoreTemp': temp,
+            'Tool': tool
+        };
 
         /* First check to make sure there are results for the given params */
         LABKEY.Query.selectRows({
-            schemaName : 'assay',
+            schemaName : 'assay.particleSize.Particle Size',
             queryName  : 'R_ReportSummary',
-            filterArray: filters,
+            parameters : parameters,
             success    : function(data) {
                 this._onGraphicSuccess(data, targetEl, temp, tool);
             },

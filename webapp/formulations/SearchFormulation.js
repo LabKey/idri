@@ -225,17 +225,18 @@ function buildPSReports(tempstr, name, machine, renderImage)
 // Specifically Displays the PS charts
 function displayGraphic(name, temp, tool, imageElement, divElement)
 {
-    var filters = [];
     var _name = name;
-    filters.push(LABKEY.Filter.create("name", _name, LABKEY.Filter.Types.EQUAL));
-    filters.push(LABKEY.Filter.create("StorageTemperature", temp, LABKEY.Filter.Types.EQUAL));
-    filters.push(LABKEY.Filter.create("AnalysisTool", tool, LABKEY.Filter.Types.EQUAL));
+    var parameters = {
+        'RunName': name,
+        'StoreTemp': temp,
+        'Tool': tool
+    };
 
     /* First check to make sure there are results for the given params */
     LABKEY.Query.selectRows({
-        schemaName     : 'assay',
-        queryName      : 'R_ReportSummary',
-        filterArray    : filters,
+        schemaName: 'assay.particleSize.Particle Size',
+        queryName: 'R_ReportSummary',
+        parameters: parameters,
         success : function(data) {
             if (data.rowCount > 0)
             {

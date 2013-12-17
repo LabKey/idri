@@ -1,0 +1,21 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+    <columns>
+        <column name="Name"/>
+        <column name="Measure"/>
+        <column name="Test" />
+        <column name="DM" />
+        <column name="wk1" />
+        <column name="wk2" />
+        <column name="mo1" />
+        <column name="mo3" />
+        <column name="mo6" />
+        <column name="mo9" />
+        <column name="mo12" />
+        <column name="mo24" />
+        <column name="mo36" />
+    </columns>
+    <sorts>
+        <sort column="Measure" descending="true"/>
+        <sort column="Test" descending="false"/>
+    </sorts>
+</customView>

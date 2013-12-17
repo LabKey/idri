@@ -40,9 +40,10 @@ server       = '' # required, leave off any http(s):// and include any ports (e.
 target_dir   = '' # required
 user         = '' # required
 password     = '' # required
+use_ssl      = True
 context_path = '' # optional
 
-filepatterns = ["*.txt", "*.csv", "*.tsv"]
+filepatterns = ["*.txt", "*.csv", "*.tsv", "*.SEQ"]
 sleep_interval = 60
 success_interval = 60
 machine_name = ''
@@ -84,8 +85,9 @@ class HPLCHandler(PatternMatchingEventHandler):
                     self.addRunFile(files)                    
 
     def upload(self, fileJSON, folder):
-        logging.info(" Preparing to send...")    
-        url = 'http://' + server + self.pipelinePath + '/' + folder + '/' #self.buildURL(server, context_path, target_dir)
+        logging.info(" Preparing to send...")   
+
+        url = self.getScheme() + '://' + server + self.pipelinePath + '/' + folder + '/' #self.buildURL(server, context_path, target_dir)
         name = fileJSON['file'][0]
         r = requests.post(url, files=fileJSON, auth=(user, password))
         s = r.status_code
@@ -133,9 +135,15 @@ class HPLCHandler(PatternMatchingEventHandler):
 
         logging.info("...done")
 
+    def getScheme(self):
+        scheme = 'http'
+        if use_ssl:
+            scheme += 's'
+        return scheme
+
     def getBaseURL(self, context):
         ctx = '/' + context + '/' if len(context) > 0 else ''
-        return 'http://' + server + '/' + context
+        return self.getScheme() + '://' + server + '/' + ctx
 
     def buildURL(self, server, context, target):
         return self.getBaseURL(context) + '/' + target + '/'
@@ -150,7 +158,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         payload = {}
         payload['type'] = "Provisional HPLC"
 
-        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}        
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         r = requests.post(assayURL, data=json.dumps(payload), headers=headers, auth=(user, password))
         s = r.status_code
         if s == 200:
@@ -210,7 +218,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         # Create a unique folder in the pipeline for upload
         #
         self.folder = self.generateFolderName()
-        folderURL = 'http://' + server + self.pipelinePath + '/' + self.folder
+        folderURL = self.getScheme() + '://' + server + self.pipelinePath + '/' + self.folder
         r = requests.request('MKCOL', folderURL, auth=(user, password))
         s = r.status_code
 

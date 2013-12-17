@@ -14,90 +14,93 @@
  * limitations under the License.
  */
 
-SELECT "Particle Size Data".Run.Name
-,"Particle Size Data".Run.RowId
-,"Particle Size Data".Run.Protocol AS Protocol
-,"Particle Size Data".Run.Input as Formulation    /* Was "Particle Size Data".Run.Input.Material.RowId */
-,"Particle Size Data".Properties.StorageTemperature
-,"Particle Size Data".Properties.AnalysisTool
+PARAMETERS (RunName VARCHAR, StoreTemp VARCHAR, Tool VARCHAR)
+SELECT D.Run.Name
+,D.Run.RowId
+,D.Run.Protocol AS Protocol
+,D.Run.Input AS Formulation    /* Was D.Run.Input.Material.RowId */
+,D.Properties.StorageTemperature
+,D.Properties.AnalysisTool
 ,MIN('Z-Avg') AS "Measure"
-,"Particle Size Data".Properties.TestNumber AS Test,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = 'T=0' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS DM,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '1 wk' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS wk1,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '2 wk' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS wk2,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '1 mo' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo1,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '3 mo' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo3,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '6 mo' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo6,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '9 mo'THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo9,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '12 mo' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo12,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '24 mo' OR
-                            "Particle Size Data".Properties.TimeLabel = '2 yr' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo24,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '36 mo' OR
-                            "Particle Size Data".Properties.TimeLabel = '3 yr' THEN
-          "Particle Size Data".Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo36
+,D.Properties.TestNumber AS Test,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = 'T=0' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS DM,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '1 wk' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS wk1,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '2 wk' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS wk2,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '1 mo' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo1,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '3 mo' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo3,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '6 mo' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo6,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '9 mo'THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo9,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '12 mo' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo12,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '24 mo' OR
+                            D.Properties.TimeLabel = '2 yr' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo24,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '36 mo' OR
+                            D.Properties.TimeLabel = '3 yr' THEN
+          D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo36
 
-FROM "Particle Size Data"
-WHERE "Particle Size Data".Properties.TestNumber = 1 OR
-"Particle Size Data".Properties.TestNumber = 2 OR
-"Particle Size Data".Properties.TestNumber = 3
-GROUP BY  "Particle Size Data".Run.Name
-, "Particle Size Data".Run.RowId
-,"Particle Size Data".Run.Protocol
-,"Particle Size Data".Run.Input
-, "Particle Size Data".Properties.TestNumber
-,"Particle Size Data".Properties.StorageTemperature
-,"Particle Size Data".Properties.AnalysisTool
+FROM Data AS D
+WHERE D.Run.Name = RunName
+AND D.Properties.StorageTemperature = StoreTemp
+AND D.Properties.AnalysisTool = Tool
+AND (D.Properties.TestNumber = 1 OR D.Properties.TestNumber = 2 OR D.Properties.TestNumber = 3)
+GROUP BY  D.Run.Name
+,D.Run.RowId
+,D.Run.Protocol
+,D.Run.Input
+,D.Properties.TestNumber
+,D.Properties.StorageTemperature
+,D.Properties.AnalysisTool
 
 UNION
-SELECT "Particle Size Data".Run.Name
-,"Particle Size Data".Run.RowId
-,"Particle Size Data".Run.Protocol  AS Protocol
-,"Particle Size Data".Run.Input as Formulation
-,"Particle Size Data".Properties.StorageTemperature
-,"Particle Size Data".Properties.AnalysisTool
+SELECT D.Run.Name
+,D.Run.RowId
+,D.Run.Protocol AS Protocol
+,D.Run.Input AS Formulation
+,D.Properties.StorageTemperature
+,D.Properties.AnalysisTool
 ,MIN('Pdl') AS Measure, 
-"Particle Size Data".Properties.TestNumber AS Test,
-ROUND(CONVERT(AVG(CASE WHEN LCASE("Particle Size Data".Properties.TimeLabel) = 'dm' OR
-                            "Particle Size Data".Properties.TimeLabel = 'T=0' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS DM,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '1 wk' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS wk1,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '2 wk' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS wk2,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '1 mo' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo1,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '3 mo' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo3,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '6 mo' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo6,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '9 mo' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo9,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '12 mo' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo12,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '24 mo' OR
-                            "Particle Size Data".Properties.TimeLabel = '2 yr' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo24,
-ROUND(CONVERT(AVG(CASE WHEN "Particle Size Data".Properties.TimeLabel = '36 mo' OR
-                            "Particle Size Data".Properties.TimeLabel = '3 yr' THEN
-          "Particle Size Data".Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo36
+D.Properties.TestNumber AS Test,
+ROUND(CONVERT(AVG(CASE WHEN LCASE(D.Properties.TimeLabel) = 'dm' OR
+                            D.Properties.TimeLabel = 'T=0' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS DM,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '1 wk' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS wk1,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '2 wk' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS wk2,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '1 mo' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo1,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '3 mo' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo3,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '6 mo' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo6,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '9 mo' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo9,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '12 mo' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo12,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '24 mo' OR
+                            D.Properties.TimeLabel = '2 yr' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo24,
+ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '36 mo' OR
+                            D.Properties.TimeLabel = '3 yr' THEN
+          D.Properties.Pdl ELSE NULL END) , SQL_DOUBLE),2)  AS mo36
 
-FROM "Particle Size Data"
-WHERE "Particle Size Data".Properties.TestNumber = 1 OR
-"Particle Size Data".Properties.TestNumber = 2 OR
-"Particle Size Data".Properties.TestNumber = 3
-GROUP BY  "Particle Size Data".Run.Name
-, "Particle Size Data".Run.RowId
-,"Particle Size Data".Run.Protocol
-,"Particle Size Data".Run.Input
-, "Particle Size Data".Properties.TestNumber
-,"Particle Size Data".Properties.StorageTemperature
-,"Particle Size Data".Properties.AnalysisTool
+FROM Data AS D
+WHERE D.Run.Name = RunName
+AND D.Properties.StorageTemperature = StoreTemp
+AND D.Properties.AnalysisTool = Tool
+AND (D.Properties.TestNumber = 1 OR D.Properties.TestNumber = 2 OR D.Properties.TestNumber = 3)
+GROUP BY  D.Run.Name
+,D.Run.RowId
+,D.Run.Protocol
+,D.Run.Input
+,D.Properties.TestNumber
+,D.Properties.StorageTemperature
+,D.Properties.AnalysisTool

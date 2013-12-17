@@ -1,0 +1,80 @@
+<query xmlns="http://labkey.org/data/xml/query">
+    <metadata>
+        <tables xmlns="http://labkey.org/data/xml">
+            <table tableName="R_ReportSummary" tableDbType="NOT_IN_DB">
+                <columns>
+                    <column columnName="Name">
+                    </column>
+                    <column columnName="RowId">
+                        <isHidden>true</isHidden>
+                    </column>
+                    <column columnName="Protocol">
+                        <isHidden>true</isHidden>
+                        <fk>
+                            <fkColumnName>LSID</fkColumnName>
+                            <fkTable>Protocols</fkTable>
+                            <fkDbSchema>exp</fkDbSchema>
+                        </fk>
+                    </column>
+                    <column columnName="Formulation">
+                        <isHidden>true</isHidden>
+                        <fk>
+                            <fkColumnName>RowId</fkColumnName>
+                            <fkTable>Materials</fkTable>
+                            <fkDbSchema>exp</fkDbSchema>
+                        </fk>
+                    </column>
+                    <column columnName="AnalysisTool">
+                        <isHidden>true</isHidden>
+                    </column>
+                    <column columnName="StorageTemperature">
+                        <isHidden>true</isHidden>
+                    </column>
+                    <column columnName="Measure">
+                    </column>
+                    <column columnName="Test">
+                    </column>
+                    <column columnName="DM">
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="wk1">
+                        <columnTitle>1 wk</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="wk2">
+                        <columnTitle>2 wk</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="mo1">
+                        <columnTitle>1 mo</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="mo3">
+                        <columnTitle>3 mo</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="mo6">
+                        <columnTitle>6 mo</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="mo9">
+                        <columnTitle>9 mo</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="mo12">
+                        <columnTitle>12 mo</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="mo24">
+                        <columnTitle>24 mo</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                    <column columnName="mo36">
+                        <columnTitle>36 mo</columnTitle>
+                        <formatString>####.###</formatString>
+                    </column>
+                </columns>
+            </table>
+        </tables>
+    </metadata>
+</query>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 LabKey Corporation
+ * Copyright (c) 2011-2012 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
  of the query 'ReportSummary' which also shows 'Pdl' data.
 */
 
-PARAMETERS (RunName VARCHAR, StoreTemp VARCHAR, Tool VARCHAR)
 SELECT D.Run.Name
 ,D.Run.RowId
 ,D.Run.Protocol AS Protocol
@@ -51,10 +50,7 @@ ROUND(CONVERT(AVG(CASE WHEN D.Properties.TimeLabel = '36 mo' OR
           D.Properties.ZAve ELSE NULL END) , SQL_DOUBLE),0)  AS mo36
 
 FROM Data AS D
-WHERE D.Run.Name = RunName
-AND D.Properties.StorageTemperature = StoreTemp
-AND D.Properties.AnalysisTool = Tool
-AND (D.Properties.TestNumber = 1 OR D.Properties.TestNumber = 2 OR D.Properties.TestNumber = 3)
+WHERE D.Properties.TestNumber = 1 OR D.Properties.TestNumber = 2 OR D.Properties.TestNumber = 3
 GROUP BY D.Run.Name
 ,D.Run.RowId
 ,D.Run.Protocol
