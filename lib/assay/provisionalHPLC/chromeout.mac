@@ -21,7 +21,7 @@ Name chromout
 	Open MyFilepath$ FOR APPEND AS #7
 
 	For i=1 to MyReglength
-   		Print #7, Data (CHROMREG[1],0,i),Data (CHROMREG[1],1,i)
+   		Print #7, Data (CHROMREG[1],0,i), ",", Data (CHROMREG[1],1,i)
 	Next i
 
 	Print #7, "EOT"
