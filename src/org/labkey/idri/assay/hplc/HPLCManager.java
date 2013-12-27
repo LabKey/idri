@@ -34,6 +34,8 @@ import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.study.assay.AssayProvider;
+import org.labkey.api.study.assay.AssayRunUploadContext;
+import org.labkey.api.study.assay.AssayRunUploadContextImpl;
 import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.study.assay.AssayUploadXarContext;
 import org.labkey.api.study.assay.DefaultAssayRunCreator;
@@ -99,7 +101,12 @@ public class HPLCManager
                 Map<String, String> batchProps = new HashMap<>();
 
                 // Populate Upload Context
-                HPLCRunUploadContext context = new HPLCRunUploadContext(protocol,  provider, container, user,  runName, "",  runProps,  batchProps);
+                AssayRunUploadContextImpl.Factory factory = new AssayRunUploadContextImpl.Factory(protocol, provider, user, container)
+                        .setName(runName)
+                        .setComments("")
+                        .setRunProperties(runProps)
+                        .setBatchProperties(batchProps);
+                AssayRunUploadContext context = factory.create();
 
                 // Create ExpData and Data Handler for parsing Metadata file into maps
                 ExpData hplcData = DefaultAssayRunCreator.createData(
