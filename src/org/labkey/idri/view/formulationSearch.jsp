@@ -48,7 +48,7 @@
 </form>
 <div id="SearchStatusDiv"></div>
 <div id="SearchStatusDiv2"></div>
-<div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", new ActionURL(idriController.CreateFormulationAction.class, getViewContext().getContainer()))%></div>
+<div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", new ActionURL(idriController.CreateFormulationAction.class, getContainer()))%></div>
 <div id="topDiv"></div>
 <div id="errorDiv"></div>
 <div id="dataRegionDiv" style="float: left;"></div>

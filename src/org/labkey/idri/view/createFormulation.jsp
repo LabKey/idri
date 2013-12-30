@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.view.HttpView"%>
-<%@ page import="org.labkey.api.view.ViewContext"%>
-<%@ page import="org.labkey.idri.model.Material" %>
-<%@ page import="java.util.List" %>
-<%@ page import="org.labkey.idri.idriManager" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
-<%@ page import="org.labkey.idri.model.Formulation" %>
-<%@ page import="org.labkey.api.data.Container" %>
+<%@ page import="org.labkey.api.data.Container"%>
+<%@ page import="org.labkey.api.util.PageFlowUtil"%>
 <%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="org.labkey.idri.idriManager" %>
+<%@ page import="org.labkey.idri.model.Formulation" %>
+<%@ page import="org.labkey.idri.model.Material" %>
 <%@ page import="java.util.LinkedHashSet" %>
+<%@ page import="java.util.List" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
   public LinkedHashSet<ClientDependency> getClientDependencies()
@@ -37,8 +35,7 @@
   }
 %>
 <%
-    ViewContext context = HttpView.currentContext();
-    Container container = context.getContainer();
+    Container container = getContainer();
     
     List<Material> materials = idriManager.getMaterials(container);
     List<Formulation> formulations = idriManager.getFormulations(container);

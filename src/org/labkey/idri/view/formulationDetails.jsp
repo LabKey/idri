@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.view.HttpView"%>
-<%@ page import="org.labkey.api.view.ViewContext"%>
-<%@ page import="org.labkey.idri.idriManager" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
-<%@ page import="org.labkey.idri.model.Formulation" %>
-<%@ page import="org.labkey.api.data.Container" %>
-<%@ page import="org.labkey.idri.idriController.ExpObjectForm" %>
-<%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.idri.idriController" %>
-<%@ page import="org.labkey.api.exp.api.ExpSampleSet" %>
+<%@ page import="org.labkey.api.data.Container"%>
+<%@ page import="org.labkey.api.exp.api.ExpSampleSet"%>
 <%@ page import="org.labkey.api.exp.api.ExperimentService" %>
-<%@ page import="org.labkey.api.portal.ProjectUrls" %>
-<%@ page import="org.labkey.api.view.template.ClientDependency" %>
-<%@ page import="java.util.LinkedHashSet" %>
 <%@ page import="org.labkey.api.exp.api.ExperimentUrls" %>
+<%@ page import="org.labkey.api.portal.ProjectUrls" %>
+<%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
+<%@ page import="org.labkey.api.view.JspView" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="org.labkey.idri.idriController" %>
+<%@ page import="org.labkey.idri.idriController.ExpObjectForm" %>
+<%@ page import="org.labkey.idri.idriManager" %>
+<%@ page import="org.labkey.idri.model.Formulation" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     public LinkedHashSet<ClientDependency> getClientDependencies()
@@ -45,8 +44,7 @@
 <%
     JspView<ExpObjectForm> me = (JspView<ExpObjectForm>) HttpView.currentView();
     ExpObjectForm form = me.getModelBean();
-    ViewContext ctx = me.getViewContext();
-    Container c = ctx.getContainer();
+    Container c = getContainer();
 
     Formulation formulation = idriManager.getFormulation(form.getRowId());
     ExpSampleSet ss = ExperimentService.get().getSampleSet(c, "Formulations");
