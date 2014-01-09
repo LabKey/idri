@@ -556,7 +556,7 @@ public class idriController extends SpringActionController
         public ApiResponse execute(Object form, BindException errors) throws Exception
         {
             ApiSimpleResponse resp = new ApiSimpleResponse();
-            PipeRoot root = PipelineService.get().findPipelineRoot(getViewContext().getContainer());
+            PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
 
             String containerPath = null;
             String webdavURL = null;
