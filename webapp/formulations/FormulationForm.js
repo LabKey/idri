@@ -460,7 +460,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         var cmp = Ext.getCmp('stability-check');
         if (cmp && cmp.getValue())
         {
-            this.informStabilityGroup();
+            this.informStabilityGroup(obj);
         }
 
         cmp = Ext.getCmp('submit-formulation-btn');
@@ -474,7 +474,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
     },
 
 
-    informStabilityGroup : function()
+    informStabilityGroup : function(obj)
     {
         var getUserConfig = {
             groupId : 1043, // 'Stability'

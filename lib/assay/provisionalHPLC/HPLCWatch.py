@@ -47,7 +47,7 @@ filepatterns = ["*.txt", "*.csv", "*.tsv", "*.SEQ"]
 sleep_interval = 60
 success_interval = 60
 machine_name = ''
-END_RUN_PREFIX = 'POSTBLANK_'
+END_RUN_PREFIX = 'POST_'
 
 class HPLCHandler(PatternMatchingEventHandler):
 
@@ -68,7 +68,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         self.runFiles = []
 
         #
-        # Initialize the run task    
+        # Initialize the run task
         #
         self.checkTask = 0
 
@@ -90,16 +90,23 @@ class HPLCHandler(PatternMatchingEventHandler):
                 name = str(split_path[len(split_path)-1])
                 if name.find('~') == -1:
                     logging.info(" Adding file to run: " + name)
-                    files = {'file' : (name, open(name, 'rb'))}
+                    files = {'file' : name} # (name, open(name, 'rb'))}
                     self.addRunFile(files, name)
 
     def upload(self, fileJSON, folder):
         logging.info(" Preparing to send...")
 
         url = self.getScheme() + '://' + server + self.pipelinePath + '/' + folder + '/' #self.buildURL(server, context_path, target_dir)
-        name = fileJSON['file'][0]
+        name = fileJSON['file']
+
+        #
+        # Attempt to open the file
+        #
+        _file = open(name, 'rb')
+        json = {'file': (name, _file)}
+
         try:
-            r = requests.post(url, files=fileJSON, auth=(user, password))
+            r = requests.post(url, files=json, auth=(user, password))
             s = r.status_code
             if s == 207 or s == 200:
                 logging.info(" " + str(s) + " Uploaded Successfully: " + name)
@@ -120,17 +127,15 @@ class HPLCHandler(PatternMatchingEventHandler):
             logging.exception("Failed upload. See watch.log")
             raise Exception(str(e))
 
-
         #
         # Ensure that the resource is closed so files can be moved/deleted
         #
-        _file = fileJSON['file'][1]
         _file.close()
 
     def getDataFileURL(self, fileJSON, folder):
         logging.info(" Requesting file data...")
 
-        fileName = fileJSON['file'][0]
+        fileName = fileJSON['file']
 
         #
         # Account for context path since server does recognize on webdav path
@@ -188,7 +193,7 @@ class HPLCHandler(PatternMatchingEventHandler):
 
             #
             # Get the definition ID
-            #        
+            #
             logging.info('Done. AssayID: ' + str(definitions[0][u'id']))
             return definitions[0][u'id']
         elif s == 401:
@@ -277,7 +282,7 @@ class HPLCHandler(PatternMatchingEventHandler):
             #
             # OS delimiter
             #
-            delmiter = '/'
+            delimiter = '/'
             if sys.platform == "win32":
                 delimiter = "\\"
 
@@ -285,7 +290,7 @@ class HPLCHandler(PatternMatchingEventHandler):
             print "Destination:", destPath
 
             for f in self.runFiles:
-                fileName = f['file'][0]
+                fileName = f['file']
                 dest = destPath + fileName
                 source = cwd + delimiter + fileName
                 print "Source:", source
@@ -297,6 +302,7 @@ class HPLCHandler(PatternMatchingEventHandler):
             for i in range(len(self.runFiles)):
                 d = self.getDataFileURL(self.runFiles[i], self.folder)
                 self.runFiles[i]['DataFileUrl'] = d
+            print "Found Data File URLs..."
 
             #
             # Files are fully processed, now update run information in Assay
@@ -343,7 +349,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         dataRows = []
         dataInputs = []
         for runFile in self.runFiles:
-            fName = runFile['file'][0]
+            fName = runFile['file']
             data = {"Name": fName, "DataFile": fName, "TestType": "SMP"}
             dataRows.append(data)
 
