@@ -5,6 +5,16 @@
                 <insertUrl>/idri/createFormulation.view</insertUrl>
                 <updateUrl>/idri/createFormulation.view?RowId=${RowId}</updateUrl>
                 <tableUrl>/idri/formulationDetails.view?rowId=${RowId}</tableUrl>
+
+                <!-- deleteUrl is not currently supported for Sample Sets -->
+                <!--<deleteUrl>/idri/deleteFormulation.view?materialName=${Name}</deleteUrl>-->
+
+                <buttonBarOptions includeStandardButtons="true">
+                    <includeScript>/formulations/buttons.js</includeScript>
+                    <item text="Delete Formulation" requiresSelection="true" insertBefore="Delete">
+                        <onClick>LABKEY.idri.buttons.DeleteFormulationHandler(dataRegion)</onClick>
+                    </item>
+                </buttonBarOptions>
             </table>
         </tables>
     </metadata>

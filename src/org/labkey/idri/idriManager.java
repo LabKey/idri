@@ -357,6 +357,27 @@ public class idriManager
             saveFormulationHelper(f, user, container);
     }
 
+    public static boolean deleteFormulation(Formulation formulation, User user, Container container) throws SQLException
+    {
+        // TODO: Clean-up related study dataset entries
+
+        ExpMaterial mat = ExperimentService.get().getExpMaterial(formulation.getRowID());
+
+        if (mat != null)
+        {
+            // Delete all concentration entries for this formulation
+            SimpleFilter filter = new SimpleFilter("lot", formulation.getRowID());
+
+            // TODO: Transact if possible
+            Table.delete(getSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), filter);
+            mat.delete(user);
+
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Retrieves a well-formed (not a Sample Set row as it is persisted) formulation from the database.
      * Returns NULL if formulation is not found.
@@ -389,7 +410,15 @@ public class idriManager
     public static Formulation getFormulation(int RowId)
     {
         ExperimentService.Interface service = ExperimentService.get();
-        return getFormulation(service.getExpMaterial(RowId).getName());
+        Formulation formulaton = null;
+
+        ExpMaterial mat = service.getExpMaterial(RowId);
+        if (mat != null)
+        {
+            formulaton = getFormulation(mat.getName());
+        }
+
+        return formulaton;
     }
 
     /**

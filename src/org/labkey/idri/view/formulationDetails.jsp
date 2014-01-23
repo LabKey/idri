@@ -111,16 +111,6 @@
                     <tr>
                         <div id="machine-select"></div>
                         <td style="float: right;">
-                            <%--<table class="stabilitytable">--%>
-                                <%--<tr>--%>
-                                    <%--<td>Indicates within 1.5x of the mean</td>--%>
-                                    <%--<td style="background-color: green;">&nbsp;&nbsp;&nbsp;</td>--%>
-                                <%--</tr>--%>
-                                <%--<tr>--%>
-                                    <%--<td>Indicates greater than 1.5x the mean</td>--%>
-                                    <%--<td style="background-color: red;">&nbsp;&nbsp;&nbsp;</td>--%>
-                                <%--</tr>--%>
-                            <%--</table>--%>
                             <div id="stabilityDiv" style="float: right;">
                                 <div id="owngrid"></div>
                             </div>
@@ -239,7 +229,10 @@
                 maxRows: 1,
                 success : function(data) {
                     if (data.rows.length < 1) {
-                        Ext.get('testdiv').update('No Particle Size results available for ' + name);
+                        var el = Ext.get('testdiv');
+                        if (el) {
+                            el.update('No Particle Size results available for ' + name);
+                        }
                         return;
                     }
 
@@ -285,7 +278,9 @@
                         if (grid) {
                             grid.destroy();
                             var el = Ext.get('testdiv');
-                            el.mask('Loading ' + cb.getValue());
+                            if (el) {
+                                el.mask('Loading ' + cb.getValue());
+                            }
                         }
                         lookupAssayId(assayId, cb.getValue());
                     }

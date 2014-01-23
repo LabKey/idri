@@ -21,6 +21,7 @@ import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.CustomApiForm;
+import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
@@ -51,10 +52,12 @@ import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Path;
+import org.labkey.api.util.URLHelper;
 import org.labkey.api.util.UnexpectedException;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.VBox;
+import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
 import org.labkey.api.webdav.WebdavResource;
 import org.labkey.api.webdav.WebdavService;
@@ -266,6 +269,49 @@ public class idriController extends SpringActionController
         }
     }
 
+    @RequiresPermissionClass(UpdatePermission.class)
+    public class DeleteFormulationAction extends FormViewAction<ExpObjectForm>
+    {
+        @Override
+        public void validateCommand(ExpObjectForm target, Errors errors)
+        {
+        }
+
+        @Override
+        public ModelAndView getView(ExpObjectForm form, boolean reshow, BindException errors) throws Exception
+        {
+            return null;
+        }
+
+        @Override
+        public boolean handlePost(ExpObjectForm form, BindException errors) throws Exception
+        {
+            boolean deleted = false;
+            Formulation formulation = idriManager.getFormulation(form.getRowId());
+
+            if (formulation != null)
+            {
+                ViewContext ctx = getViewContext();
+                deleted = idriManager.deleteFormulation(formulation, ctx.getUser(), ctx.getContainer());
+            }
+
+            return deleted;
+        }
+
+
+        @Override
+        public URLHelper getSuccessURL(ExpObjectForm form)
+        {
+            return null;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return null;
+        }
+    }
+
     @RequiresPermissionClass(ReadPermission.class)
     public class GetFormulationAction extends ApiAction<MaterialTypeForm>
     {
@@ -285,7 +331,12 @@ public class idriController extends SpringActionController
 
     public static class MaterialTypeForm
     {
+        private int _rowId;
         private String _materialName;
+
+        public int getRowId() { return _rowId; }
+
+        public void setRowId(int rowId) { _rowId = rowId; }
 
         public String getMaterialName()
         {
