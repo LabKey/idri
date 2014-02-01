@@ -421,7 +421,16 @@ class HPLCRun():
             print r.status_code, "Bad Request"
             print r.text
             print r.json
+        elif s == 500:
+            print r.status_code, "Server Error"
+            print r.text
+            print r.json
+            logging.error(r.status_code)
+            logging.error(r.text)
+            logging.error(r.json)
+            logging.error("Failed to create Assay Run due to server error")
         else:
+            logging.info("Run saved successfully.")
             print "Run saved Successfully."
 
 
