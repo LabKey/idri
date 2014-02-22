@@ -470,7 +470,10 @@ if __name__ == "__main__":
     #
     # Configure Logging
     #
-    logging.basicConfig(filename='watch.log', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG,
+                        filename='watch.log',
+                        format='%(asctime)s %(levelname)s: %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
     logging.info('\n\n\nStarting HPLCWatch: ' + str(datetime.now()))
 
     #
