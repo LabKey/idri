@@ -1,0 +1,23 @@
+<div id="qctool"></div>
+<script type="text/javascript">
+    LABKEY.requiresVisualization();
+    LABKEY.requiresScript([
+        'clientapi/ext4/Util.js',
+        'clientapi/ext4/data/Reader.js',
+        'clientapi/ext4/data/Proxy.js',
+        'clientapi/ext4/data/Store.js',
+        'hplc/regression.js',
+        'hplc/ProvisionalRun.js',
+        'hplc/SampleCreator.js',
+        'hplc/StandardCreator.js',
+        'hplc/QualityControl.js'
+    ], true, function() {
+
+        Ext4.onReady(function() {
+            QC = Ext4.create('LABKEY.hplc.QualityControl', {
+                renderTo: 'qctool'
+            });
+        });
+
+    });
+</script>

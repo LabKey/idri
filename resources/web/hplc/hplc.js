@@ -8,8 +8,7 @@ if (!LABKEY.idri) {
 }
 
 LABKEY.idri.hplcSelection = function(dataRegion, dataRegionName) {
-
-    window.location = LABKEY.ActionURL.buildURL('idri', 'qualityControl', null, {
+    window.location = LABKEY.ActionURL.buildURL('idri', 'qc', null, {
         selectionKey: dataRegion.selectionKey,
         queryName: dataRegion.queryName,
         schemaName: dataRegion.schemaName

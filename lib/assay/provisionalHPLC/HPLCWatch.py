@@ -41,7 +41,7 @@ target_dir   = '' # required
 user         = '' # required
 password     = '' # required
 use_ssl      = True
-context_path = '' # optional
+context_path = '' # optional, in development environments. Production environments tend not to use a context path.
 
 filepatterns = ["*.txt", "*.csv", "*.tsv", "*.SEQ"]
 sleep_interval = 60

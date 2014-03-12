@@ -42,7 +42,7 @@
 </div>
 <script type="text/javascript">
 
-    var XX, SS;
+    var CONTEXT = {};
 
     Ext4.onReady(function() {
 
@@ -55,17 +55,30 @@
                             '<div class="title">{Name}<span class="sub">.{FileExt}</span></div>',
                             '<div><a target="_blank" href="{FilePath}">View File</a></div>',
                             '<br/>',
-                            '<div class="toolbar">',
-                                '<button onclick="loadGraph(this, \'{GraphId}\');">View Chromatogram</button>',
-                            '</div>',
+//                            '<div class="toolbar">',
+//                                '<button onclick="loadGraph(this, \'{GraphId}\');">View Chromatogram</button>',
+//                            '</div>',
                             '<div id="{GraphId}"></div>',
+                            '<div id="{GraphId}-inputs">',
+                                '<input type="text" placeholder="xleft" name="xleft" value="{xleft:this.displayValue}"/>',
+                                '<input type="text" placeholder="xright" name="xright" value="{xright:this.displayValue}"/>',
+                            '</div>',
                             '<br/>',
                             '<div class="toolbar">',
+                                '<button onclick="loadGraph(this, \'{GraphId}\');">View Chromatogram</button>',
                                 '<button>Verified</button>',
                             '</div>',
                         '</div>',
                     '</div>',
-                '</tpl>'
+                '</tpl>',
+                {
+                    displayValue : function(val) {
+                        if (parseInt(val) == 0) {
+                            return "";
+                        }
+                        return val;
+                    }
+                }
         );
 
         var processRawDataResults = function() {
@@ -115,7 +128,9 @@
                     {name: 'RowId', type: 'int'},
                     {name: 'FilePath'},
                     {name: 'ExpDataRun'},
-                    {name: 'GraphId'}
+                    {name: 'GraphId'},
+                    {name: 'xleft', type: 'int', defaultValue: 0},
+                    {name: 'xright', type: 'int', defaultValue: 0}
                 ],
                 data: d
             });
@@ -152,21 +167,6 @@
                     }
                 };
 
-//                //
-//                // Get the associated Result Data
-//                //
-//                var dataConfig = {
-//                    schemaName: LABKEY.ActionURL.getParameter('schemaName'),
-//                    queryName: 'Data',
-//                    success: function(data) {
-//                        rawData = data;
-//                        process();
-//                    },
-//                    filterArray: [ LABKEY.Filter.create('Run/RowId', RUN_ID) ]
-//                };
-//
-//                LABKEY.Query.selectRows(dataConfig);
-
                 //
                 // Get the associated HPLC configuration
                 //
@@ -175,65 +175,121 @@
                     success: function(response) {
                         var data = Ext4.decode(response.responseText);
                         PIPELINE_CONTAINER = data.webDavURL;
-                        console.log(PIPELINE_CONTAINER);
                         process();
+                    }
+                });
+
+                var preprocess = function() {
+                    if (CONTEXT.AssayDefinition && CONTEXT.RunDefinition) {
+                        //
+                        // Load the expected batch/run
+                        //
+                        var batchConfig = {
+                            assayId: CONTEXT.AssayDefinition.id,
+                            batchId: CONTEXT.RunDefinition.Batch.value,
+                            success: function(RunGroup) {
+                                BATCH = RunGroup;
+                                process();
+                            }
+                        };
+
+                        LABKEY.Experiment.loadBatch(batchConfig);
+                    }
+                };
+
+                //
+                // Get the associated Assay information
+                //
+                LABKEY.Assay.getByType({
+                    type: 'Provisional HPLC',
+                    success: function(defs) {
+                        CONTEXT.AssayDefinition = defs[0];
+                        preprocess();
                     }
                 });
 
                 //
                 // Get the associated Batch information
                 //
-                var batchConfig = {
-                    assayId: 155,
-                    batchId: 36,
-                    success: function(RunGroup) {
-                        BATCH = RunGroup;
-                        process();
+                LABKEY.Query.selectRows({
+                    schemaName: LABKEY.ActionURL.getParameter('schemaName'),
+                    queryName: LABKEY.ActionURL.getParameter('queryName'),
+                    requiredVersion: 13.2,
+                    filterArray: [
+                        LABKEY.Filter.create('RowId', RUN_ID)
+                    ],
+                    success: function(data) {
+                        CONTEXT.RunDefinition = data.rows[0]; // LABKEY.Query.Row
+                        preprocess();
                     }
-                };
-
-                LABKEY.Experiment.loadBatch(batchConfig);
+                });
             }
         });
     });
 
-    var renderPlot = function(fileContent, targetId, btn) {
-
-        var data = fileContent.sheets[0].data;
-        data.shift(); // get rid of column headers
+    var renderPlot = function(fileContent, targetId, btn, model) {
+        MM = model;
+        var _data = fileContent.sheets[0].data;
+        _data.shift(); // get rid of column headers
         var newData = [];
-        for (var d=0; d < data.length; d++) {
-            if (d%3 == 0)
-                newData.push(data[d]);
+
+        var xLeft = model.get('xleft');
+        var xRight = model.get('xright');
+        console.log(xLeft, xRight);
+
+        for (var d=0; d < _data.length; d++) {
+            var xy = _data[d][0].split(' ');
+            xy[0] = parseFloat(xy[0]);
+            xy[1] = parseFloat(xy[1]);
+
+            if (xLeft > 0 || xRight > 0) {
+                if (xy[0] > xLeft && xy[0] < xRight) {
+                    if (d%2 == 0)
+                        newData.push(xy);
+                }
+            }
+            else {
+                if (d%2 == 0)
+                    newData.push(xy);
+            }
         }
-        data = newData;
+        var data = newData;
+        console.log('data length:', data.length);
+        DD = _data;
 
         //
         // Create the point layer
         //
         var pointLayer = new LABKEY.vis.Layer({
-            geom: new LABKEY.vis.Geom.Point({
-                size: 1,
-                color: '#ff0000'
-            })
-        });
-
-        var plotConfig = {
-            renderTo: targetId,
+            data: data,
+//            geom: new LABKEY.vis.Geom.Point({
+//                size: 1,
+//                color: '#ff0000'
+//            }),
             aes: {
                 x: function(r) { return r[0]; },
                 y: function(r) { return r[1]; }
             },
+            geom: new LABKEY.vis.Geom.Path({
+                color: '#ff0000'
+            })
+        });
+
+        var plot = new LABKEY.vis.Plot({
+            renderTo: targetId,
+            rendererType: 'd3',
             width: 750,
             height: 500,
+            clipRect: false,
             margins: {top: 10},
-            data: data,
             layers: [ pointLayer ],
             legendPos: 'none'
-        };
-
-        var plot = new LABKEY.vis.Plot(plotConfig);
-        PP = plot;
+//            scales: {
+//                y: {
+//                    domain: [0, 1200]
+//                }
+//            }
+        });
 
         try {
             plot.render();
@@ -241,16 +297,14 @@
         catch(err) {
             alert('Plot Failed.');
         }
-
-        btn.up('.toolbar').setStyle('display', 'none');
     };
 
     var loadGraph = function(btn, graphId) {
 
         var b = Ext4.get(btn);
-        b.update('Rendering...');
+//        b.update('Rendering...');
+        B = b;
 
-        console.log(graphId);
         var idx = SS.findExact('GraphId', graphId);
 
         //
@@ -260,12 +314,23 @@
         var sampleData = sample.get('ExpDataRun');
 
         if (sampleData) {
+
+            //
+            // load other values from form
+            //
+            var xleft = parseInt(b.up('.blockcontent').down('input[name=xleft]').getValue());
+            if (Ext4.isNumeric(xleft))
+                sample.set('xleft', xleft);
+            var xright = parseInt(b.up('.blockcontent').down('input[name=xright]').getValue());
+            if (Ext4.isNumeric(xright))
+                sample.set('xright', xright);
+
             var config = {
                 format: 'jsonTSV',
-                successCallback: function(content) {
-                    renderPlot(content, graphId, b);
+                success: function(content) {
+                    renderPlot(content, graphId, b, sample);
                 },
-                failureCallback: function(error) {
+                failure: function(error) {
                     alert('Failed to Load File Contents');
                 }
             };

@@ -2,13 +2,6 @@
 
 </style>
 <div id="provisional-input"></div>
-<!--<div>-->
-    <!--<form>-->
-        <!--<div id="hplc-target-assay"></div>-->
-        <!--<div id="hplc-upload-content"></div>-->
-        <!--<div id="hplc-run-content"></div>-->
-    <!--</form>-->
-<!--</div>-->
 <script type="text/javascript">
     LABKEY.requiresExt4Sandbox();
 </script>
@@ -16,89 +9,27 @@
 
 (function(){
 
-    var Assay = {};
+    //
+    // Set of constants supplying the current upload context
+    //
+    var Context = {
+        schemaName: LABKEY.ActionURL.getParameter('schemaName'),
+        queryName: LABKEY.ActionURL.getParameter('queryName'),
+        selectionKey: LABKEY.ActionURL.getParameter('selectionKey'),
+        RunId: -1
+    };
 
     var init = function() {
 
-        var record = {
-            targetAssay: 'HPLC',
-            runs: [{
-                name: 'A197',
-                rowId: 1
-            },{
-                name: 'B202',
-                rowId: 2
-            }]
-        };
-
-        writeForm(record);
-    };
-
-    var writeForm = function(record) {
-        var tpl = new Ext4.XTemplate(
-            '<table>',
-                '<tr>',
-                    '<td class="labkey-form-label">Target Assay</td>',
-                    '<td>{targetAssay}</td>',
-                '</tr>',
-                '<tr>',
-                    '<td class="labkey-form-label">Target Run</td>',
-                    '<td id="targetruns">',
-                        '<select>',
-                            '<tpl for="runs">',
-                                '<option value="{rowId}">{name}</option>',
-                            '</tpl>',
-                        '</select>',
-                    '</td>',
-                '</tr>',
-            '</table>'
-        );
-        tpl.overwrite('provisional-input', record);
-        attachListeners();
-    };
-
-    var attachListeners = function() {
-        var el = Ext4.DomQuery.select('#targetruns select');
-        Ext4.get(el[0]).on('change', onRunChange);
-    };
-
-    var onRunChange = function(evt, el) {
-        requestResults(Ext4.get(el).getValue(), processResults);
-    };
-
-    /**
-     * Requests the set of Assay results from the target Assay given a run rowId.
-     * Assumes that the 'Assay' object has already been constructed and intialized
-     * @param runRowId
-     */
-    var requestResults = function(runRowId, callback) {
-
-        if (Ext4.isString(runRowId))
-            runRowId = parseInt(runRowId);
-
-        if (!runRowId || !Ext4.isNumber(runRowId)) {
-            console.error('The value \'' + runRowId + '\' is not a valid result identifier.');
-            return;
-        }
-
-        var design = Assay['design'];
-
-        var config = {
-            schemaName: design.protocolSchemaName,
-            queryName: 'Data',
-            requiredVersion: 9.1,
-            filterArray: [
-                new LABKEY.Query.Filter('Run/RowId', runRowId)
-            ],
-            success: callback,
-            failure: function() { console.error('failed to load results', assayDesign.protocolSchemaName + ":" + runRowId); }
-        };
-
-        LABKEY.Query.selectRows(config);
-    };
-
-    var processResults = function(results) {
-        console.log('results');
+        //
+        // Lookup the selected run based on 'selectionKey' URL parameter
+        //
+        LABKEY.DataRegion.getSelected({
+            selectionKey: Context.selectionKey,
+            success: function(selection) {
+                Context.RunId = selection[0]; // get the row id of the selected run
+            }
+        });
     };
 
     Ext4.onReady(init);
