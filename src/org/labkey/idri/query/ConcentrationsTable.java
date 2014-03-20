@@ -87,7 +87,7 @@ public class ConcentrationsTable extends FilteredTable<idriSchema>
     }
 
     @Override
-    public boolean hasPermissionOverridable(UserPrincipal user, Class<? extends Permission> perm)
+    public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
     {
         return getContainer().hasPermission(user, perm);
     }
