@@ -27,8 +27,8 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.IDRI;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LabKeyExpectedConditions;
-import org.labkey.test.util.ListHelperWD;
-import org.labkey.test.util.ListHelperWD.ListColumn;
+import org.labkey.test.util.ListHelper;
+import org.labkey.test.util.ListHelper.ListColumn;
 import org.labkey.test.util.LogMethod;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -51,11 +51,11 @@ public class FormulationsTest extends BaseWebDriverTest
 {
     private static final String COMPOUNDS_NAME = "Compounds";
     private static final String FORMULATIONS_NAME = "Formulations";
-    private final static ListHelperWD.ListColumnType LIST_KEY_TYPE = ListHelperWD.ListColumnType.String;
+    private final static ListHelper.ListColumnType LIST_KEY_TYPE = ListHelper.ListColumnType.String;
     private final ListColumn LIST_COL_SORT = new ListColumn(
             "sort",
             "Sort Order",
-            ListHelperWD.ListColumnType.Integer,
+            ListHelper.ListColumnType.Integer,
             "Used to sort ambigiously named timepoints based on day.");
     private static final String PROJECT_NAME = "FormulationsTest";
     private static final String FOLDER_NAME = "My Study";
@@ -67,12 +67,12 @@ public class FormulationsTest extends BaseWebDriverTest
         private final ListColumn MATERIAL_COL_TYPE = new ListColumn(
             "type",
             "Type",
-            ListHelperWD.ListColumnType.String,
+            ListHelper.ListColumnType.String,
             "Type of Compound.");
     private final ListColumn MATERIAL_COL_UNITS = new ListColumn(
             "units",
             "Units",
-            ListHelperWD.ListColumnType.String,
+            ListHelper.ListColumnType.String,
             "Measure of Units for given type.");
 
     private static final String COMPOUNDS_HEADER = "Compound Name\tFull Name\tCAS Number\tDensity\tMolecular Weight\n";
@@ -203,7 +203,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText("Lists"));
 
         log("Add list -- " + MATERIAL_TYPES_LIST);
-        _listHelper.createList(PROJECT_NAME, MATERIAL_TYPES_LIST, ListHelperWD.ListColumnType.AutoInteger, "key", MATERIAL_COL_TYPE, MATERIAL_COL_UNITS);
+        _listHelper.createList(PROJECT_NAME, MATERIAL_TYPES_LIST, ListHelper.ListColumnType.AutoInteger, "key", MATERIAL_COL_TYPE, MATERIAL_COL_UNITS);
         _listHelper.clickImportData();
         _listHelper.submitTsvData(MTYPES_HEADER + MTYPES_DATA);
     }
@@ -219,7 +219,7 @@ public class FormulationsTest extends BaseWebDriverTest
         // Add compound lookup
         clickAndWait(Locator.linkWithText("Edit Fields"));
 
-        _listHelper.addField(new ListColumn("CompoundLookup", "Type of Material", null, null, new ListHelperWD.LookupInfo(PROJECT_NAME, "lists", "MaterialTypes")));
+        _listHelper.addField(new ListColumn("CompoundLookup", "Type of Material", null, null, new ListHelper.LookupInfo(PROJECT_NAME, "lists", "MaterialTypes")));
         clickButton("Save");
 
         clickButton("Import More Samples");
