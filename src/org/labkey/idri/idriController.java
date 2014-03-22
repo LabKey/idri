@@ -51,7 +51,6 @@ import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.FileUtil;
-import org.labkey.api.util.Path;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.util.UnexpectedException;
 import org.labkey.api.view.JspView;
@@ -72,7 +71,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -486,7 +484,7 @@ public class idriController extends SpringActionController
             return Collections.emptySet();
         }
         List<ExpRun> runsToInvestigate = new ArrayList<>();
-        runsToInvestigate.addAll(Arrays.asList(ExperimentService.get().getRunsUsingMaterials(_material.getRowId())));
+        runsToInvestigate.addAll(ExperimentService.get().getRunsUsingMaterials(_material.getRowId()));
         runsToInvestigate.remove(_material.getRun());
         Set<ExpMaterial> result = new HashSet<>();
         Set<ExpRun> investigatedRuns = new HashSet<>();
@@ -503,7 +501,7 @@ public class idriController extends SpringActionController
 
                 for (ExpMaterial materialOutput : materialOutputs)
                 {
-                    runsToInvestigate.addAll(Arrays.asList(ExperimentService.get().getRunsUsingMaterials(materialOutput.getRowId())));
+                    runsToInvestigate.addAll(ExperimentService.get().getRunsUsingMaterials(materialOutput.getRowId()));
                 }
 
                 runsToInvestigate.addAll(ExperimentService.get().getRunsUsingDatas(childRun.getDataOutputs()));

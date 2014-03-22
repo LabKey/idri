@@ -120,7 +120,7 @@ public class HPLCManager
                 {
                     // Save the run in order to allow linking the hplcData result
                     ExpExperiment exp = provider.getRunCreator().saveExperimentRun(context, null, run, true);
-                    if (exp.getRuns().length > 0)
+                    if (!exp.getRuns().isEmpty())
                     {
                         hplcData.setRun(run);
                         hplcData.save(user);

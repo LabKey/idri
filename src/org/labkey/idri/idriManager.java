@@ -60,7 +60,6 @@ import org.labkey.idri.query.idriSchema;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -149,12 +148,12 @@ public class idriManager
         for (String source : sources)
         {
             ss = service.getSampleSet(container, source);
-            List<ExpMaterial> _expMaterials;
+            List<? extends ExpMaterial> expMaterials;
             
             if (ss != null)
             {
-                _expMaterials = Arrays.asList(ss.getSamples());
-                for (ExpMaterial expMat : _expMaterials)
+                expMaterials = ss.getSamples();
+                for (ExpMaterial expMat : expMaterials)
                 {
                     Material mat = Material.fromExpMaterial(expMat);
                     materials.add(mat);
@@ -431,8 +430,7 @@ public class idriManager
         List<Formulation> formulations = new ArrayList<>();
 
         ExpSampleSet ss = ExperimentService.get().getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
-        List<ExpMaterial> asMaterials = Arrays.asList(ss.getSamples());
-        for (ExpMaterial mat : asMaterials)
+        for (ExpMaterial mat : ss.getSamples())
             formulations.add(Formulation.fromSample(mat, false));
 
         return formulations;
