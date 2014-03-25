@@ -330,10 +330,6 @@ public class idriManager
 
                 transaction.commit();
             }
-            catch (SQLException e)
-            {
-                throw new RuntimeSQLException(e);
-            }
 
             List<Integer> invalids = new ArrayList<>();
             SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE compound = ?");
