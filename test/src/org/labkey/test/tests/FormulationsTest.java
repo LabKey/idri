@@ -17,6 +17,7 @@ package org.labkey.test.tests;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpStatus;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
@@ -41,11 +42,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-/**
- * User: Nick
- * Date: Jan 21, 2011
- * Time: 11:36:22 AM
- */
 @Category({CustomModules.class, Assays.class, IDRI.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
@@ -128,8 +124,8 @@ public class FormulationsTest extends BaseWebDriverTest
         deleteProject(getProjectName(), afterTest);
     }
 
-    @Override
-    protected void doTestSteps() throws Exception
+    @Test
+    public void testSteps()
     {
         setupFormulationsProject();
         setupTimeTemperature();
