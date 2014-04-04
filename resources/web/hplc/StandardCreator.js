@@ -64,16 +64,6 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
             this.getStandardsDisplay() // center
         ];
 
-        this.buttons = [{
-            text: 'Return to Samples',
-            handler: function() {
-                this.clearCalibrationCurve();
-                this.clearStandardViewer();
-                this.fireEvent('complete');
-            },
-            scope: this
-        }];
-
         this.callParent();
 
         this.on('selectsource', this.onSelectSource, this);
@@ -99,19 +89,14 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
         return {
             xtype: 'panel',
             itemId: 'west',
-            title: 'All Inputs',
             region: 'west',
-            width: 200,
+            width: 250,
             layout: {
                 type: 'vbox',
                 align: 'stretch'
             },
             items: [{
-                xtype: 'form',
-                height: 50,
-                html: 'Choose a Standard to Define',
-                border: false, frame: false
-            },{
+                title: 'Choose a Standard to Define',
                 id: 'inputsgrid',
                 xtype: 'grid',
                 height: 400,
@@ -155,11 +140,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 },
                 scope: this
             },{
-                xtype: 'panel',
-                height: 50,
-                html: 'Standards Previously Defined',
-                border: false, frame: false
-            },{
+                title: 'Standards Previously Defined',
                 xtype: 'grid',
                 itemId: 'standardsgrid',
                 height: 200,
@@ -174,7 +155,21 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                     scope: this
                 },
                 scope: this
-            }]
+            }],
+            dockedItems: [{
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [{
+                    text: 'Return to Samples',
+                    handler: function() {
+                        this.clearCalibrationCurve();
+                        this.clearStandardViewer();
+                        this.fireEvent('complete');
+                    },
+                    scope: this
+                }]
+            }],
+            scope: this
         };
     },
 
@@ -200,34 +195,73 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
         // Load the set of standard 'sources'
         //
         if (standard) {
+
+            this.getStandardsDisplay().getEl().mask('Loading Definitions...');
+
             var store = LABKEY.hplc.StandardCreator.getSourcesStore(true, standard.get('Key'));
             store.on('load', function(s) {
                 // merge the 'sources' data to the inputs data
                 var inputsStore = sourcesGrid.getStore();
                 var sources = s.getRange(), i = 0, r, s, sels = [];
+
+                var left = null;
+                var right = 0;
+                var bottom = null;
+
                 for (; i < sources.length; i++) {
                     s = sources[i];
                     r = inputsStore.findExact('name', s.get('name'));
-                    if (r > -1) {;
+                    if (r > -1) {
                         r = inputsStore.getAt(r);
+
                         r.set('auc', s.get('auc'));
                         r.set('concentration', s.get('concentration'));
                         r.set('peakMax', s.get('peakMax'));
+
                         r.set('xleft', s.get('xleft'));
+                        if (left == null) {
+                            left = s.get('xleft');
+                        }
+                        else {
+                            left = Math.min(left, s.get('xleft'));
+                        }
+
                         r.set('xright', s.get('xright'));
+                        right = Math.max(right, s.get('xright'));
+
                         r.set('base', s.get('base'));
+                        if (bottom == null) {
+                            bottom = s.get('base');
+                        }
+                        else {
+                            bottom = Math.min(bottom, s.get('base'));
+                        }
+
                         sels.push(r);
                     }
                 }
 
+                Ext4.getCmp('calibrateleft').setValue(left);
+                Ext4.getCmp('calibrateright').setValue(right);
+                Ext4.getCmp('calibratebottom').setValue(Math.max(0, bottom-5));
+
+                this.on('standardsrendered', function() {
+                    //
+                    // Show the calibration curve
+                    //
+                    this.generateCalibrationCurve();
+
+                    //
+                    // Re-bound the chart
+                    //
+                }, this, {single: true});
                 sourcesGrid.getSelectionModel().select(sels);
-                this.on('standardsrendered', this.generateCalibrationCurve, this, {single: true});
 
                 //
                 // Update definition form
                 //
                 Ext4.getCmp('standardname').setValue(standard.get('Name'));
-                Ext4.getCmp('isupdate').setValue(true);
+                Ext4.getCmp('isupdate').setValue(standard.get('Name'));
                 Ext4.getCmp('deletestandardbtn').show();
             }, this, {single: true});
         }
@@ -282,6 +316,11 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 '</table>'
             ),
             listeners: {
+                itemclick: function(x,y,z,a,evt) {
+                    Ext4.defer(function() {
+                        Ext4.get(evt.target).dom.focus();
+                    }, 50);
+                },
                 select: function(view, source) {
                     this.highlighted = source.get('name') + '.' + source.get('fileExt');
                     this.plotTask();
@@ -303,6 +342,8 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 type: 'vbox',
                 align: 'stretch'
             },
+            border: false, frame: false,
+            style: 'border-left: 1px solid lightgrey;',
             items: [{
                 xtype: 'box',
                 id: 'stdcurveplot',
@@ -324,7 +365,14 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                     id: 'standardname',
                     xtype: 'textfield',
                     name: 'standardname',
-                    fieldLabel: 'Standard Name'
+                    fieldLabel: 'Standard Name',
+                    allowBlank: false,
+                    validateOnBlur: false
+                },{
+                    id: 'standardrsquared',
+                    name: 'rsquared',
+                    xtype: 'displayfield',
+                    fieldLabel: 'R²'
                 },{
                     id: 'isupdate',
                     xtype: 'hidden',
@@ -361,67 +409,88 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
     },
 
     saveStandard : function() {
-        var store = Ext4.getCmp('definitionformview').getStore();
-
-        var standardRow = {
-            'Name': Ext4.getCmp('standardname').getValue(),
-            'provisionalRun': parseInt(this.context.RunId)
-        };
-
         //
-        // First save the standard information
-        // Lists.HPLCStandard
+        // Ensure that the calibration curve is up to date
         //
-        LABKEY.Query.saveRows({
-            commands: [{
-                command: 'insert',
-                schemaName: 'lists',
-                queryName: 'HPLCStandard',
-                rows: [standardRow]
-            }],
-            success: function(data) {
+        this.on('calibration', function(R) {
+
+            var form = Ext4.getCmp('stddefform');
+            if (form && form.isValid()) {
+
+                var store = Ext4.getCmp('definitionformview').getStore();
+
+                // Y = B0 + B1*X + B2*X^2
+                var standardRow = {
+                    'Name': Ext4.getCmp('standardname').getValue(),
+                    'provisionalRun': parseInt(this.context.RunId),
+                    'b0': R.equation[0],
+                    'b1': R.equation[1],
+                    'b2': R.equation[2],
+                    'rsquared': R.rSquared,
+                    'error': R.stdError
+                };
 
                 //
-                // Second save the standard sources
+                // First save the standard information
+                // Lists.HPLCStandard
                 //
-                var sourceRows = [];
-                var sources = store.getRange(), s;
-
-                for (var i=0; i < sources.length; i++) {
-                    s = sources[i];
-                    sourceRows.push({
-                        'standard': data.result[0].rows[0].Key,
-                        'name': s.get('name'),
-                        'concentration': s.get('concentration'),
-                        'auc': s.get('auc'),
-                        'peakMax': s.get('peakMax'),
-                        'xleft': s.get('xleft'),
-                        'xright': s.get('xright'),
-                        'fileName': s.get('fileName') || (s.get('name') + '.' + s.get('fileExt')),
-                        'filePath': s.get('filePath'),
-                        'fileExt': s.get('fileExt')
-                    });
-                }
-
                 LABKEY.Query.saveRows({
                     commands: [{
                         command: 'insert',
                         schemaName: 'lists',
-                        queryName: 'HPLCStandardSource',
-                        rows: sourceRows
+                        queryName: 'HPLCStandard',
+                        rows: [standardRow]
                     }],
-                    success: function(data) { this.fireEvent('standardsave'); },
+                    success: function(data) {
+
+                        //
+                        // Second save the standard sources
+                        //
+                        var sourceRows = [];
+                        var sources = store.getRange(), s;
+
+                        for (var i=0; i < sources.length; i++) {
+                            s = sources[i];
+                            sourceRows.push({
+                                'standard': data.result[0].rows[0].Key,
+                                'name': s.get('name'),
+                                'concentration': s.get('concentration'),
+                                'auc': s.get('auc'),
+                                'peakMax': s.get('peakMax'),
+                                'xleft': s.get('xleft'),
+                                'xright': s.get('xright'),
+                                'base': s.get('base'),
+                                'fileName': s.get('fileName') || (s.get('name') + '.' + s.get('fileExt')),
+                                'filePath': s.get('filePath'),
+                                'fileExt': s.get('fileExt')
+                            });
+                        }
+
+                        LABKEY.Query.saveRows({
+                            commands: [{
+                                command: 'insert',
+                                schemaName: 'lists',
+                                queryName: 'HPLCStandardSource',
+                                rows: sourceRows
+                            }],
+                            success: function(data) { this.fireEvent('standardsave'); },
+                            failure: function() {
+                                alert('Failed to Save HPLCStandardSource');
+                            },
+                            scope: this
+                        });
+                    },
                     failure: function() {
-                        alert('Failed to Save HPLCStandardSource');
+                        alert('Failed to Save HPLCStandard: ' + standardRow['Name']);
                     },
                     scope: this
                 });
-            },
-            failure: function() {
-                alert('Failed to Save HPLCStandard: ' + standardRow['Name']);
-            },
-            scope: this
-        });
+
+            }
+
+        }, this, {single: true});
+
+        this.generateCalibrationCurve();
     },
 
     onRequestDelete : function() {
@@ -433,81 +502,164 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
             buttons: Ext4.Msg.OKCANCEL,
             fn : function(btn) {
                 if (btn === "ok") {
-                    this.deleteStandard();
+                    var store = LABKEY.hplc.StandardCreator.getStandardsStore();
+                    var realName = Ext4.getCmp('isupdate').getValue();
+
+                    if (realName.length > 0) {
+                        var idx = store.findExact('Name', realName);
+                        if (idx > -1) {
+                            var standard = store.getAt(idx);
+                            this.deleteStandard(standard.get('Key'));
+                        }
+                    }
                 }
-            }
+            },
+            scope: this
         });
     },
 
     deleteStandard : function(key) {
 
+        LABKEY.Query.selectRows({
+            schemaName: 'lists',
+            queryName: 'HPLCStandard',
+            filterArray: [ LABKEY.Filter.create('Key', key) ],
+            success: function(d) {
+                if (d.rows.length == 1) {
+
+                    //
+                    // Delete sources
+                    //
+                    LABKEY.Query.selectRows({
+                        schemaName: 'lists',
+                        queryName: 'HPLCStandardSource',
+                        filterArray: [ LABKEY.Filter.create('standard', key) ],
+                        success: function(sd) {
+                            if (sd.rows.length > 0) {
+                                LABKEY.Query.deleteRows({
+                                    schemaName: 'lists',
+                                    queryName: 'HPLCStandardSource',
+                                    rows: sd.rows,
+                                    success: function() { },
+                                    failure: function() { alert('Failed to cleanup Lists.HPLCStandardSource'); }
+                                });
+                            }
+                        },
+                        scope: this
+                    });
+
+                    //
+                    // Delete Standard
+                    //
+                    LABKEY.Query.deleteRows({
+                        schemaName: 'lists',
+                        queryName: 'HPLCStandard',
+                        rows: d.rows,
+                        success: function() {
+                            this.clearCalibrationCurve();
+                            this.clearStandardViewer();
+                            //
+                            // Clear the selected sources
+                            //
+                            var sourcesGrid = this.getComponent('west').getComponent('inputsgrid');
+                            sourcesGrid.getSelectionModel().deselectAll();
+                            Ext4.getCmp('calibrationform').getForm().reset();
+                        },
+                        failure: function() { alert('Failed to cleanup Lists.HPLCStandard'); },
+                        scope: this
+                    });
+
+                }
+                else {
+                    alert('Unable to find exact run.');
+                }
+            },
+            scope: this
+        });
     },
 
     getStandardsDisplay : function() {
 
-        var panel = Ext4.create('Ext.panel.Panel', {
-            xtype: 'panel',
-            title: 'Standards Viewer',
-            region: 'center',
-            items: [{
-                xtype: 'form',
+        if (!this.standardsdisplay) {
+            this.standardsdisplay = Ext4.create('Ext.panel.Panel', {
+                xtype: 'panel',
+                title: 'Standards Viewer',
+                region: 'center',
                 border: false, frame: false,
                 items: [{
-                    xtype: 'fieldcontainer',
-                    fieldLabel: 'Bounds',
-                    layout: 'hbox',
+                    id: 'calibrationform',
+                    xtype: 'form',
+                    border: false, frame: false,
                     items: [{
-                        xtype: 'numberfield',
-                        width: 75,
-                        id: 'calibrateleft',
-                        emptyText: 'Left',
-                        hideTrigger: true,
-                        listeners: {
-                            change: this.plotTask,
-                            scope: this
-                        }
-                    },{
-                        xtype: 'splitter'
-                    },{
-                        xtype: 'numberfield',
-                        width: 75,
-                        id: 'calibrateright',
-                        emptyText: 'Right',
-                        hideTrigger: true,
-                        listeners: {
-                            change: this.plotTask,
-                            scope: this
-                        }
-                    },{
-                        xtype: 'splitter'
-                    },{
-                        xtype: 'numberfield',
-                        width: 75,
-                        emptyText: 'Bottom',
-                        hideTrigger: true
-                    },{
-                        xtype: 'splitter'
-                    },{
-                        xtype: 'numberfield',
-                        width: 75,
-                        emptyText: 'Top',
-                        hideTrigger: true
-                    }],
-                    scope: this
+                        xtype: 'fieldcontainer',
+                        fieldLabel: 'Bounds',
+                        layout: 'hbox',
+                        items: [{
+                            xtype: 'numberfield',
+                            width: 75,
+                            id: 'calibrateleft',
+                            emptyText: 'Left',
+                            hideTrigger: true,
+                            listeners: {
+                                change: this.plotTask,
+                                scope: this
+                            }
+                        },{
+                            xtype: 'splitter'
+                        },{
+                            xtype: 'numberfield',
+                            width: 75,
+                            id: 'calibrateright',
+                            emptyText: 'Right',
+                            hideTrigger: true,
+                            listeners: {
+                                change: this.plotTask,
+                                scope: this
+                            }
+                        },{
+                            xtype: 'splitter'
+                        },{
+                            xtype: 'numberfield',
+                            width: 75,
+                            id: 'calibratebottom',
+                            emptyText: 'Bottom',
+                            hideTrigger: true,
+                            listeners: {
+                                change: this.plotTask,
+                                scope: this
+                            }
+                        },{
+                            xtype: 'splitter'
+                        },{
+                            xtype: 'numberfield',
+                            width: 75,
+                            id: 'calibratetop',
+                            emptyText: 'Top',
+                            hideTrigger: true,
+                            listeners: {
+                                change: this.plotTask,
+                                scope: this
+                            }
+                        }],
+                        scope: this
+                    }]
+                },{
+                    xtype: 'box',
+                    id: 'stdplot',
+                    height: '100%',
+                    autoEl: {
+                        tag: 'div'
+                    }
                 }]
-            },{
-                xtype: 'box',
-                id: 'stdplot',
-                height: '100%',
-                autoEl: {
-                    tag: 'div'
-                }
-            }]
-        });
+            });
 
-        this.on('selectsource', this.renderCalibrationStandards, this);
+            this.on('selectsource', function(defs) {
+                this.definitions = defs;
+                this.plotTask();
+            }, this);
+        }
 
-        return panel;
+        return this.standardsdisplay;
     },
 
     requestContent : function(def, callback, scope) {
@@ -538,6 +690,16 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 var useHighlight = (this.highlighted ? true : false), isHighlight = false;
                 var xleft = Ext4.getCmp('calibrateleft').getValue();
                 var xright = Ext4.getCmp('calibrateright').getValue();
+                var bottom = Ext4.getCmp('calibratebottom').getValue();
+                var top = Ext4.getCmp('calibratetop').getValue();
+
+                if (!Ext4.isNumber(bottom)) {
+                    bottom = 0;
+                }
+
+                if (!Ext4.isNumber(top)) {
+                    top = null;
+                }
 
                 if (!xleft) {
                     xleft = 0;
@@ -596,11 +758,12 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                         y: {value: 'mV'}
                     },
                     scales: {
-                        y: { domain: [0, null] }
+                        y: { domain: [bottom, top] }
                     },
                     legendPos: 'none'
                 });
 
+                this.getStandardsDisplay().getEl().unmask();
                 plot.render();
                 this.fireEvent('standardsrendered');
             }
@@ -636,101 +799,86 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                         var conc = parseFloat(Ext4.get(node.select('input[name=concentration').elements[0]).getValue());
                         var xleft = parseFloat(Ext4.get(node.select('input[name=xleft').elements[0]).getValue());
                         var xright = parseFloat(Ext4.get(node.select('input[name=xright').elements[0]).getValue());
+                        var base = parseFloat(Ext4.get(node.select('input[name=base').elements[0]).getValue());
                         model.set('concentration', conc);
                         model.set('xleft', xleft);
                         model.set('xright', xright);
+                        model.set('base', base);
                     }
                 }
-
-                var finish = function() {
-                    var data = []; // final array of points containing conc, peak area
-                    for (var i=0; i < store.getCount(); i++) {
-                        var rec = store.getAt(i);
-                        data.push([rec.get('concentration'), rec.get('auc')]);
-                    }
-
-                    var doRegression = function(x, terms) {
-                        var a = 0, exp = 0, term;
-                        for (var i = 0; i < terms.length;i++) {
-                            term = terms[i];
-                            a += term * Math.pow(x, exp);
-                            exp++;
-                        }
-                        return a;
-                    };
-
-                    var stdError = function(data, terms) {
-                        var  r = 0;
-                        var  n = data.length;
-                        if (n > 2) {
-                            var a = 0, xy;
-                            for (var i = 0;i < data.length;i++) {
-                                xy = data[i];
-                                a += Math.pow((doRegression(xy[0], terms) - xy[1]), 2);
-                            }
-                            r = Math.sqrt(a / (n - 2));
-                        }
-                        return r;
-                    };
-
-                    var R = regression('polynomial', data, 2);
-                    var eq = R.equation;
-                    R.stdError = stdError(data, eq);
-
-                    var getY = function(x) { return (eq[2] * Math.pow(x, 2)) + (eq[1] * x) + eq[0]; };
-
-                    var pointLayer = new LABKEY.vis.Layer({
-                        data: data,
-                        aes: {
-                            x: function(r) { return r[0]; },
-                            y: function(r) { return r[1]; }
-                        },
-                        geom: new LABKEY.vis.Geom.Point({
-                            size: 2,
-                            color: '#FF0000'
-                        })
-                    });
-
-                    var pathLayer = new LABKEY.vis.Layer({
-                        geom: new LABKEY.vis.Geom.Path({
-                            color: '#0000FF'
-                        }),
-                        data: LABKEY.vis.Stat.fn(getY, 100, 1, 100),
-                        aes: {x: 'x', y: 'y'}
-                    });
-
-                    me.clearCalibrationCurve();
-
-                    var plot = new LABKEY.vis.Plot({
-                        renderTo: 'stdcurveplot',
-                        rendererType: 'd3',
-                        width: 400,
-                        height: 250,
-                        clipRect: false,
-                        labels: {
-                            main: {value: R.string},
-                            x: {value: 'Concentration (µg/ml)'},
-                            y: {value: 'Response (mV.s)'}
-                        },
-                        layers: [ pointLayer, pathLayer ],
-                        legendPos: 'none'
-                    });
-
-                    plot.render();
-                };
 
                 //
                 // All models are updated
                 //
-                for (n=0; n < store.getCount(); n++) {
-                    var model = store.getAt(n);
-                    var fname = model.get('expDataRun').name;
-                    var data = LABKEY.hplc.QualityControl.getData(contentMap[fname], model.get('xleft'), model.get('xright'));
-                    var aucPeak = LABKEY.hplc.QualityControl.getAUC(data, 0);
-                    model.set('auc', aucPeak.auc);
-                    model.set('peakMax', aucPeak.peakMax);
+                var data, n, m, fname, count = store.getCount();
+                for (n=0; n < count; n++) {
+                    m = store.getAt(n);
+                    fname = m.get('expDataRun').name;
+                    data = LABKEY.hplc.QualityControl.getData(contentMap[fname], m.get('xleft'), m.get('xright'));
+                    var aucPeak = LABKEY.hplc.Stats.getAUC(data, m.get('base'));
+                    m.set('auc', aucPeak.auc);
+                    m.set('peakMax', aucPeak.peakMax);
                 }
-                finish();
+
+                data = []; // final array of points containing conc, peak area
+                for (n=0; n < count; n++) {
+                    var rec = store.getAt(n);
+                    data.push([rec.get('concentration'), rec.get('auc')]);
+                }
+
+                var R = LABKEY.hplc.Stats.getPolynomialRegression(data);
+                var eq = R.equation;
+                R.reverseString = 'y = ' + eq[0].toFixed(2) + ' + ' + eq[1].toFixed(2) + 'x ';
+                R.reverseString += (eq[2] < 0 ? '- ' : '+ ');
+                R.reverseString += Math.abs(eq[2].toFixed(2)) + 'x²';
+
+                Ext4.getCmp('standardrsquared').setValue(R.rSquared);
+                RR = R;
+                var getY = function(x) { return (eq[2] * Math.pow(x, 2)) + (eq[1] * x) + eq[0]; };
+
+                var pointLayer = new LABKEY.vis.Layer({
+                    data: data,
+                    aes: {
+                        x: function(r) { return r[0]; },
+                        y: function(r) { return r[1]; }
+                    },
+                    geom: new LABKEY.vis.Geom.Point({
+                        size: 2,
+                        color: '#FF0000'
+                    })
+                });
+
+                var pathLayer = new LABKEY.vis.Layer({
+                    geom: new LABKEY.vis.Geom.Path({
+                        color: '#0000FF'
+                    }),
+                    data: LABKEY.vis.Stat.fn(getY, 100, 1, 100),
+                    aes: {x: 'x', y: 'y'}
+                });
+
+                me.clearCalibrationCurve();
+
+                var plot = new LABKEY.vis.Plot({
+                    renderTo: 'stdcurveplot',
+                    rendererType: 'd3',
+                    width: 400,
+                    height: 250,
+                    clipRect: false,
+                    labels: {
+                        main: {value: R.reverseString},
+                        x: {value: 'Concentration (µg/ml)'},
+                        y: {value: 'Response (mV.s)'}
+                    },
+                    layers: [ pointLayer, pathLayer ],
+                    legendPos: 'none',
+                    scales: {
+                        x: { domain: [0, null] },
+                        y: { domain: [0, null] }
+                    }
+                });
+
+                plot.render();
+                me.fireEvent('calibration', R);
             }
         };
 

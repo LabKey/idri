@@ -5,8 +5,8 @@
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
         <exp:Label>Lot Number</exp:Label>
         <exp:FK>
-            <exp:Schema>Study</exp:Schema>    <!-- Should be changed to support Study lookup -->
-            <exp:Query>Formulation</exp:Query>
+            <exp:Schema>Samples</exp:Schema>    <!-- Should be changed to support Study lookup -->
+            <exp:Query>Formulations</exp:Query>
         </exp:FK>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
@@ -14,19 +14,56 @@
         <exp:Required>false</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
         <exp:Label>Storage Temperature</exp:Label>
+        <exp:FK>
+            <exp:Schema>Lists</exp:Schema>
+            <exp:Query>Temperatures</exp:Query>
+        </exp:FK>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
         <exp:Name>Time</exp:Name>  <!-- Lookup to timepoint (or visit) OR actual date OR amount of time run took -->
         <exp:Required>false</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
         <exp:FK>
-            <exp:Schema>Study</exp:Schema>    <!-- Should be changed to support Study lookup -->
-            <exp:Query>Visit</exp:Query>
+            <exp:Schema>Lists</exp:Schema>
+            <exp:Query>Timepoints</exp:Query>
         </exp:FK>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
-        <exp:Name>Method</exp:Name>
-        <exp:Required>false</exp:Required>
-        <exp:RangeURI>http://cpas.fhcrc.org/exp/xml#fileLink</exp:RangeURI>
+        <exp:Name>CompoundNumber</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Compound</exp:Label>
+        <exp:FK>
+            <exp:Schema>Samples</exp:Schema>
+            <exp:Query>Compounds</exp:Query>
+        </exp:FK>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>StandardInstance</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+        <exp:Label>Linked Standard</exp:Label>
+        <exp:FK>
+            <exp:Schema>Lists</exp:Schema>
+            <exp:Query>HPLCStandard</exp:Query>
+        </exp:FK>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>RunDate</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#dateTime</exp:RangeURI>
+        <exp:Label>Run Date</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Concentration</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+        <exp:Label>Average Concentration</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>StandardDeviation</exp:Name>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+        <exp:Label>Standard Deviation</exp:Label>
     </exp:PropertyDescriptor>
 </ap:domain>

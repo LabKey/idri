@@ -14,11 +14,80 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
             west: 20,
             north: 10,
             south: -10,
-            east: -20
+            east: 20
         }
     },
 
+    border: false,
+
+    statics: {
+        formStore: undefined,
+        compoundStore: undefined,
+        timeStore: undefined,
+        tempStore: undefined,
+        getTempStore : function() {
+            if (!LABKEY.hplc.SampleCreator.tempStore) {
+
+                LABKEY.hplc.SampleCreator.tempStore = Ext4.create('LABKEY.ext4.data.Store', {
+                    schemaName: 'Lists',
+                    queryName: 'Temperatures'
+                });
+
+                // doesn't currently work as the return value is of type string
+//                LABKEY.hplc.SampleCreator.tempStore.on('load', function(s) {
+//                    s.sort('temperature', 'ASC');
+//                }, this, {single: true});
+
+                LABKEY.hplc.SampleCreator.tempStore.load();
+            }
+            return LABKEY.hplc.SampleCreator.tempStore;
+        },
+        getTimeStore : function() {
+            if (!LABKEY.hplc.SampleCreator.timeStore) {
+                LABKEY.hplc.SampleCreator.timeStore = Ext4.create('LABKEY.ext4.data.Store', {
+                    schemaName: 'Lists',
+                    queryName: 'Timepoints'
+                });
+
+                LABKEY.hplc.SampleCreator.timeStore.on('load', function(s) {
+                    s.sort('sort', 'ASC');
+                }, this, {single: true});
+
+                LABKEY.hplc.SampleCreator.timeStore.load();
+            }
+            return LABKEY.hplc.SampleCreator.timeStore;
+        },
+        getCompoundsStore : function() {
+            if (!LABKEY.hplc.SampleCreator.compoundStore) {
+                LABKEY.hplc.SampleCreator.compoundStore = Ext4.create('LABKEY.ext4.data.Store', {
+                    schemaName: 'Samples',
+                    queryName: 'Compounds'
+                });
+                LABKEY.hplc.SampleCreator.compoundStore.load();
+            }
+            return LABKEY.hplc.SampleCreator.compoundStore;
+        },
+        getFormulationStore : function() {
+            if (!LABKEY.hplc.SampleCreator.formStore) {
+                LABKEY.hplc.SampleCreator.formStore = Ext4.create('LABKEY.ext4.data.Store', {
+                    schemaName: 'Samples',
+                    queryName: 'Formulations'
+                });
+                LABKEY.hplc.SampleCreator.formStore.load();
+            }
+            return LABKEY.hplc.SampleCreator.formStore;
+        }
+    },
+
+    constructor : function(config) {
+        this.callParent([config]);
+
+        this.addEvents('computedconcentration');
+    },
+
     initComponent: function() {
+
+        SS = this;
 
         this.items = [
             this.getWest(),
@@ -47,40 +116,27 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         if (!this.westpanel) {
             this.westpanel = Ext4.create('Ext.panel.Panel', {
                 region: 'west',
-                width: 230,
                 title: 'Available Inputs',
+                header: false,
+                width: 250,
+                border: false, frame: false,
+                style: 'border-right: 1px solid lightgrey; overflow-x: hidden; overflow-y: auto;',
+                bodyStyle: 'overflow-y: auto;',
                 items: [{
+                    itemId: 'inputsgrid',
                     xtype: 'grid',
-                    autoScroll: true,
                     store: {
                         xtype: 'store',
                         model: 'LABKEY.hplc.ProvisionalRun',
                         data: this.context.rawInputs
                     },
                     columns: [
-                        {text: 'Inputs', dataIndex: 'name', flex: 1}
+                        {text: 'Inputs', dataIndex: 'name', width: 205}
                     ],
                     selModel: {
                         selType: 'checkboxmodel',
                         mode: 'MULTI'
                     },
-                    dockedItems: [{
-                        xtype: 'toolbar',
-                        dock: 'top',
-                        items: [{
-                            id: 'startqcbtn',
-                            text: 'Start QC',
-                            disabled: true,
-                            handler: function(b) {
-                                this.fireEvent('startqc', b.up('grid').getSelectionModel().getSelection());
-                            },
-                            scope: this
-                        },{
-                            text: 'Define Standards',
-                            handler: function() { this.fireEvent('requeststandards'); },
-                            scope: this
-                        }]
-                    }],
                     hideHeaders: true,
                     listeners: {
                         viewready : function(g) {
@@ -104,10 +160,30 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         scope: this
                     }
                 }],
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'top',
+                    items: [{
+                        id: 'startqcbtn',
+                        text: 'Start QC',
+                        disabled: true,
+                        handler: function(b) {
+                            this.fireEvent('startqc', b.up('panel').getComponent('inputsgrid').getSelectionModel().getSelection());
+                        },
+                        scope: this
+                    },{
+                        text: 'Define Standards',
+                        handler: function() { this.fireEvent('requeststandards'); },
+                        scope: this
+                    }]
+                }],
                 scope: this
             });
 
-            this.on('startqc', function() { this.westpanel.collapse(); }, this);
+            this.on('startqc', function() {
+                this.updateZoom(0, 30, 0, 1200);
+                this.westpanel.collapse();
+            }, this);
         }
 
         return this.westpanel;
@@ -118,38 +194,125 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         if (!this.northpanel) {
             this.northpanel = Ext4.create('Ext.panel.Panel', {
                 region: 'north',
-                height: 200,
-                layout: 'column',
+                height: 240,
                 items: [{
                     xtype: 'panel',
                     columnWidth: 0.5,
                     border: false, frame: false,
                     items: [{
+                        id: 'sampleform',
                         itemId: 'sampleform',
                         xtype: 'form',
                         border: false, frame: false,
                         padding: '15 10',
+                        fieldDefaults: {
+                            labelWidth: 150
+                        },
                         items: [{
-                            xtype: 'textfield',
-                            id: 'samplename',
-                            fieldLabel: 'Sample Name',
+                            xtype: 'datefield',
+                            id: 'rundate',
+                            fieldLabel: 'Run Time',
+                            name: 'rundate',
+                            width: 400
+                        },{
+                            xtype: 'combobox',
+                            id: 'compoundlist',
+                            fieldLabel: 'Compound',
+                            name: 'compoundrowid',
+                            store: LABKEY.hplc.SampleCreator.getCompoundsStore(),
+                            displayField: 'Name',
+                            valueField: 'RowId',
+                            typeAhead: true,
+                            validateOnBlur: false,
+                            allowBlank: false,
                             width: 400
                         },{
                             xtype: 'combobox',
                             id: 'standardslist',
                             fieldLabel: 'Standard',
+                            name: 'standardrowid',
                             store: LABKEY.hplc.StandardCreator.getStandardsStore(this.context),
                             displayField: 'Name',
                             valueField: 'Key',
-                            editable: false,
+                            typeAhead: true,
+                            validateOnBlur: false,
+                            allowBlank: false,
                             width: 400
+                        },{
+                            xtype: 'fieldcontainer',
+                            fieldLabel: 'Formulation',
+                            layout: 'hbox',
+                            width: 550,
+                            items: [{
+                                xtype: 'combobox',
+                                id: 'formulationlist',
+//                                fieldLabel: 'Formulation',
+                                emptyText: 'Formulation',
+                                name: 'formulationrowid',
+                                store: LABKEY.hplc.SampleCreator.getFormulationStore(),
+                                typeAhead: true,
+                                validateOnBlur: false,
+                                allowBlank: false,
+                                displayField: 'Name',
+                                valueField: 'RowId',
+                                width: 120
+                            },{
+                                xtype: 'splitter'
+                            },{
+                                xtype: 'combobox',
+                                id: 'temperaturelist',
+                                emptyText: 'Temperature',
+                                name: 'temperature',
+                                store: LABKEY.hplc.SampleCreator.getTempStore(),
+                                displayField: 'temperature',
+                                valueField: 'temperature',
+                                typeAhead: true,
+                                validateOnBlur: false,
+                                allowBlank: false,
+                                width: 120
+                            },{
+                                xtype: 'splitter'
+                            },{
+                                xtype: 'combobox',
+                                id: 'timelist',
+                                emptyText: 'Timepoint',
+                                name: 'timepoint',
+                                store: LABKEY.hplc.SampleCreator.getTimeStore(),
+                                displayField: 'time',
+                                valueField: 'time',
+                                typeAhead: true,
+                                validateOnBlur: false,
+                                allowBlank: false,
+                                width: 120
+                            }]
+                        },{
+                            id: 'avgconcfield',
+                            xtype: 'numberfield',
+                            editable: false,
+                            hideTrigger: true,
+                            allowBlank: false,
+                            validateOnBlur: false,
+                            emptyText: 'autofilled',
+                            name: 'avgconc',
+                            fieldLabel: 'Average Concentration'
+                        },{
+                            id: 'stddevfield',
+                            xtype: 'numberfield',
+                            editable: false,
+                            hideTrigger: true,
+                            allowBlank: false,
+                            validateOnBlur: false,
+                            emptyText: 'autofilled',
+                            name: 'stddev',
+                            fieldLabel: 'Standard Deviation'
                         },{
                             xtype: 'fieldcontainer',
                             fieldLabel: 'Curve Area',
                             layout: 'hbox',
-                            width: 400,
+                            width: 300,
                             items: [{
                                 id: 'aucleft',
+                                name: 'aucleft',
                                 xtype: 'numberfield',
                                 hideTrigger: true,
                                 emptyText: 'left',
@@ -165,6 +328,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                 xtype: 'splitter'
                             },{
                                 id: 'aucright',
+                                name: 'aucright',
                                 xtype: 'numberfield',
                                 hideTrigger: true,
                                 emptyText: 'right',
@@ -181,7 +345,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                             xtype: 'fieldcontainer',
                             fieldLabel: 'mV Range',
                             layout: 'hbox',
-                            width: 400,
+                            width: 300,
                             items: [{
                                 id: 'mvrangelow',
                                 xtype: 'numberfield',
@@ -213,46 +377,8 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                             }]
                         }]
                     }]
-//                    },{
-//                        xtype: 'button',
-//                        text: 'Standard Curve',
-//                        margin: '0 10',
-//                        handler: this.displayStandardCurve,
-//                        scope: this
-//                    },{
-//                        xtype: 'button',
-//                        text: 'AUC',
-//                        margin: '0 10',
-//                        handler: function() {
-//                            var left = Ext4.getCmp('aucleft').getValue();
-//                            var right = Ext4.getCmp('aucright').getValue();
-//                            var data = LABKEY.hplc.QualityControl.getData(this.datacontent, left, right);
-//                            var aucPeak = LABKEY.hplc.QualityControl.getAUC(data);
-//                        },
-//                        scope: this
-//                    }]
-                },{
-                    xtype: 'box',
-                    id: 'stdcurveplot',
-                    autoEl: {
-                        tag: 'div'
-                    }
                 }]
             });
-
-            //
-            // Update the Form
-            //
-//            this.on('inputchange', function(model) {
-//
-//                var form = this.northpanel.getComponent('sampleform');
-//                if (form) {
-//                    form.getForm().setValues({
-//                        samplename: model.get('name'),
-//                        standardslist: ''
-//                    });
-//                }
-//            }, this);
 
             this.on('standardchange', function(standards) {
 
@@ -268,8 +394,60 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                     });
                 }
             }, this);
+
+            this.on('startqc', function(runs) {
+                if (runs.length > 0) {
+                    //
+                    // build a valid date
+                    //
+                    var path = runs[0].get('filePath');
+                    if (path) {
+                        path = path.split('/');
+                        var folder = path[path.length-2];
+                        if (folder.indexOf('20') == 0) {
+                            folder = folder.split('_');
+                            var date = new Date('' + folder[0] + "-" + folder[1] + "-" + folder[2]);
+                            date.setHours(parseInt(folder[3]));
+                            date.setMinutes(parseInt(folder[4]));
+                            date.setSeconds(parseInt(folder[5]));
+                            Ext4.getCmp('rundate').setValue(date);
+                        }
+                    }
+                }
+            }, this);
+
+//            this.on('computedconcentration', function(store) {
+//
+//                var concs = [];
+//                var count = store.getCount(), sample;
+//                for (var i=0; i < count; i++) {
+//                    sample = store.getAt(i);
+//
+//                    //
+//                    // Only look at included samples
+//                    //
+//                    if (sample.get('include') === true) {
+//                        concs.push(sample.get('auc'));
+//                    }
+//                }
+//
+//                var mean = 0; var deviation = 0;
+//                if (concs.length > 0) {
+//                    var computed = LABKEY.hplc.Stats.average(concs);
+//                    mean = computed.mean;
+//                    deviation = computed.deviation;
+//                }
+//
+//                Ext4.getCmp('avgconcfield').setValue(mean);
+//                Ext4.getCmp('stddevfield').setValue(deviation);
+//
+//            }, this);
         }
         return this.northpanel;
+    },
+
+    getQCForm : function() {
+        return Ext4.getCmp('sampleform');
     },
 
     getCenter : function() {
@@ -278,12 +456,33 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
             this.centerpanel = Ext4.create('Ext.panel.Panel', {
                 region: 'center',
                 border: false, frame: false,
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'top',
+                    items: [{
+                        text: 'Reset Zoom',
+                        handler: function() {
+                            this.updateZoom(0, 30, 0, 1200);
+                        },
+                        scope: this
+                    },'->',{
+                        text: 'Submit Analysis',
+                        handler: this.saveQC,
+                        scope: this
+                    }]
+                }],
                 items: [{
-                    xtype: 'box',
                     id: 'plotarea',
-                    height: '100%',
-                    autoEl: {
-                        tag: 'div'
+                    xtype: 'spectrum',
+                    xLabel: 'Time (m)',
+                    yLabel: 'mV',
+                    leftBoundField: 'aucleft',
+                    rightBoundField: 'aucright',
+                    lowBoundField: 'mvrangelow',
+                    highBoundField: 'mvrangehigh',
+                    listeners: {
+                        zoom: this.updateZoom,
+                        scope: this
                     }
                 }]
             });
@@ -322,6 +521,72 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         return this.centerpanel;
     },
 
+    saveQC : function() {
+        if (this.getQCForm().isValid()) {
+            this.saveToAssay(this.getQCForm().getForm());
+        }
+        else {
+            Ext4.defer(function() {
+                this.getForm().clearInvalid();
+            }, 3000, this.getQCForm());
+        }
+    },
+
+    saveToAssay : function(form) {
+        //
+        // Load the target QC assay batch
+        //
+        LABKEY.Experiment.loadBatch({
+            assayId: this.context.HPLCDefinition.id,
+            success: function(batch) {
+
+                var values = form.getValues();
+                var run = new LABKEY.Exp.Run();
+
+                var formStore = LABKEY.hplc.SampleCreator.getFormulationStore();
+                var formIdx = formStore.findExact('RowId', parseInt(values['formulationrowid']));
+                var formulationName = formStore.getAt(formIdx).get('Name');
+
+                run.name = formulationName;
+
+                //
+                // Set the run properties
+                //
+                run.properties = {
+                    //
+                    // Lookups
+                    //
+                    "LotNumber": values['formulationrowid'],
+                    "CompoundNumber": values['compoundrowid'],
+                    "StandardInstance": values['standardrowid'],
+                    "StorageTemperature": values['temperature'],
+                    "Time": values['timepoint'],
+
+                    //
+                    // Values
+                    //
+                    "RunDate": values['rundate'], //new Date(values['rundate']),
+                    "Concentration": parseFloat(values['avgconc']),
+                    "StandardDeviation": parseFloat(values['stddev'])
+                };
+
+                batch.runs.push(run);
+
+                LABKEY.Experiment.saveBatch({
+                    assayId: this.context.HPLCDefinition.id,
+                    batch: batch,
+                    success: function(b, r) {
+                        alert('Saved the Batch');
+                    },
+                    failure: function(r) {
+                        alert('Failed to Save batch');
+                    }
+                });
+            },
+            scope: this
+        });
+    },
+
     getQCPane : function(model) {
         var qcPane = Ext4.create('Ext.panel.Panel', {
             hideHeader: true,
@@ -358,7 +623,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                     var r = field.up('fieldcontainer').getComponent('xright').getValue();
                                     if (r && r > l) {
                                         var data = LABKEY.hplc.QualityControl.getData(this.contentMap[model.get('name')+'.'+model.get('fileExt')], l, r);
-                                        var aucPeak = LABKEY.hplc.QualityControl.getAUC(data, 0);
+                                        var aucPeak = LABKEY.hplc.Stats.getAUC(data, 29);
                                         field.up('form').getComponent('aucfield').setValue(aucPeak.auc);
                                         field.up('form').getComponent('peakfield').setValue(aucPeak.peakMax);
 
@@ -385,7 +650,6 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                                 var bottom = 2*a;
                                                 var xpos = (negB + sqrtInner) / bottom;
                                                 var xneg = (negB - sqrtInner) / bottom;
-                                                console.log('conc:', xpos, xneg);
                                             }
                                         }
                                     }
@@ -407,7 +671,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                     var r = value;
                                     if (l && r > l) {
                                         var data = LABKEY.hplc.QualityControl.getData(this.contentMap[model.get('name')+'.'+model.get('fileExt')], l, r);
-                                        var aucPeak = LABKEY.hplc.QualityControl.getAUC(data, 0);
+                                        var aucPeak = LABKEY.hplc.Stats.getAUC(data, 29);
                                         field.up('form').getComponent('aucfield').setValue(aucPeak.auc);
                                         field.up('form').getComponent('peakfield').setValue(aucPeak.peakMax);
 
@@ -434,7 +698,6 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                                 var bottom = 2*a;
                                                 var xpos = (negB + sqrtInner) / bottom;
                                                 var xneg = (negB - sqrtInner) / bottom;
-                                                console.log('conc:', xpos, xneg);
                                             }
                                         }
                                     }
@@ -461,115 +724,242 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         return qcPane;
     },
 
+    getSampleFormView : function() {
+        return Ext4.getCmp('sampleformview');
+    },
+
     getEast : function() {
 
         if (!this.eastpanel) {
+
+            var view = Ext4.create('Ext.view.View', {
+                id: 'sampleformview',
+                store: {
+                    xtype: 'store',
+                    model: 'LABKEY.hplc.Sample'
+                },
+                itemSelector: 'tr.item',
+                autoScroll: true,
+                tpl: new Ext4.XTemplate(
+                    '<table style="width: 100%;">',
+                        '<tr>',
+                            '<th style="text-align: left;">Name</th>',
+                            '<th style="text-align: left;">Left</th>',
+                            '<th style="text-align: left;">Right</th>',
+                            '<th style="text-align: left;">Base</th>',
+                            '<th style="text-align: left;">Include</th>',
+                            '<th style="text-align: left;">Response</th>',
+                        '</tr>',
+                        '<tpl for=".">',
+                            '<tr class="item" modelname="{name}">',
+                                '<td>{name}</td>',
+                                '<td><input value="{xleft}" placeholder="xleft" name="xleft" style="width: 40px;"/></td>',
+                                '<td><input value="{xright}" placeholder="xright" name="xright" style="width: 40px;"/></td>',
+                                '<td><input value="{base}" name="base" style="width: 40px;"/></td>',
+                                '<td><input value="{include}" name="include" type="checkbox" checked="checked"/></td>',
+                                '<td><span name="response">{peakResponse}</span></td>',
+                            '</tr>',
+                        '</tpl>',
+                    '</table>'
+                ),
+                listeners: {
+                    itemclick: function(x,y,z,a,evt) {
+                        // for some reason, focus is not maintained even after a user clicks an input
+                        Ext4.defer(function() { Ext4.get(evt.target).dom.focus(); }, 50);
+                    },
+                    select: this.bindCalc,
+                    scope: this
+                }
+            });
+
             this.eastpanel = Ext4.create('Ext.panel.Panel', {
                 title: 'QC Results',
                 region: 'east',
                 autoScroll: true,
-                width: 300,
+                width: 400,
                 layout: {
                     type: 'vbox',
                     align: 'stretch'
                 },
-                items: []
+                items: [view],
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'top',
+                    items: [{
+                        text: 'Calculate',
+                        handler: this.runAnalysis,
+                        scope: this
+                    }]
+                }]
             });
 
-            this.on('startqc', function(provisionalRuns) {
-                //
-                // clear the current context
-                //
-                this.eastpanel.removeAll();
+            this.on('startqc', function(runs) {
 
-                for (var p=0; p < provisionalRuns.length; p++) {
-                    this.eastpanel.add(this.getQCPane(provisionalRuns[p]));
+                var _runs = [], dups = [], d, r=0;
+                for (; r < runs.length; r++) {
+                    d = Ext4.clone(runs[r].data);
+                    _runs.push(d);
+                    d = Ext4.clone(d);
+                    dups.push(d);
                 }
+
+                this.dupStore = Ext4.create('Ext.data.Store', {
+                    model: 'LABKEY.hplc.Sample'
+                });
+
+                view.getStore().loadData(_runs);
+                this.dupStore.loadData(dups);
+
             }, this);
-
             this.on('curvechange', function(xleft, xright) { this.renderPlot(this.allContent); }, this);
-
             this.on('rangechange', function(low, high) { this.renderPlot(this.allContent); }, this);
         }
 
         return this.eastpanel;
     },
 
-    renderPlot : function(contents) {
+    /**
+     * The intent of this method is to gather all input sample results and compare them against the
+     * selected standard curve.
+     */
+    runAnalysis : function() {
+        var standardStore = LABKEY.hplc.StandardCreator.getStandardsStore(this.context);
 
         //
-        // render the plot
+        // Determine the selected standard
         //
-        var layers = [];
-        var colors = ['#00FE00', '#0100FE', '#FC01FC', '#ff0000'], c=0;
-        var xleft = Ext4.getCmp('aucleft').getValue();
-        var xright = Ext4.getCmp('aucright').getValue();
-        var low = Ext4.getCmp('mvrangelow').getValue();
-        var high = Ext4.getCmp('mvrangehigh').getValue();
+        var standardRowId = this.getQCForm().getValues()['standardrowid'];
 
-        if (!xleft) {
-            xleft = 0;
-        }
-        if (!xright) {
-            xright = 0;
-        }
+        if (Ext4.isNumber(standardRowId)) {
+            var idx = standardStore.findExact('Key', standardRowId);
 
-        for (var i=0; i < contents.length; i++) {
+            var standardModel = standardStore.getAt(idx);
+            var a = standardModel.get('b2');
+            var b = standardModel.get('b1');
+            var c = standardModel.get('b0');
+
             //
-            // create point layer
+            // Get the set of qc results
             //
-            var pointLayer = new LABKEY.vis.Layer({
-                data: LABKEY.hplc.QualityControl.getData(contents[i], xleft, xright, 2),
-                aes: {
-                    x: function(r) { return r[0]; },
-                    y: function(r) { return r[1]; }
-                },
-                geom: new LABKEY.vis.Geom.Path({
-                    color: colors[c%colors.length]
-                })
-            });
-            c++;
+            var resultStore = this.dupStore, concs = [];
+            var rcount = resultStore.getCount(), result;
+            for (var r=0; r < rcount; r++) {
+                result = resultStore.getAt(r);
 
-            layers.push(pointLayer);
-        }
+                if (result.get('include') === true) {
 
-        var el = Ext4.get('plotarea');
-        el.update('');
-        var plotbox = el.getBox();
+                    var response = result.get('peakResponse');
 
-        var width = plotbox.width;
-        var height = plotbox.height - 30;
+                    // calculate concentration
+                    var _c = c - response;
 
-        var plot = new LABKEY.vis.Plot({
-            renderTo: 'plotarea',
-            rendererType: 'd3',
-            width: width,
-            height: height,
-            layers: layers,
-            legendPos: 'none',
-            labels: {
-                x: {value: 'Time (m)'},
-                y: {value: 'mV'}
-            },
-            scales: {
-                x: { domain: [xleft, xright] },
-                y: { domain: [low, high] }
+                    //
+                    // quadratic formula
+                    //
+                    var inner = Math.pow(b, 2) - (4 * a * _c);
+                    var sqrtInner = Math.sqrt(inner);
+                    var negB = -1 * b;
+                    var bottom = 2*a;
+
+                    var x_plus = (negB + sqrtInner) / bottom;
+                    var x_minus = (negB - sqrtInner) / bottom;
+
+                    result.set('concentration', x_plus);
+                    console.log('determined value of:', x_plus);
+                    concs.push(x_plus);
+                }
             }
-        });
 
-        plot.render();
+            var mean = 0; var deviation = 0;
+            if (concs.length > 0) {
+                var computed = LABKEY.hplc.Stats.average(concs);
+                mean = computed.mean;
+                deviation = computed.deviation;
+            }
+
+            Ext4.getCmp('avgconcfield').setValue(mean);
+            Ext4.getCmp('stddevfield').setValue(deviation);
+        }
+        else {
+            alert('Please select a standard to base these samples on.');
+        }
     },
 
-    displayStandardCurve : function() {
-        var el = Ext4.get('stdcurveplot');
-        el.update('');
+    bindCalc : function(view, sample) {
+        var modelname = sample.get('name');
 
-        var grid = this.getWest().getComponent('standardgrid');
-        if (grid) {
-            var standards = grid.getSelectionModel().getSelection();
-            for (var i=0; i < standards.length; i++) {
-
+        // clear listeners
+        for (var n in this.nodes) {
+            if (this.nodes.hasOwnProperty(n) && Ext4.isFunction(this.nodes[n].removeAllListeners)) {
+                this.nodes[n].removeAllListeners();
             }
         }
+
+        if (modelname) {
+            var node = Ext4.DomQuery.select('tr[modelname="' + modelname + '"]')[0];
+
+            this.nodes = {
+                sample: sample,
+                leftIn: Ext4.get(Ext4.DomQuery.select('input[name="xleft"]', node)[0]),
+                rightIn: Ext4.get(Ext4.DomQuery.select('input[name="xright"]', node)[0]),
+                baseIn: Ext4.get(Ext4.DomQuery.select('input[name="base"]', node)[0]),
+                include: Ext4.get(Ext4.DomQuery.select('input[name="include"]', node)[0]),
+                responseOut: Ext4.get(Ext4.DomQuery.select('span[name="response"]', node)[0])
+            };
+
+            this.nodes.leftIn.on('keyup', this.updateModels, this);
+            this.nodes.rightIn.on('keyup', this.updateModels, this);
+            this.nodes.baseIn.on('keyup', this.updateModels, this);
+            this.nodes.include.on('click', this.updateModels, this);
+
+            this.updateModels();
+        }
+    },
+
+    updateModels : function() {
+
+        if (!this.computeTask) {
+            this.computeTask = new Ext4.util.DelayedTask(function() {
+
+                var left = parseFloat(this.nodes.leftIn.getValue());
+                var right = parseFloat(this.nodes.rightIn.getValue());
+                var base = parseFloat(this.nodes.baseIn.getValue());
+                var model = this.nodes.sample;
+
+                if (left > 0 && right > 0 && base > -1) {
+                    var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
+                    var data = LABKEY.hplc.QualityControl.getData(fileContent, left, right, false);
+                    var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
+                    this.nodes.responseOut.update(+aucPeak.auc.toFixed(3));
+
+                    var sampleModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
+                    sampleModel.set('xleft', left);
+                    sampleModel.set('xright', right);
+                    sampleModel.set('base', base);
+                    sampleModel.set('auc', aucPeak.auc);
+                    sampleModel.set('peakResponse', aucPeak.auc);
+                    sampleModel.set('peakMax', aucPeak.peakMax);
+                    sampleModel.set('include', this.nodes.include.dom.checked);
+
+                    this.fireEvent('computedconcentration', this.dupStore);
+                }
+
+            }, this);
+        }
+
+        this.computeTask.delay(500);
+    },
+
+    renderPlot : function(contents) { Ext4.getCmp('plotarea').renderPlot(contents); },
+
+    updateZoom : function(l, r, b, t) {
+        var leftCmp = Ext4.getCmp('aucleft');
+        var rightCmp = Ext4.getCmp('aucright');
+        var mvLowCmp = Ext4.getCmp('mvrangelow');
+        var mvHighCmp = Ext4.getCmp('mvrangehigh');
+        leftCmp.setValue(l);
+        rightCmp.setValue(r);
+        mvLowCmp.setValue(b);
+        mvHighCmp.setValue(t);
     }
 });

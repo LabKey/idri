@@ -142,7 +142,7 @@ public class FormulationsTest extends BaseWebDriverTest
         validateVisualAssayData();
 
         defineProvisionalHPLCAssay();
-        defineHPLCAssay();
+//        defineHPLCAssay();
 //        uploadHPLCAssayData();
 //        validateHPLCAssayData();
     }

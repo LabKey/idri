@@ -31,7 +31,7 @@ Ext4.define('LABKEY.hplc.StandardSource', {
         {name: 'standard', type: 'int'}, // lookup to Standard.key
         {name: 'name'},
         {name: 'concentration', type: 'float'},
-        {name: 'xleft', type: 'float'},
+        {name: 'xleft', type: 'float', defaultValue: ''},
         {name: 'xright', type: 'float'},
         {name: 'base', type: 'float'},
         {name: 'auc', type: 'float'},
@@ -40,5 +40,13 @@ Ext4.define('LABKEY.hplc.StandardSource', {
         {name: 'filePath'},
         {name: 'fileName'},
         {name: 'fileExt'}
+    ]
+});
+
+Ext4.define('LABKEY.hplc.Sample', {
+    extend: 'LABKEY.hplc.StandardSource',
+
+    fields: [
+        {name: 'include', type: 'boolean'}
     ]
 });

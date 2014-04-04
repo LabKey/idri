@@ -6,12 +6,6 @@
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
-        <exp:Name>Sample</exp:Name>
-        <exp:Required>false</exp:Required>
-        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
-        <exp:Label>Related Sample</exp:Label>
-    </exp:PropertyDescriptor>
-    <exp:PropertyDescriptor>
         <exp:Name>Dilution</exp:Name>
         <exp:Required>false</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
@@ -23,30 +17,29 @@
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
-        <exp:Name>TestType</exp:Name>
-        <exp:Description>'SMP' for samples, 'STD' for standards</exp:Description>
-        <exp:Required>true</exp:Required>
-        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
-        <exp:Label>Type</exp:Label>
-    </exp:PropertyDescriptor>
-    <exp:PropertyDescriptor>
-        <exp:Name>Compound</exp:Name>
-        <exp:Required>false</exp:Required>
-        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
-        <exp:Label>Standard Compound</exp:Label>
-        <exp:FK>
-            <exp:Schema>Samples</exp:Schema>
-            <exp:Query>Compounds</exp:Query>
-        </exp:FK>
-    </exp:PropertyDescriptor>
-    <exp:PropertyDescriptor>
         <exp:Name>Concentration</exp:Name>
+        <exp:Required>true</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
         <exp:Label>Compound Concentration</exp:Label>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
+        <exp:Name>Xleft</exp:Name>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+        <exp:Label>Left Bound</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Xright</exp:Name>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+        <exp:Label>Right Bound</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
+        <exp:Name>Base</exp:Name>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+        <exp:Label>Baseline</exp:Label>
+    </exp:PropertyDescriptor>
+    <exp:PropertyDescriptor>
         <exp:Name>FilePath</exp:Name>
-        <exp:Required>true</exp:Required>
+        <exp:Required>false</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
         <!-- http://cpas.fhcrc.org/exp/xml#fileLink -->
     </exp:PropertyDescriptor>

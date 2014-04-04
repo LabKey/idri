@@ -3,6 +3,103 @@
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
+Ext4.define('LABKEY.hplc.Stats', {
+    statics: {
+        getAUC : function(data, ybase) {
+            //
+            // Calculate AUC
+            //
+            var sum = 0.0, area = 0.0, peakMax = 0.0;
+            var x1, x0, y1, y0, i;
+
+            for (i=1; i < data.length; i++) {
+                x0 = data[i-1][0] * 60;
+                x1 = data[i][0] * 60;
+                y0 = data[i-1][1] - ybase;
+                y1 = data[i][1] - ybase;
+
+                // only work above the baseline
+                if (y0 >= 0 && y1 >= 0) {
+                    peakMax = Math.max(y0, peakMax);
+                    area = ((y1 + y0) / 2) * (x1 - x0);
+                    sum += area;
+                }
+            }
+
+            return {
+                'auc': sum,
+                'peakMax': peakMax
+            };
+        },
+        /**
+         * This method utilizes the regression methods provided by
+         * http://tom-alexander.github.com/regression-js/
+         * This library is loaded on the page and provided under window.regression
+         * @param points
+         * @returns {*}
+         */
+        getPolynomialRegression : function(points) {
+
+            var doRegression = function(x, terms) {
+                var a = 0, exp = 0, term;
+                for (var i = 0; i < terms.length;i++) {
+                    term = terms[i];
+                    a += term * Math.pow(x, exp);
+                    exp++;
+                }
+                return a;
+            };
+
+            var CC = function(data, terms) {
+                var r = 0;
+                var n = data.length;
+                var sx = 0;
+                var sx2 = 0, sy = 0, sy2 = 0, sxy = 0;
+                var x, y, xy, i=0, m;
+                for (;i < n; i++) {
+                    xy = data[i];
+                    x = doRegression(xy[0], terms);
+                    y = xy[1];
+                    sx += x; sy += y;
+                    m = x * y;
+                    sxy += m; sx2 += m; sy2 += m;
+                }
+                var div = Math.sqrt((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n));
+                if (div != 0) {
+                    r = Math.pow((sxy - (sx * sy) / n) / div, 2);
+                }
+                return r;
+            };
+
+            var stdError = function(data, terms) {
+                var  r = 0;
+                var  n = data.length;
+                if (n > 2) {
+                    var a = 0, xy;
+                    for (var i = 0;i < data.length;i++) {
+                        xy = data[i];
+                        a += Math.pow((doRegression(xy[0], terms) - xy[1]), 2);
+                    }
+                    r = Math.sqrt(a / (n - 2));
+                }
+                return r;
+            };
+
+            var R = regression('polynomial', points, 2);
+            R.stdError = stdError(Ext4.clone(points), Ext4.clone(R.equation));
+            R.rSquared = CC(Ext4.clone(points), Ext4.clone(R.equation));
+            return R;
+        },
+
+        average : function(a) {
+            var r = {mean: 0, variance: 0, deviation: 0}, t = a.length;
+            for(var m, s = 0, l = t; l--; s += a[l]);
+            for(m = r.mean = s / t, l = t, s = 0; l--; s += Math.pow(a[l] - m, 2));
+            return r.deviation = Math.sqrt(r.variance = s / t), r;
+        }
+    }
+});
+
 Ext4.define('LABKEY.hplc.QualityControl', {
     extend: 'Ext.panel.Panel',
 
@@ -34,30 +131,14 @@ Ext4.define('LABKEY.hplc.QualityControl', {
                 });
             }
         },
-//        getAUC : function(data, callback, scope, configs) {
-        getAUC : function(data, ybase) {
-
-            //
-            // Calculate AUC
-            //
-            var sum = 0.0, area = 0.0, peakMax = 0.0;
-            var x1, x0, y1, y0, i;
-
-            for (i=1; i < data.length; i++) {
-                x0 = data[i-1][0] * 60;
-                x1 = data[i][0] * 60;
-                y0 = data[i-1][1] - ybase;
-                y1 = data[i][1] - ybase;
-                peakMax = Math.max(y0, peakMax);
-                area = ((y1 + y0) / 2) * (x1 - x0);
-                sum += area;
-            }
-
-            return {
-                'auc': sum,
-                'peakMax': peakMax
-            };
-        },
+        /**
+         * Retrieves the data from a file response object
+         * @param datacontent
+         * @param xleft
+         * @param xright
+         * @param mod - if not specified it will not be used
+         * @returns {Array}
+         */
         getData : function(datacontent, xleft, xright, mod) {
             var data = [];
             if (datacontent) {
@@ -96,10 +177,6 @@ Ext4.define('LABKEY.hplc.QualityControl', {
                 }
                 else {
                     //
-                    // using modulus
-                    //
-
-                    //
                     // check for bounds
                     //
                     if (xleft == 0 && xright == 0) {
@@ -135,6 +212,8 @@ Ext4.define('LABKEY.hplc.QualityControl', {
     },
 
     initComponent : function() {
+
+        QC = this;
 
         this.items = [];
 
@@ -204,7 +283,7 @@ Ext4.define('LABKEY.hplc.QualityControl', {
                 var me = this;
 
                 var pp = function() {
-                    if (me.Context.pipe && me.Context.AssayDefinition && me.Context.RunDefinition) {
+                    if (me.Context.pipe && me.Context.AssayDefinition && me.Context.RunDefinition && me.Context.HPLCDefinition) {
 
                         //
                         // Load the expected batch/run
@@ -305,6 +384,18 @@ Ext4.define('LABKEY.hplc.QualityControl', {
                     ],
                     success: function(data) {
                         me.Context.RunDefinition = data.rows[0]; // LABKEY.Query.Row
+                        pp();
+                    },
+                    scope: this
+                });
+
+                //
+                // Get the associated HPLC Assay information
+                //
+                LABKEY.Assay.getByType({
+                    type: 'HPLC',
+                    success: function(defs) {
+                        me.Context.HPLCDefinition = defs[0];
                         pp();
                     },
                     scope: this
