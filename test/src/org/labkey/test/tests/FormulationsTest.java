@@ -658,12 +658,12 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Next", 0);
 
         // Replicate sample
-        _extHelper.selectExt4ComboBoxItem(Locator.xpath("//tr[./td/input[@name='replicatechoice']]").index(1), HPLC_SAMPLE1);
+        _ext4Helper.selectComboBoxItem(Locator.xpath("//tr[./td/input[@name='replicatechoice']]").index(1), HPLC_SAMPLE1);
         clickButton("Next", 0);
 
         // Enter standard info
-        _extHelper.selectExt4ComboBoxItem(Locator.xpath("//input[@name='Compound']/../..").index(0), "Alum");
-        _extHelper.selectExt4ComboBoxItem(Locator.xpath("//input[@name='Compound']/../..").index(1), "Squawk");
+        _ext4Helper.selectComboBoxItem(Locator.xpath("//input[@name='Compound']/../..").index(0), "Alum");
+        _ext4Helper.selectComboBoxItem(Locator.xpath("//input[@name='Compound']/../..").index(1), "Squawk");
         setFormElement(Locator.name("Concentration"), "789.01");
         setFormElement(Locator.name("Concentration").index(1), "789.02");
         setFormElement(Locator.xpath("(//input[@name='Diluent'])[3]"), "Not Starch");
