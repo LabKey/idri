@@ -50,25 +50,42 @@ Ext4.define('LABKEY.hplc.Stats', {
                 return a;
             };
 
-            var CC = function(data, terms) {
-                var r = 0;
-                var n = data.length;
-                var sx = 0;
-                var sx2 = 0, sy = 0, sy2 = 0, sxy = 0;
-                var x, y, xy, i=0, m;
-                for (;i < n; i++) {
-                    xy = data[i];
-                    x = doRegression(xy[0], terms);
-                    y = xy[1];
-                    sx += x; sy += y;
-                    m = x * y;
-                    sxy += m; sx2 += m; sy2 += m;
+            var rSquared = function(data, terms) {
+
+                var xs = [], _x;
+                var ys = [], ystar = [], ysum = 0, _y, _yy;
+
+                var sqrdErrorWithLine = [], SESum = 0;
+
+                // apply equation to calculate ystar
+                var getY = function(x) { return (terms[2] * Math.pow(x, 2)) + (terms[1] * x) + terms[0]; };
+
+                for (var d=0; d < data.length; d++) {
+
+                    _x = data[d][0];
+                    _y = data[d][1];
+                    _yy = getY(_x);
+
+                    xs.push(_x);
+                    ys.push(_y);
+                    ystar.push(_yy);
+                    ysum += _y;
+
+                    _y = Math.pow((_y - _yy), 2);
+                    sqrdErrorWithLine.push(_y);
+                    SESum += _y;
                 }
-                var div = Math.sqrt((sx2 - (sx * sx) / n) * (sy2 - (sy * sy) / n));
-                if (div != 0) {
-                    r = Math.pow((sxy - (sx * sy) / n) / div, 2);
+
+                var yavg = (ysum / ys.length), sqrdMeanY = [], meanYSum = 0;
+
+                for (d=0; d < data.length; d++) {
+                    _y = ys[d] - yavg;
+                    _y = Math.pow(_y, 2);
+                    sqrdMeanY.push(_y);
+                    meanYSum += _y;
                 }
-                return r;
+
+                return 1 - (SESum / meanYSum);
             };
 
             var stdError = function(data, terms) {
@@ -87,7 +104,7 @@ Ext4.define('LABKEY.hplc.Stats', {
 
             var R = regression('polynomial', points, 2);
             R.stdError = stdError(Ext4.clone(points), Ext4.clone(R.equation));
-            R.rSquared = CC(Ext4.clone(points), Ext4.clone(R.equation));
+            R.rSquared = rSquared(Ext4.clone(points), Ext4.clone(R.equation));
             return R;
         },
 
@@ -96,6 +113,21 @@ Ext4.define('LABKEY.hplc.Stats', {
             for(var m, s = 0, l = t; l--; s += a[l]);
             for(m = r.mean = s / t, l = t, s = 0; l--; s += Math.pow(a[l] - m, 2));
             return r.deviation = Math.sqrt(r.variance = s / t), r;
+        },
+
+        /**
+         * Quadratic formula returning an array result of two numeric values [x+, x-]
+         */
+        getQuadratic : function(a, b, c) {
+            var inner = Math.pow(b, 2) - (4 * a * c);
+            var sqrtInner = Math.sqrt(inner);
+            var negB = -1 * b;
+            var bottom = 2 * a;
+
+            var x_plus = (negB + sqrtInner) / bottom;
+            var x_minus = (negB - sqrtInner) / bottom;
+
+            return [x_plus, x_minus];
         }
     }
 });

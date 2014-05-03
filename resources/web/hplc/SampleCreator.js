@@ -396,6 +396,12 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
             }, this);
 
             this.on('startqc', function(runs) {
+                //
+                // clear the form fields
+                //
+                this.getQCForm().getForm().reset();
+                Ext4.getCmp('submitactionbtn').setDisabled(true);
+
                 if (runs.length > 0) {
                     //
                     // build a valid date
@@ -415,33 +421,6 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                     }
                 }
             }, this);
-
-//            this.on('computedconcentration', function(store) {
-//
-//                var concs = [];
-//                var count = store.getCount(), sample;
-//                for (var i=0; i < count; i++) {
-//                    sample = store.getAt(i);
-//
-//                    //
-//                    // Only look at included samples
-//                    //
-//                    if (sample.get('include') === true) {
-//                        concs.push(sample.get('auc'));
-//                    }
-//                }
-//
-//                var mean = 0; var deviation = 0;
-//                if (concs.length > 0) {
-//                    var computed = LABKEY.hplc.Stats.average(concs);
-//                    mean = computed.mean;
-//                    deviation = computed.deviation;
-//                }
-//
-//                Ext4.getCmp('avgconcfield').setValue(mean);
-//                Ext4.getCmp('stddevfield').setValue(deviation);
-//
-//            }, this);
         }
         return this.northpanel;
     },
@@ -466,7 +445,9 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         },
                         scope: this
                     },'->',{
+                        id: 'submitactionbtn',
                         text: 'Submit Analysis',
+                        disabled: true,
                         handler: this.saveQC,
                         scope: this
                     }]
@@ -523,6 +504,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
 
     saveQC : function() {
         if (this.getQCForm().isValid()) {
+            this.runAnalysis();
             this.saveToAssay(this.getQCForm().getForm());
         }
         else {
@@ -570,17 +552,66 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                     "StandardDeviation": parseFloat(values['stddev'])
                 };
 
+                //
+                // Set the run.dataRows
+                //
+                var samples = this.dupStore.getRange();
+                var dataRows = [];
+
+                Ext.each(samples, function(sample) {
+                    if (sample.get('include')) {
+                        dataRows.push({
+                            Name: sample.get('name'),
+                            Dilution: 20,
+                            Concentration: sample.get('concentration'),
+                            Xleft: sample.get('xleft'),
+                            XRight: sample.get('xright'),
+                            Base: sample.get('base'),
+                            FilePath: sample.get('expDataRun').pipelinePath
+                        });
+                    }
+                }, this);
+
+                run.dataRows = dataRows;
                 batch.runs.push(run);
 
                 LABKEY.Experiment.saveBatch({
                     assayId: this.context.HPLCDefinition.id,
                     batch: batch,
                     success: function(b, r) {
-                        alert('Saved the Batch');
+
+                        Ext4.Msg.show({
+                            title: 'Saved',
+                            msg: 'HPLC Run saved successfully.',
+                            buttons: Ext.Msg.OK
+                        });
+
+                        this.westpanel.on('expand', function(west) {
+
+                            Ext4.defer(function() {
+                                var selection = this.westpanel.getComponent('inputsgrid');
+                                selection.getSelectionModel().deselectAll();
+                                this.getQCForm().getForm().reset();
+                                Ext4.getCmp('submitactionbtn').setDisabled(true);
+                                this.clearPlot();
+                            }, 200, this);
+
+                        }, this, {single: true});
+
+                        this.westpanel.expand();
+
+                        Ext4.defer(function() {
+                            Ext4.Msg.hide();
+                        }, 2000, this);
                     },
                     failure: function(r) {
-                        alert('Failed to Save batch');
-                    }
+                        Ext4.Msg.show({
+                            title: 'Failed',
+                            msg: 'Failed to save HPLC Run.',
+                            buttons: Ext.Msg.OK
+                        });
+                    },
+                    scope: this
                 });
             },
             scope: this
@@ -789,6 +820,13 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         text: 'Calculate',
                         handler: this.runAnalysis,
                         scope: this
+                    },{
+                        text: 'Clear Highlight',
+                        handler: function() {
+                            this.highlighted = undefined;
+                            this.renderPlot(this.allContent);
+                        },
+                        scope: this
                     }]
                 }]
             });
@@ -853,20 +891,10 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                     // calculate concentration
                     var _c = c - response;
 
-                    //
-                    // quadratic formula
-                    //
-                    var inner = Math.pow(b, 2) - (4 * a * _c);
-                    var sqrtInner = Math.sqrt(inner);
-                    var negB = -1 * b;
-                    var bottom = 2*a;
-
-                    var x_plus = (negB + sqrtInner) / bottom;
-                    var x_minus = (negB - sqrtInner) / bottom;
-
-                    result.set('concentration', x_plus);
-                    console.log('determined value of:', x_plus);
-                    concs.push(x_plus);
+                    var x = LABKEY.hplc.Stats.getQuadratic(a, b, _c);
+                    var nonDiluted = x[0] * 20; // account for dilution ratio
+                    result.set('concentration', nonDiluted);
+                    concs.push(nonDiluted);
                 }
             }
 
@@ -879,6 +907,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
 
             Ext4.getCmp('avgconcfield').setValue(mean);
             Ext4.getCmp('stddevfield').setValue(deviation);
+            Ext4.getCmp('submitactionbtn').setDisabled(false);
         }
         else {
             alert('Please select a standard to base these samples on.');
@@ -889,11 +918,11 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         var modelname = sample.get('name');
 
         // clear listeners
-        for (var n in this.nodes) {
-            if (this.nodes.hasOwnProperty(n) && Ext4.isFunction(this.nodes[n].removeAllListeners)) {
-                this.nodes[n].removeAllListeners();
+        Ext4.iterate(this.nodes, function(node) {
+            if (node && Ext4.isFunction(node.removeAllListeners)) {
+                node.removeAllListeners();
             }
-        }
+        }, this);
 
         if (modelname) {
             var node = Ext4.DomQuery.select('tr[modelname="' + modelname + '"]')[0];
@@ -912,45 +941,60 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
             this.nodes.baseIn.on('keyup', this.updateModels, this);
             this.nodes.include.on('click', this.updateModels, this);
 
+            this.highlighted = sample.get('name') + '.'  + sample.get('fileExt');
+            this.renderPlot(this.allContent);
+
             this.updateModels();
+        }
+    },
+
+    computeCalc : function() {
+        var left = parseFloat(this.nodes.leftIn.getValue());
+        var right = parseFloat(this.nodes.rightIn.getValue());
+        var base = parseFloat(this.nodes.baseIn.getValue());
+        var model = this.nodes.sample;
+
+        if (left > 0 && right > 0 && base > -1) {
+            var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
+            var data = LABKEY.hplc.QualityControl.getData(fileContent, left, right, false);
+            var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
+            this.nodes.responseOut.update(+aucPeak.auc.toFixed(3));
+
+            var sampleModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
+
+            sampleModel.suspendEvents(true);
+            sampleModel.set('xleft', left);
+            sampleModel.set('xright', right);
+            sampleModel.set('base', base);
+            sampleModel.set('auc', aucPeak.auc);
+            sampleModel.set('peakResponse', aucPeak.auc);
+            sampleModel.set('peakMax', aucPeak.peakMax);
+            sampleModel.set('include', this.nodes.include.dom.checked);
+            sampleModel.resumeEvents();
+
+            this.fireEvent('computedconcentration', this.dupStore);
         }
     },
 
     updateModels : function() {
 
-        if (!this.computeTask) {
-            this.computeTask = new Ext4.util.DelayedTask(function() {
-
-                var left = parseFloat(this.nodes.leftIn.getValue());
-                var right = parseFloat(this.nodes.rightIn.getValue());
-                var base = parseFloat(this.nodes.baseIn.getValue());
-                var model = this.nodes.sample;
-
-                if (left > 0 && right > 0 && base > -1) {
-                    var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
-                    var data = LABKEY.hplc.QualityControl.getData(fileContent, left, right, false);
-                    var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
-                    this.nodes.responseOut.update(+aucPeak.auc.toFixed(3));
-
-                    var sampleModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
-                    sampleModel.set('xleft', left);
-                    sampleModel.set('xright', right);
-                    sampleModel.set('base', base);
-                    sampleModel.set('auc', aucPeak.auc);
-                    sampleModel.set('peakResponse', aucPeak.auc);
-                    sampleModel.set('peakMax', aucPeak.peakMax);
-                    sampleModel.set('include', this.nodes.include.dom.checked);
-
-                    this.fireEvent('computedconcentration', this.dupStore);
-                }
-
-            }, this);
-        }
+        if (!this.computeTask) { this.computeTask = new Ext4.util.DelayedTask(this.computeCalc, this); }
 
         this.computeTask.delay(500);
     },
 
-    renderPlot : function(contents) { Ext4.getCmp('plotarea').renderPlot(contents); },
+    renderPlot : function(contents) {
+        var spectrumPlot = Ext4.getCmp('plotarea');
+
+        spectrumPlot.setHighlight(this.highlighted);
+        spectrumPlot.renderPlot(contents);
+
+        this.fireEvent('samplesrendered');
+    },
+
+    clearPlot : function() {
+        Ext4.getCmp('plotarea').clearPlot();
+    },
 
     updateZoom : function(l, r, b, t) {
         var leftCmp = Ext4.getCmp('aucleft');

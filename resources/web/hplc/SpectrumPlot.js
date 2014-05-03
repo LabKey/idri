@@ -31,8 +31,14 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
         tag: 'div'
     },
 
+    highlight: undefined,
+
     initComponent : function() {
         this.callParent();
+    },
+
+    clearPlot : function() {
+        Ext4.get(this.id).update('');
     },
 
     renderPlot : function(contents) {
@@ -51,11 +57,21 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
             xright = 0;
         }
 
-        var c=0;
+        var c=0, isHighlight = false, useHighlight = (this.highlight ? true : false), color;
         for (var i=0; i < contents.length; i++) {
             //
             // create point layer
             //
+            color = colors[c%colors.length];
+
+            if (useHighlight) {
+                isHighlight = (this.highlight === contents[i].fileName);
+
+                if (!isHighlight) {
+                    color = '#A09C9C';
+                }
+            }
+
             var pointLayer = new LABKEY.vis.Layer({
                 data: LABKEY.hplc.QualityControl.getData(contents[i], xleft, xright, 2),
                 aes: {
@@ -63,7 +79,7 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
                     y: function(r) { return r[1]; }
                 },
                 geom: new LABKEY.vis.Geom.Path({
-                    color: colors[c%colors.length]
+                    color: color
                 })
             });
             c++;
@@ -108,6 +124,10 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
         });
 
         plot.render();
+    },
+
+    setHighlight : function(highlight) {
+        this.highlight = highlight;
     },
 
     updateZoom : function(left, right, bottom, top) {

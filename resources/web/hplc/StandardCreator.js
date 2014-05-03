@@ -775,21 +775,33 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
     },
 
     generateCalibrationCurve : function() {
-        var itemNodes = Ext4.DomQuery.select('.item');
         var store = Ext4.getCmp('definitionformview').getStore();
 
-        var contentMap = {};
-        var expected = store.getCount(), recieved = 0;
+        this.curveConfig = {
+            contentMap: {},
+            expected: store.getCount(),
+            recieved: 0
+        };
 
-        var me = this;
+        for (var d=0; d < store.getCount(); d++) {
+            this.requestContent(store.getAt(d), this._processContent, this);
+        }
+    },
 
-        var done = function(content) {
-            recieved++;
-            contentMap[content.fileName] = content;
-            if (expected == recieved) {
+    _processContent : function(content) {
+
+        if (Ext4.isObject(this.curveConfig)) {
+            this.curveConfig.recieved++;
+            this.curveConfig.contentMap[content.fileName] = content;
+
+            if (this.curveConfig.expected === this.curveConfig.recieved) {
+
                 //
                 // have content
                 //
+                var itemNodes = Ext4.DomQuery.select('.item');
+                var store = Ext4.getCmp('definitionformview').getStore();
+
                 for (var n=0; n < itemNodes.length; n++) {
                     var node = Ext4.get(itemNodes[n]);
                     var modelname = node.getAttribute('modelname');
@@ -814,7 +826,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 for (n=0; n < count; n++) {
                     m = store.getAt(n);
                     fname = m.get('expDataRun').name;
-                    data = LABKEY.hplc.QualityControl.getData(contentMap[fname], m.get('xleft'), m.get('xright'));
+                    data = LABKEY.hplc.QualityControl.getData(this.curveConfig.contentMap[fname], m.get('xleft'), m.get('xright'));
                     var aucPeak = LABKEY.hplc.Stats.getAUC(data, m.get('base'));
                     m.set('auc', aucPeak.auc);
                     m.set('peakMax', aucPeak.peakMax);
@@ -826,65 +838,69 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                     data.push([rec.get('concentration'), rec.get('auc')]);
                 }
 
-                var R = LABKEY.hplc.Stats.getPolynomialRegression(data);
-                var eq = R.equation;
-                R.reverseString = 'y = ' + eq[0].toFixed(2) + ' + ' + eq[1].toFixed(2) + 'x ';
-                R.reverseString += (eq[2] < 0 ? '- ' : '+ ');
-                R.reverseString += Math.abs(eq[2].toFixed(2)) + 'x²';
-
-                Ext4.getCmp('standardrsquared').setValue(R.rSquared);
-                RR = R;
-                var getY = function(x) { return (eq[2] * Math.pow(x, 2)) + (eq[1] * x) + eq[0]; };
-
-                var pointLayer = new LABKEY.vis.Layer({
-                    data: data,
-                    aes: {
-                        x: function(r) { return r[0]; },
-                        y: function(r) { return r[1]; }
-                    },
-                    geom: new LABKEY.vis.Geom.Point({
-                        size: 2,
-                        color: '#FF0000'
-                    })
-                });
-
-                var pathLayer = new LABKEY.vis.Layer({
-                    geom: new LABKEY.vis.Geom.Path({
-                        color: '#0000FF'
-                    }),
-                    data: LABKEY.vis.Stat.fn(getY, 100, 1, 100),
-                    aes: {x: 'x', y: 'y'}
-                });
-
-                me.clearCalibrationCurve();
-
-                var plot = new LABKEY.vis.Plot({
-                    renderTo: 'stdcurveplot',
-                    rendererType: 'd3',
-                    width: 400,
-                    height: 250,
-                    clipRect: false,
-                    labels: {
-                        main: {value: R.reverseString},
-                        x: {value: 'Concentration (µg/ml)'},
-                        y: {value: 'Response (mV.s)'}
-                    },
-                    layers: [ pointLayer, pathLayer ],
-                    legendPos: 'none',
-                    scales: {
-                        x: { domain: [0, null] },
-                        y: { domain: [0, null] }
-                    }
-                });
-
-                plot.render();
-                me.fireEvent('calibration', R);
+                this.renderCalibrationCurve(data);
+                this.curveConfig = null;
             }
-        };
-
-        for (var d=0; d < store.getCount(); d++) {
-            this.requestContent(store.getAt(d), done, this);
         }
+        else {
+            alert('Processing failed. Invalid curve configuration.');
+        }
+    },
+
+    renderCalibrationCurve : function(data) {
+        var R = LABKEY.hplc.Stats.getPolynomialRegression(data);
+        RR = R;
+        var eq = R.equation;
+        R.reverseString = 'y = ' + eq[0].toFixed(2) + ' + ' + eq[1].toFixed(2) + 'x ';
+        R.reverseString += (eq[2] < 0 ? '- ' : '+ ');
+        R.reverseString += Math.abs(eq[2].toFixed(2)) + 'x²';
+
+        Ext4.getCmp('standardrsquared').setValue(R.rSquared);
+        var getY = function(x) { return (eq[2] * Math.pow(x, 2)) + (eq[1] * x) + eq[0]; };
+
+        var pointLayer = new LABKEY.vis.Layer({
+            data: data,
+            aes: {
+                x: function(r) { return r[0]; },
+                y: function(r) { return r[1]; }
+            },
+            geom: new LABKEY.vis.Geom.Point({
+                size: 2,
+                color: '#FF0000'
+            })
+        });
+
+        var pathLayer = new LABKEY.vis.Layer({
+            geom: new LABKEY.vis.Geom.Path({
+                color: '#0000FF'
+            }),
+            data: LABKEY.vis.Stat.fn(getY, 100, 1, 100),
+            aes: {x: 'x', y: 'y'}
+        });
+
+        this.clearCalibrationCurve();
+
+        var plot = new LABKEY.vis.Plot({
+            renderTo: 'stdcurveplot',
+            rendererType: 'd3',
+            width: 400,
+            height: 250,
+            clipRect: false,
+            labels: {
+                main: {value: R.reverseString},
+                x: {value: 'Concentration (µg/ml)'},
+                y: {value: 'Response (mV.s)'}
+            },
+            layers: [ pointLayer, pathLayer ],
+            legendPos: 'none',
+            scales: {
+                x: { domain: [0, null] },
+                y: { domain: [0, null] }
+            }
+        });
+
+        plot.render();
+        this.fireEvent('calibration', R);
     },
 
     clearCalibrationCurve : function() {
