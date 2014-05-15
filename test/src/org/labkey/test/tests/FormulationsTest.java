@@ -706,10 +706,6 @@ public class FormulationsTest extends BaseWebDriverTest
         {
             throw new RuntimeException(e);
         }
-        catch (HttpException e)
-        {
-            throw new RuntimeException(e);
-        }
 
         click(Locator.linkWithText(FORMULATION));
         waitForElement(Locator.linkWithText("Alum"));
