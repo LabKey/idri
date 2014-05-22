@@ -1,6 +1,5 @@
 <view xmlns="http://labkey.org/data/xml/view">
     <dependencies>
-        <dependency path="applet.js"/>
         <dependency path="Ext4ClientApi"/>
         <dependency path="FileUploadField.js"/>
         <dependency path="StatusBar.js"/>
