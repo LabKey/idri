@@ -15,7 +15,6 @@
  */
 package org.labkey.test.tests;
 
-import org.apache.http.HttpException;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -219,7 +218,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Save");
 
         clickButton("Import More Samples");
-        clickRadioButtonById("insertOnlyChoice");
+        click(Locator.radioButtonById("insertOnlyChoice"));
         setFormElement(Locator.name("data"), COMPOUNDS_HEADER + COMPOUNDS_DATA_1 + COMPOUNDS_DATA_2 + COMPOUNDS_DATA_3 + COMPOUNDS_DATA_4);
         clickButton("Submit");
 
@@ -246,7 +245,7 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Enterting raw material information");
         clickAndWait(Locator.linkWithText(RAWMATERIALS_SET_NAME));
         clickButton("Import More Samples");
-        clickRadioButtonById("insertOnlyChoice");
+        click(Locator.radioButtonById("insertOnlyChoice"));
         setFormElement(Locator.id("textbox"), RAWMATERIALS_HEADER + RAWMATERIALS_DATA_1 + RAWMATERIALS_DATA_2 + RAWMATERIALS_DATA_3 + RAWMATERIALS_DATA_4);
         clickButton("Submit");
     }
@@ -334,7 +333,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("New Assay Design");
 
         assertTextPresent("Particle Size Data");
-        checkRadioButton("providerName", "Particle Size");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Particle Size"));
         clickButton("Next");
 
         waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
@@ -431,7 +430,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("New Assay Design");
 
         assertTextPresent("Visual Formulation Time-Point Data");
-        checkRadioButton("providerName", "Visual");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Visual"));
         clickButton("Next");
 
         waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
@@ -475,13 +474,13 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Next", 0);
         waitForText("Please complete this page to continue.");
 
-        checkCheckbox("temp", "5C");
-        checkCheckbox("temp", "60C");
+        checkCheckbox(Locator.checkboxByNameAndValue("temp", "5C"));
+        checkCheckbox(Locator.checkboxByNameAndValue("temp", "60C"));
         clickButton("Next", 0);
 
         waitForText("State of " + FORMULATION + " at 1 mo");
-        checkRadioButton("5C", "fail");
-        checkRadioButton("60C", "pass");
+        checkCheckbox(Locator.radioButtonByNameAndValue("5C", "fail"));
+        checkCheckbox(Locator.radioButtonByNameAndValue("60C", "pass"));
         clickButton("Next", 0);
 
         waitForText("Additional Comments for passing");
@@ -492,8 +491,8 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Next", 0);
         waitForText("At least one criteria must be marked as a failure.");
 
-        checkCheckbox("failed");    // color change
-        checkCheckbox("failed", 2); // foreign object
+        checkCheckbox(Locator.checkboxByName("failed"));
+        checkCheckbox(Locator.checkboxByName("failed").index(2));
 
         setFormElement(Locator.name("color"), "Color changed.");
         setFormElement(Locator.name("foreign"), TRICKY_CHARACTERS);
@@ -534,7 +533,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("New Assay Design");
 
         assertTextPresent("High performance liquid chromotography assay");
-        checkRadioButton("providerName", "Provisional HPLC");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Provisional HPLC"));
         clickButton("Next");
 
         waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
@@ -555,8 +554,8 @@ public class FormulationsTest extends BaseWebDriverTest
 //        assertTextPresent("Concentration");
 
         // Make Runs/Results editable
-        checkCheckbox("editableRunProperties");
-        checkCheckbox("editableResultProperties");
+        checkCheckbox(Locator.checkboxByName("editableRunProperties"));
+        checkCheckbox(Locator.checkboxByName("editableResultProperties"));
 
         clickButton("Save", 0);
         waitForText("Save successful.", 10000);
@@ -576,7 +575,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("New Assay Design");
 
         assertTextPresent("High performance liquid chromotography assay");
-        checkRadioButton("providerName", "HPLC");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "HPLC"));
         clickButton("Next");
 
         waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
@@ -597,8 +596,8 @@ public class FormulationsTest extends BaseWebDriverTest
         assertTextPresent("Concentration");
 
         // Make Runs/Results editable
-        checkCheckbox("editableRunProperties");
-        checkCheckbox("editableResultProperties");
+        checkCheckbox(Locator.checkboxByName("editableRunProperties"));
+        checkCheckbox(Locator.checkboxByName("editableResultProperties"));
 
         clickButton("Save", 0);
         waitForText("Save successful.", 10000);
