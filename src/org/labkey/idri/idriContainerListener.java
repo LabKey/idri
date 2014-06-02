@@ -16,36 +16,16 @@
 
 package org.labkey.idri;
 
-import org.apache.log4j.Logger;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerManager.ContainerListener;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.security.User;
 
-import java.beans.PropertyChangeEvent;
-
-public class idriContainerListener implements ContainerListener
+public class idriContainerListener extends ContainerManager.AbstractContainerListener
 {
-    private static final Logger _log = Logger.getLogger(idriContainerListener.class);
-    
-    @Override
-    public void containerCreated(Container c, User user)
-    {
-    }
-
     @Override
     public void containerDeleted(Container c, User user)
     {
         new SqlExecutor(idriManager.getSchema()).execute("DELETE FROM idri.Concentrations WHERE Container = ?", c);
-    }
-
-    @Override
-    public void containerMoved(Container c, Container oldParent, User user)
-    {        
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
     }
 }
