@@ -101,11 +101,12 @@ public class HPLCManager
                 Map<String, String> batchProps = new HashMap<>();
 
                 // Populate Upload Context
-                AssayRunUploadContextImpl.Factory factory = new AssayRunUploadContextImpl.Factory(protocol, provider, user, container)
+                AssayRunUploadContextImpl.Factory factory = new AssayRunUploadContextImpl.Factory<>(protocol, provider, user, container)
                         .setName(runName)
                         .setComments("")
                         .setRunProperties(runProps)
                         .setBatchProperties(batchProps);
+
                 AssayRunUploadContext context = factory.create();
 
                 // Create ExpData and Data Handler for parsing Metadata file into maps
