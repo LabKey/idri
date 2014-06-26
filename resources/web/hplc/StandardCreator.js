@@ -303,6 +303,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                         '<th style="text-align: left;">Left</th>',
                         '<th style="text-align: left;">Right</th>',
                         '<th style="text-align: left;">Base</th>',
+                        '<th style="text-align: left;"></th>',
                     '</tr>',
                     '<tpl for=".">',
                         '<tr class="item" modelname="{name}">',
@@ -311,15 +312,45 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                             '<td><input value="{xleft}" placeholder="xleft" name="xleft" style="width: 40px;"/></td>',
                             '<td><input value="{xright}" placeholder="xright" name="xright" style="width: 40px;"/></td>',
                             '<td><input value="{base}" name="base" style="width: 40px;"/></td>',
+                            '<td><button title="copy">C</button></td>',
                         '</tr>',
                     '</tpl>',
                 '</table>'
             ),
             listeners: {
-                itemclick: function(x,y,z,a,evt) {
-                    Ext4.defer(function() {
-                        Ext4.get(evt.target).dom.focus();
-                    }, 50);
+                itemclick: function(view,model,z,a,evt) {
+                    if (evt.target && Ext4.isString(evt.target.tagName) && evt.target.tagName.toLowerCase() === "button") {
+                        Ext4.Msg.show({
+                            msg: 'Copy \'' + model.get('name') + '\' (xleft, right, base) to all other selections?',
+                            buttons: Ext4.Msg.YESNO,
+                            icon: Ext4.window.MessageBox.INFO,
+                            fn: function(b) {
+                                if (b === 'yes') {
+                                    this.commitSources();
+                                    var store = LABKEY.hplc.StandardCreator.getSourcesStore();
+
+                                    var models = store.getRange(),
+                                            n = model.get('name'),
+                                            xl = model.get('xleft'),
+                                            xr = model.get('xright'),
+                                            base = model.get('base');
+
+                                    Ext4.each(models, function(m) {
+                                        if (m.name !== n) {
+                                            m.set('xleft', xl);
+                                            m.set('xright', xr);
+                                            m.set('base', base);
+                                        }
+                                    });
+                                }
+                            },
+                            scope: this
+                        });
+                    }
+                    else {
+                        // for some reason, focus is not maintained even after a user clicks an input
+                        Ext4.defer(function() { Ext4.get(evt.target).dom.focus(); }, 50);
+                    }
                 },
                 select: function(view, source) {
                     this.highlighted = source.get('name') + '.' + source.get('fileExt');
@@ -788,6 +819,28 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
         }
     },
 
+    commitSources : function() {
+        var itemNodes = Ext4.DomQuery.select('.item');
+        var store = Ext4.getCmp('definitionformview').getStore();
+
+        for (var n=0; n < itemNodes.length; n++) {
+            var node = Ext4.get(itemNodes[n]);
+            var modelname = node.getAttribute('modelname');
+            var idx = store.findExact('name', modelname);
+            if (idx > -1) {
+                var model = store.getAt(idx);
+                var conc = parseFloat(Ext4.get(node.select('input[name=concentration').elements[0]).getValue());
+                var xleft = parseFloat(Ext4.get(node.select('input[name=xleft').elements[0]).getValue());
+                var xright = parseFloat(Ext4.get(node.select('input[name=xright').elements[0]).getValue());
+                var base = parseFloat(Ext4.get(node.select('input[name=base').elements[0]).getValue());
+                model.set('concentration', conc);
+                model.set('xleft', xleft);
+                model.set('xright', xright);
+                model.set('base', base);
+            }
+        }
+    },
+
     _processContent : function(content) {
 
         if (Ext4.isObject(this.curveConfig)) {
@@ -799,29 +852,12 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 //
                 // have content
                 //
-                var itemNodes = Ext4.DomQuery.select('.item');
-                var store = Ext4.getCmp('definitionformview').getStore();
-
-                for (var n=0; n < itemNodes.length; n++) {
-                    var node = Ext4.get(itemNodes[n]);
-                    var modelname = node.getAttribute('modelname');
-                    var idx = store.findExact('name', modelname);
-                    if (idx > -1) {
-                        var model = store.getAt(idx);
-                        var conc = parseFloat(Ext4.get(node.select('input[name=concentration').elements[0]).getValue());
-                        var xleft = parseFloat(Ext4.get(node.select('input[name=xleft').elements[0]).getValue());
-                        var xright = parseFloat(Ext4.get(node.select('input[name=xright').elements[0]).getValue());
-                        var base = parseFloat(Ext4.get(node.select('input[name=base').elements[0]).getValue());
-                        model.set('concentration', conc);
-                        model.set('xleft', xleft);
-                        model.set('xright', xright);
-                        model.set('base', base);
-                    }
-                }
+                this.commitSources();
 
                 //
                 // All models are updated
                 //
+                var store = Ext4.getCmp('definitionformview').getStore();
                 var data, n, m, fname, count = store.getCount();
                 for (n=0; n < count; n++) {
                     m = store.getAt(n);

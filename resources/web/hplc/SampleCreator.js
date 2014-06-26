@@ -307,7 +307,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                             fieldLabel: 'Standard Deviation'
                         },{
                             xtype: 'fieldcontainer',
-                            fieldLabel: 'Curve Area',
+                            fieldLabel: 'Time (m)',
                             layout: 'hbox',
                             width: 300,
                             items: [{
@@ -780,6 +780,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                             '<th style="text-align: left;">Base</th>',
                             '<th style="text-align: left;">Include</th>',
                             '<th style="text-align: left;">Response</th>',
+                            '<th></th>',
                         '</tr>',
                         '<tpl for=".">',
                             '<tr class="item" modelname="{name}">',
@@ -789,14 +790,50 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                 '<td><input value="{base}" name="base" style="width: 40px;"/></td>',
                                 '<td><input value="{include}" name="include" type="checkbox" checked="checked"/></td>',
                                 '<td><span name="response">{peakResponse}</span></td>',
+                                '<td><button title="copy">C</button></td>',
                             '</tr>',
                         '</tpl>',
                     '</table>'
                 ),
                 listeners: {
-                    itemclick: function(x,y,z,a,evt) {
-                        // for some reason, focus is not maintained even after a user clicks an input
-                        Ext4.defer(function() { Ext4.get(evt.target).dom.focus(); }, 50);
+                    itemclick: function(view, model,z,a,evt) {
+                        if (evt.target && Ext4.isString(evt.target.tagName) && evt.target.tagName.toLowerCase() === "button") {
+                            Ext4.Msg.show({
+                                msg: 'Copy \'' + model.get('name') + '\' (xleft, right, base) to all other selections?',
+                                buttons: Ext4.Msg.YESNO,
+                                icon: Ext4.window.MessageBox.INFO,
+                                fn: function(b) {
+                                    if (b === 'yes') {
+                                        var dupeModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
+
+                                        var models = view.getStore().getRange(), dm,
+                                                n = dupeModel.get('name'),
+                                                xl = dupeModel.get('xleft'),
+                                                xr = dupeModel.get('xright'),
+                                                base = dupeModel.get('base');
+
+                                        Ext4.each(models, function(m, idx) {
+                                            if (m.name !== n) {
+                                                dm = this.dupStore.getAt(idx);
+                                                m.set('xleft', xl);
+                                                dm.set('xleft', xl);
+
+                                                m.set('xright', xr);
+                                                dm.set('xright', xr);
+
+                                                m.set('base', base);
+                                                dm.set('base', base);
+                                            }
+                                        }, this);
+                                    }
+                                },
+                                scope: this
+                            });
+                        }
+                        else {
+                            // for some reason, focus is not maintained even after a user clicks an input
+                            Ext4.defer(function() { Ext4.get(evt.target).dom.focus(); }, 50);
+                        }
                     },
                     select: this.bindCalc,
                     scope: this
@@ -954,15 +991,18 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         var base = parseFloat(this.nodes.baseIn.getValue());
         var model = this.nodes.sample;
 
+        var sampleModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
+        sampleModel.suspendEvents(true);
+        sampleModel.set('xleft', left);
+        sampleModel.set('xright', right);
+        sampleModel.set('base', base);
+
         if (left > 0 && right > 0 && base > -1) {
             var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
             var data = LABKEY.hplc.QualityControl.getData(fileContent, left, right, false);
             var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
             this.nodes.responseOut.update(+aucPeak.auc.toFixed(3));
 
-            var sampleModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
-
-            sampleModel.suspendEvents(true);
             sampleModel.set('xleft', left);
             sampleModel.set('xright', right);
             sampleModel.set('base', base);
@@ -971,16 +1011,17 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
             sampleModel.set('peakMax', aucPeak.peakMax);
             sampleModel.set('include', this.nodes.include.dom.checked);
             sampleModel.resumeEvents();
-
             this.fireEvent('computedconcentration', this.dupStore);
+        }
+        else {
+            sampleModel.resumeEvents();
         }
     },
 
     updateModels : function() {
-
         if (!this.computeTask) { this.computeTask = new Ext4.util.DelayedTask(this.computeCalc, this); }
 
-        this.computeTask.delay(500);
+        this.computeTask.delay(300);
     },
 
     renderPlot : function(contents) {
