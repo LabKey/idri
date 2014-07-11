@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.Assays;
@@ -108,7 +109,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
     private static final String HPLC_ASSAY = "HPLC";
     private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
-    private static final String HPLC_PIPELINE_PATH = getSampledataPath() + "/HPLC";
+    private static final String HPLC_PIPELINE_PATH = TestFileUtils.getSampledataPath() + "/HPLC";
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
     private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
     private static final String HPLC_SAMPLE1 = "3004837A.CSV";
@@ -368,7 +369,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         assertTextPresent("Must have working sets of size");
 
-        File dataRoot = new File(getLabKeyRoot(), "/sampledata/particleSize");
+        File dataRoot = new File(TestFileUtils.getLabKeyRoot(), "/sampledata/particleSize");
         File[] allFiles = dataRoot.listFiles(new FilenameFilter()
         {
             public boolean accept(File dir, String name)
