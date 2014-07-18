@@ -96,7 +96,7 @@
                 }
             }
         });
-    }
+    };
 
     var addMaterialItem = function(done)
     {
@@ -140,7 +140,7 @@
         }
         else
             generateCombo();
-    }
+    };
 
     var generateCombo = function()
     {
@@ -165,7 +165,7 @@
         });
         form_panel.insert(idx, matBox);
         form_panel.doLayout();
-    }
+    };
 
     var submit = function()
     {
@@ -310,7 +310,7 @@
                     showMsg("Formulation \'" + document.getElementById('Batch').value + "\' already exists.<br/><a href='" + _link + "'>Click here</a> to view it.<br/>", true);
                 }
             }});
-    }
+    };
 
     var showMsg = function(msg, error)
     {
@@ -321,7 +321,7 @@
             elem.innerHTML += "<span style='color: red;'>" + msg + "</span><br/>";
         else
             elem.innerHTML += "<span style='color: #32cd32;'>" + msg + "</span><br/>";
-    }
+    };
 
     Ext.onReady(init);
 

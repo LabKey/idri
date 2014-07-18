@@ -1,6 +1,5 @@
 <view xmlns="http://labkey.org/data/xml/view">
     <dependencies>
         <dependency path="clientapi/ext3"/>
-        <dependency path="StatusBar.js"/>
     </dependencies>
 </view>

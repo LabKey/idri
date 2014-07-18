@@ -35,7 +35,7 @@
     public LinkedHashSet<ClientDependency> getClientDependencies()
     {
         LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
-        resources.add(ClientDependency.fromFilePath("Ext3"));
+        resources.add(ClientDependency.fromFilePath("clientapi/ext3"));
         resources.add(ClientDependency.fromFilePath("Ext4"));
         resources.add(ClientDependency.fromFilePath("formulations/SearchFormulation.js")); // buildPSReports
         return resources;

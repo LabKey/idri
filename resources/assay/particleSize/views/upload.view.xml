@@ -1,5 +1,6 @@
 <view xmlns="http://labkey.org/data/xml/view">
     <dependencies>
+        <dependency path="Ext3"/>
         <dependency path="FileUploadField.js"/>
     </dependencies>
 </view>

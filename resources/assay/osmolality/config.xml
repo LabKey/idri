@@ -1,4 +1,0 @@
-<ap:provider xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
-    <ap:name>Osmolality</ap:name>
-    <ap:description>Osmolality Time-Point Data. Osmolality is a measure of the osmoles of solute per kilogram of solvent (osmol/kg or Osm/kg).</ap:description>
-</ap:provider>
