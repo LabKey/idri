@@ -736,9 +736,9 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @Override
-    public String getAssociatedModuleDirectory()
+    public List<String> getAssociatedModules()
     {
-        return "none";
+        return null;
     }
 
     @Override
