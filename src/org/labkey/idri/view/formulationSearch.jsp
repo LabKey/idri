@@ -20,6 +20,7 @@
 <%@ page import="org.labkey.api.view.template.ClientDependency" %>
 <%@ page import="org.labkey.idri.idriController" %>
 <%@ page import="java.util.LinkedHashSet" %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
 
@@ -32,7 +33,7 @@
       return resources;
   }
 %>
-<form method="get" action="../formulations" onsubmit="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;">
+<labkey:form method="get" action="../formulations" onsubmit="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;">
     <table cols="3">
         <tr>
             <td>Search (e.g. QF325)</td>
@@ -45,7 +46,7 @@
             </td>
         </tr>
     </table>
-</form>
+</labkey:form>
 <div id="SearchStatusDiv"></div>
 <div id="SearchStatusDiv2"></div>
 <div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", new ActionURL(idriController.CreateFormulationAction.class, getContainer()))%></div>
