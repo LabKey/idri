@@ -66,6 +66,8 @@ class HPLCHandler(PatternMatchingEventHandler):
 
         self.successTimerDelay = success_interval # time in seconds
         self.runFiles = []
+        self.runFilesMap = {}
+        self.folder = ""
 
         #
         # Initialize the run task
@@ -79,19 +81,22 @@ class HPLCHandler(PatternMatchingEventHandler):
     # def on_modified(self, event):
     #     super(HPLCHandler, self).on_created(event)
 
-    # def on_deleted(self, event):
-    #     super(HPLCHandler, self).on_deleted(event)
-    #     print "File has been deleted"
+    def on_deleted(self, event):
+        super(HPLCHandler, self).on_deleted(event)
+        self.handleFileEvent(event, True)
 
-    def handleFileEvent(self, event):
+    def handleFileEvent(self, event, is_delete=False):
         if event.is_directory == False and len(event.src_path) > 0:
             split_path = event.src_path.split("\\") # should check / or \
             if (len(split_path) > 0):
                 name = str(split_path[len(split_path)-1])
                 if name.find('~') == -1:
-                    logging.info(" Adding file to run: " + name)
-                    files = {'file' : name} # (name, open(name, 'rb'))}
-                    self.addRunFile(files, name)
+                    if is_delete:
+                        self.removeRunFile(name)
+                    else:
+                        logging.info(" Adding file to run: " + name)
+                        files = {'file' : name} # (name, open(name, 'rb'))}
+                        self.addRunFile(name, files)
 
     def upload(self, fileJSON, folder):
         logging.info(" Preparing to send...")
@@ -135,7 +140,7 @@ class HPLCHandler(PatternMatchingEventHandler):
     def getDataFileURL(self, fileJSON, folder):
         logging.info(" Requesting file data...")
 
-        fileName = fileJSON['file']
+        file_name = fileJSON['file']
 
         #
         # Account for context path since server does recognize on webdav path
@@ -144,7 +149,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         if len(context_path) > 0:
             subPipelinePath = self.pipelinePath.replace('/' + context_path, '')
 
-        davPath = subPipelinePath + '/' + folder + '/' + fileName
+        davPath = subPipelinePath + '/' + folder + '/' + file_name
 
         url = self.buildActionURL('idri', 'getHPLCResource')
         url += '?path=' + davPath
@@ -226,10 +231,13 @@ class HPLCHandler(PatternMatchingEventHandler):
             logging.error(msg)
             raise Exception(msg)
 
-    def addRunFile(self, fileJSON, file_name):
+    def addRunFile(self, file_name, file_json):
         if len(self.runFiles) == 0:
             print "Starting new run"
-        self.runFiles.append(fileJSON)
+
+        self.runFiles.append(file_json)
+        self.runFilesMap[file_name] = len(self.runFiles) - 1
+
         end_run = self.isEndRun(file_name)
         self.reset(end_run)
         if end_run:
@@ -237,6 +245,21 @@ class HPLCHandler(PatternMatchingEventHandler):
             # The end of the run as been established
             #
             self.runOver()
+
+    def removeRunFile(self, file_name):
+        index = self.runFilesMap.get(file_name)
+        if index:
+            if len(self.runFiles) > index:
+                #
+                # The file was found, remove it
+                #
+                logging.info(" Remove file from run: " + file_name)
+                del self.runFiles[index]
+            else:
+                logging.info(" Index out of sync for: " + file_name)
+            self.runFilesMap.pop(file_name)
+            # else:
+            #     logging.info(" File not tracked at time of remove request: " + file_name)
 
 
     def isEndRun(self, file_name):
@@ -313,14 +336,16 @@ class HPLCHandler(PatternMatchingEventHandler):
 
             hplcRun.save(saveURL)
 
-            logging.info("...done");
+            logging.info("...done")
         else:
             logging.error(" Failed to created folder (" + self.folder + ") in " + folderURL)
             print "Failed to create folder:", self.folder
 
         self.runFiles = []
+        self.runFilesMap = {}
         self.checkTask = 0
         self.folder = ""
+
         print "Preparation for next run complete."
 
     def generateFolderName(self):
@@ -393,22 +418,19 @@ class HPLCRun():
 
     def save(self, saveURL):
         print "Saving HPLC Run...", saveURL
-        payload = {}
-        payload['assayId'] = self.assayId
-
-        batch = {'batchProtocolId': self.assayId}
 
         #
         # This is the only run in this batch
         #
-        me = {"name": self.name}
-        me["properties"] = self.properties
-        me["dataRows"] = self.dataRows
-        me["dataInputs"] = self.dataInputs
+        me = {
+            'name': self.name,
+            'properties': self.properties,
+            'dataRows': self.dataRows,
+            'dataInputs': self.dataInputs
+        }
 
-        batch['runs'] = [me]
-        payload['batch'] = batch
-
+        batch = {'batchProtocolId': self.assayId, 'runs': [me]}
+        payload = {'assayId': self.assayId, 'batch': batch}
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
         # print "****** PAYLOAD ********"

@@ -9,10 +9,34 @@
                 <!-- deleteUrl is not currently supported for Sample Sets -->
                 <!--<deleteUrl>/idri/deleteFormulation.view?materialName=${Name}</deleteUrl>-->
 
-                <buttonBarOptions includeStandardButtons="true">
+                <buttonBarOptions includeStandardButtons="false">
+                    <item text="Views">
+                        <originalText>Views</originalText>
+                    </item>
+                    <item text="Charts">
+                        <originalText>Charts</originalText>
+                    </item>
+                    <item text="New Formulation">
+                        <originalText>Insert New</originalText>
+                    </item>
+                    <item text="Export">
+                        <originalText>Export</originalText>
+                    </item>
+                    <item text="Page Size">
+                        <originalText>Page Size</originalText>
+                    </item>
+                    <!--<item text="Import Data">-->
+                        <!--<originalText>Import Data</originalText>-->
+                    <!--</item>-->
+                    <!--<item text="Delete">-->
+                        <!--<originalText>Delete</originalText>-->
+                    <!--</item>-->
                     <includeScript>/formulations/buttons.js</includeScript>
                     <item text="Delete Formulation" requiresSelection="true" insertBefore="Delete">
                         <onClick>LABKEY.idri.buttons.DeleteFormulationHandler(dataRegion)</onClick>
+                    </item>
+                    <item text="Print">
+                        <originalText>Print</originalText>
                     </item>
                 </buttonBarOptions>
             </table>

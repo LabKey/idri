@@ -261,7 +261,7 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Inserting a Formulation");
         clickAndWait(Locator.linkWithText("Sample Sets"));
         clickAndWait(Locator.linkWithText(FORMULATIONS_NAME, 1)); // skip nav trail
-        clickButton("Insert New");
+        clickButton("New Formulation");
 
         assertTextPresent("Formulation Type*");
         assertTextPresent("Stability Watch");

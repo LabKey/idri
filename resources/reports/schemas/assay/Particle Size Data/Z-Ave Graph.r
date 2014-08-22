@@ -24,7 +24,7 @@ relativeDirectory <- paste(labkey.url.path, "@files/PSData", sep="")
 baseURL <- labkey.url.base
 
 if(.Platform[1] == "windows") {
-    relativeDirectory <- paste("C:/code/labkey/modules133/build/deploy/files", relativeDirectory, sep="")
+    relativeDirectory <- paste("C:/code/labkey/modules142/build/deploy/files", relativeDirectory, sep="")
     baseURL <- "http://localhost:8080/labkey/"
 } else {
     relativeDirectory <- paste("/labkey/labkey/files", relativeDirectory, sep="")

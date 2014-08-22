@@ -58,16 +58,17 @@
         border-collapse: collapse;
         background-color: #ffffff;
         padding: 5px;
+        white-space: nowrap;
     }
 
 </style>
-<div style="padding: 20px 0px 0px 20px;">
+<div style="padding: 20px 0 0 20px;">
     <%=textLink("Home Page", PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(c))%>
     <%=textLink("Edit " + formulation.getBatch(), new ActionURL(idriController.CreateFormulationAction.class, c).addParameter("RowId", formulation.getRowID()))%>
     <%=textLink("Browse Formulations", PageFlowUtil.urlProvider(ExperimentUrls.class).getShowSampleSetURL(ss))%>
     <%=textLink("Sample View", "#", "getOldView();", null)%>
 </div>
-<div style="padding: 5px 0px 0px 20px;">
+<div style="padding: 5px 0 0 20px;">
     <table>
         <tr>
             <td style="vertical-align:top;">
@@ -135,89 +136,95 @@
 <script type="text/javascript">
 
 
-    Ext.onReady(function() {
+    Ext4.onReady(function() {
 
         var stabilityTpl = new Ext4.XTemplate(
-                '<table class="stabilitytable">',
-                    '<th>Temperature</th>',
-                    '<th>DM</th>',
-                    '<th>1 wk</th>',
-                    '<th>2 wk</th>',
-                    '<th>1 mo</th>',
-                    '<th>3 mo</th>',
-                    '<th>6 mo</th>',
-                    '<th>12 mo</th>',
-                    '<th>Mean</th>',
-                    '<tpl for=".">',
-                        '<tr class="temprow">',
-                            '<td>{Temperature}</td>',
-                            '{[this.val(values, "DM")]}',
-                            '{[this.val(values, "1 wk")]}',
-                            '{[this.val(values, "2 wk")]}',
-                            '{[this.val(values, "1 mo")]}',
-                            '{[this.val(values, "3 mo")]}',
-                            '{[this.val(values, "6 mo")]}',
-                            '{[this.val(values, "12 mo")]}',
-                            '<td>{Mean}</td>',
-                        '</tr>',
-                    '</tpl>',
-                '</table>',
+            '<table class="stabilitytable">',
+                '{[ this.renderHeaders() ]}',
+                '<tpl for=".">',
+                    '<tr class="temprow">',
+                        '{[ this.renderDatas(values) ]}',
+                    '</tr>',
+                '</tpl>',
+            '</table>',
                 {
-                    val: function(m, k) {
-                        var compare = m['Mean'] * 1.5;
-                        var data = m[k];
-
-                        var style = 'style="color: white; ';
-                        if (compare > data) {
-                            style += 'background-color: green;';
-                        }
-                        else if (compare < data)  {
-                            style += 'background-color: red;';
-                        }
-                        style += '"';
-
-                        return '<td ' + style + '>' + m[k] + '</td>';
+                    renderDatas : function(values) {
+                        var model = Ext4.create('IDRI.Stability', {});
+                        var html = '';
+                        var compare = values['ZAveMean'] * 1.5;
+                        Ext4.each(model.fields.items, function(f) {
+                            if (f.name != 'id') {
+                                var style = '';
+                                if (f.name.indexOf('::Average') > -1) {
+                                    style += 'style="color: white; ';
+                                    var data = values[f.name];
+                                    if (compare !== 0 && data === 0) {
+                                        /* do nothing */
+                                    }
+                                    else if (compare > data) {
+                                        style += 'background-color: green;';
+                                    }
+                                    else if (compare < data) {
+                                        style += 'background-color: red;';
+                                    }
+                                    style += '"';
+                                }
+                                html += '<td ' + style + '>' + values[f.name] + '</td>';
+                            }
+                        });
+                        return html;
+                    },
+                    renderHeaders : function() {
+                        var model = Ext4.create('IDRI.Stability', {});
+                        var html = '';
+                        Ext4.each(model.fields.items, function(f) {
+                            if (f.name != 'id') {
+                                html += '<th>' + (f.header ? f.header : f.name) + '</th>';
+                            }
+                        });
+                        return html;
                     }
                 }
         );
 
-        if (!Ext4.ModelManager.isRegistered('IDRI.Stability')) {
-            Ext4.define('IDRI.Stability', {
-                extend: 'Ext.data.Model',
-                fields: [
-                    {name: 'Temperature'},
-                    {name: 'DM', type: 'int'},
-                    {name: '1 wk', type: 'int'},
-                    {name: '2 wk', type: 'int'},
-                    {name: '1 mo', type: 'int'},
-                    {name: '3 mo', type: 'int'},
-                    {name: '6 mo', type: 'int'},
-                    {name: '12 mo', type: 'int'},
-                    {name: 'Mean', type: 'int'}
-                ]
-            });
-        }
+        var processStabilityQuery = function(selectRowsData) {
 
-        var renderStability = function(rows) {
-            Ext4.onReady(function() {
-                var el = Ext4.get('owngrid');
-                if (el) {
-
-                    var store = Ext4.create('Ext.data.Store', {
-                        model: 'IDRI.Stability',
-                        data: rows
-                    });
-
-                    el.update('');
-
-                    Ext4.create('Ext.view.View', {
-                        renderTo: el,
-                        tpl: stabilityTpl,
-                        itemSelector: 'tr.temprow',
-                        store: store
+            // Iterate over all the columns to determine the set of timepoint columns
+            var columns = selectRowsData.columnModel;
+            var columnSet = [{name: 'Temperature'}];
+            Ext4.each(columns, function(colModel) {
+                if (colModel.dataIndex.indexOf('::Average') > -1) {
+                    columnSet.push({
+                        name: colModel.dataIndex,
+                        header: colModel.header,
+                        type: 'int'
                     });
                 }
             });
+            columnSet.push({name: 'ZAveMean', header: 'Mean', type: 'int'});
+
+            // Redefine model based on available columns
+            Ext4.define('IDRI.Stability', {
+                extend: 'Ext.data.Model',
+                fields: columnSet
+            });
+
+            var store = Ext4.create('Ext.data.Store', {
+                model: 'IDRI.Stability',
+                data: selectRowsData.rows
+            });
+
+            var el = Ext4.get('owngrid');
+            if (el) {
+                el.update('');
+
+                Ext4.create('Ext.view.View', {
+                    renderTo: el,
+                    tpl: stabilityTpl,
+                    itemSelector: 'tr.temprow',
+                    store: store
+                });
+            }
         };
 
         var lookupAssayId = function(name, machine) {
@@ -229,7 +236,7 @@
                 maxRows: 1,
                 success : function(data) {
                     if (data.rows.length < 1) {
-                        var el = Ext.get('testdiv');
+                        var el = Ext4.get('testdiv');
                         if (el) {
                             el.update('No Particle Size results available for ' + name);
                         }
@@ -243,7 +250,7 @@
                             'AssayRowId': data.rows[0].RowId,
                             'MachineType': machine
                         },
-                        success: function(d) { renderStability(d.rows); }
+                        success: processStabilityQuery
                     });
                 }
             });

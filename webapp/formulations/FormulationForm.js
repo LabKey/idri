@@ -455,7 +455,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         var mainParams = {
             'rowId': obj.formulation['rowID']
         };
-        var _link = LABKEY.ActionURL.buildURL("idri", "formulationDetails.view", LABKEY.ActionURL.getContainer(), mainParams);
+        var _link = window.location.origin + LABKEY.ActionURL.buildURL("idri", "formulationDetails.view", LABKEY.ActionURL.getContainer(), mainParams);
         this.showMsg("Formulation : <a href='" + _link + "'>" + obj.formulation.batch + "</a> has been " + (this.isUpdate ? "updated." : "created."), false);
         var cmp = Ext.getCmp('stability-check');
         if (cmp && cmp.getValue())
