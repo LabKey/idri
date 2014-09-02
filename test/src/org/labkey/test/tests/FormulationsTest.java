@@ -135,7 +135,7 @@ public class FormulationsTest extends BaseWebDriverTest
         insertFormulation();
         defineParticleSizeAssay();
         uploadParticleSizeData();
-        validateParticleSizeCopyToStudy();
+//        validateParticleSizeCopyToStudy();
 
         defineVisualAssay();
         uploadVisualAssayData();
@@ -152,8 +152,8 @@ public class FormulationsTest extends BaseWebDriverTest
     {
         enableEmailRecorder();
         _containerHelper.createProject(PROJECT_NAME, "IDRI Formulations");
-        _containerHelper.createSubfolder(PROJECT_NAME, FOLDER_NAME, "Study");
-        createDefaultStudy();
+//        _containerHelper.createSubfolder(PROJECT_NAME, FOLDER_NAME, "Study");
+//        createDefaultStudy();
 
         clickProject(PROJECT_NAME);
 
