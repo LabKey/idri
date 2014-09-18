@@ -47,6 +47,6 @@ Ext4.define('LABKEY.hplc.Sample', {
     extend: 'LABKEY.hplc.StandardSource',
 
     fields: [
-        {name: 'include', type: 'boolean'}
+        {name: 'include', type: 'boolean', defaultValue: true}
     ]
 });

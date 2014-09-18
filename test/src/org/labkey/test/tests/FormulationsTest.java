@@ -60,7 +60,7 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String TIME_LIST = "Timepoints";
     private static final String TYPES_LIST = "FormulationTypes";
     private static final String MATERIAL_TYPES_LIST = "MaterialTypes";
-        private final ListColumn MATERIAL_COL_TYPE = new ListColumn(
+    private final ListColumn MATERIAL_COL_TYPE = new ListColumn(
             "type",
             "Type",
             ListHelper.ListColumnType.String,
@@ -118,6 +118,107 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String HPLC_STANDARD2 = "STD2.txt";
     private static final String HPLC_METHOD = "QDEMUL3.M";
 
+    private static final String HPLC_STANDARD_LIST = "HPLCStandard";
+    private final ListColumn HPLC_STANDARD_NAME_COL = new ListColumn(
+            "Name",
+            "Name",
+            ListHelper.ListColumnType.String,
+            "Name of the Standard.");
+    private final ListColumn HPLC_STANDARD_PROVRUN_COL = new ListColumn(
+            "provisionalRun",
+            "provisionalRun",
+            ListHelper.ListColumnType.Integer,
+            "Provisional HPLC Assay Run ID.");
+    private final ListColumn HPLC_RSQUARED_COL = new ListColumn(
+            "rsquared",
+            "rsquared",
+            ListHelper.ListColumnType.Double,
+            "Standard's calculated R-Squared value.");
+    private final ListColumn HPLC_STANDARD_B0_COL = new ListColumn(
+            "b0",
+            "b0",
+            ListHelper.ListColumnType.Double,
+            "b0 part of the standard equation.");
+    private final ListColumn HPLC_STANDARD_B1_COL = new ListColumn(
+            "b1",
+            "b1",
+            ListHelper.ListColumnType.Double,
+            "b1 part of the standard equation.");
+    private final ListColumn HPLC_STANDARD_B2_COL = new ListColumn(
+            "b2",
+            "b2",
+            ListHelper.ListColumnType.Double,
+            "b2 part of the standard equation.");
+    private final ListColumn HPLC_STANDARD_ERROR_COL = new ListColumn(
+            "error",
+            "error",
+            ListHelper.ListColumnType.Double,
+            "Expected error.");
+
+    private static final String HPLC_STANDARD_SOURCE_LIST = "HPLCStandardSource";
+    private final ListColumn HPLC_SS_NAME_COL = new ListColumn(
+            "name",
+            "name",
+            ListHelper.ListColumnType.String,
+            "Name of the Standard Source.");
+    private final ListColumn HPLC_SS_CONC_COL = new ListColumn(
+            "concentration",
+            "concentration",
+            ListHelper.ListColumnType.Double,
+            "Standard Source calculated concentration.");
+    private final ListColumn HPLC_SS_XLEFT_COL = new ListColumn(
+            "xleft",
+            "xleft",
+            ListHelper.ListColumnType.Double,
+            "Standard Source determined xleft-bound.");
+    private final ListColumn HPLC_SS_XRIGHT_COL = new ListColumn(
+            "xright",
+            "xright",
+            ListHelper.ListColumnType.Double,
+            "Standard Source determined xright-bound.");
+    private final ListColumn HPLC_SS_AUC_COL = new ListColumn(
+            "auc",
+            "auc",
+            ListHelper.ListColumnType.Double,
+            "Standard Source calculated area under the curve.");
+    private final ListColumn HPLC_SS_PEAKMAX_COL = new ListColumn(
+            "peakMax",
+            "peakMax",
+            ListHelper.ListColumnType.Double,
+            "Standard Source calculated peak maximum.");
+    private final ListColumn HPLC_SS_PEAKRESPONSE_COL = new ListColumn(
+            "peakResponse",
+            "peakResponse",
+            ListHelper.ListColumnType.Double,
+            "Standard Source calculated peak response.");
+    private final ListColumn HPLC_SS_FILEPATH_COL = new ListColumn(
+            "filePath",
+            "filePath",
+            ListHelper.ListColumnType.String,
+            "Standard Source data file path.");
+    private final ListColumn HPLC_SS_FILENAME_COL = new ListColumn(
+            "fileName",
+            "fileName",
+            ListHelper.ListColumnType.String,
+            "Standard Source data file name.");
+    private final ListColumn HPLC_SS_FILEEXT_COL = new ListColumn(
+            "fileExt",
+            "fileExt",
+            ListHelper.ListColumnType.String,
+            "Standard Source data file extension.");
+    private final ListColumn HPLC_SS_STD_COL = new ListColumn(
+            "standard",
+            "standard",
+            ListHelper.ListColumnType.Integer,
+            "Standard Source associated standard definition.",
+            new ListHelper.LookupInfo(null, "lists", HPLC_STANDARD_LIST));
+    private final ListColumn HPLC_SS_BASE_COL = new ListColumn(
+            "base",
+            "base",
+            ListHelper.ListColumnType.Double,
+            "Standard Source determined baseline.");
+
+
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
     {
@@ -142,7 +243,7 @@ public class FormulationsTest extends BaseWebDriverTest
         validateVisualAssayData();
 
         defineProvisionalHPLCAssay();
-//        defineHPLCAssay();
+        defineHPLCAssay();
 //        uploadHPLCAssayData();
 //        validateHPLCAssayData();
     }
@@ -202,6 +303,17 @@ public class FormulationsTest extends BaseWebDriverTest
         _listHelper.createList(PROJECT_NAME, MATERIAL_TYPES_LIST, ListHelper.ListColumnType.AutoInteger, "key", MATERIAL_COL_TYPE, MATERIAL_COL_UNITS);
         _listHelper.clickImportData();
         _listHelper.submitTsvData(MTYPES_HEADER + MTYPES_DATA);
+
+        log("Add list -- " + HPLC_STANDARD_LIST);
+        _listHelper.createList(PROJECT_NAME, HPLC_STANDARD_LIST, ListHelper.ListColumnType.AutoInteger, "Key",
+                HPLC_STANDARD_NAME_COL, HPLC_STANDARD_PROVRUN_COL, HPLC_RSQUARED_COL, HPLC_STANDARD_B0_COL,
+                HPLC_STANDARD_B1_COL, HPLC_STANDARD_B2_COL, HPLC_STANDARD_ERROR_COL);
+
+        log("Add list -- " + HPLC_STANDARD_SOURCE_LIST);
+        _listHelper.createList(PROJECT_NAME, HPLC_STANDARD_SOURCE_LIST, ListHelper.ListColumnType.AutoInteger, "Key",
+                HPLC_SS_NAME_COL, HPLC_SS_CONC_COL, HPLC_SS_XLEFT_COL, HPLC_SS_XRIGHT_COL, HPLC_SS_AUC_COL,
+                HPLC_SS_PEAKMAX_COL, HPLC_SS_PEAKRESPONSE_COL, HPLC_SS_FILEPATH_COL, HPLC_SS_FILENAME_COL,
+                HPLC_SS_FILEEXT_COL, HPLC_SS_STD_COL, HPLC_SS_BASE_COL);
     }
 
     @LogMethod
@@ -589,7 +701,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         // Run Properties
         assertTextPresent("LotNumber");
-        assertTextPresent("Method");
+        assertTextPresent("CompoundNumber");
 
         // Result Properties
         assertTextPresent("Dilution");
@@ -603,9 +715,6 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Save", 0);
         waitForText("Save successful.", 10000);
         clickButton("Save & Close");
-
-        // Set pipeline path
-        setPipelineRoot(HPLC_PIPELINE_PATH);
     }
 
     @LogMethod

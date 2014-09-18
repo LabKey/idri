@@ -245,8 +245,6 @@ Ext4.define('LABKEY.hplc.QualityControl', {
 
     initComponent : function() {
 
-        QC = this;
-
         this.items = [];
 
         this.callParent();

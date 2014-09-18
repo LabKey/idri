@@ -79,15 +79,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         }
     },
 
-    constructor : function(config) {
-        this.callParent([config]);
-
-        this.addEvents('computedconcentration');
-    },
-
     initComponent: function() {
-
-        SS = this;
 
         this.items = [
             this.getWest(),
@@ -246,7 +238,6 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                             items: [{
                                 xtype: 'combobox',
                                 id: 'formulationlist',
-//                                fieldLabel: 'Formulation',
                                 emptyText: 'Formulation',
                                 name: 'formulationrowid',
                                 store: LABKEY.hplc.SampleCreator.getFormulationStore(),
@@ -380,20 +371,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 }]
             });
 
-            this.on('standardchange', function(standards) {
-
-                var form = this.northpanel.getComponent('sampleform');
-                if (form) {
-                    var val = '', sep = '';
-                    for (var s=0; s < standards.length; s++) {
-                        val += sep + standards[s].get('name');
-                        sep = ', ';
-                    }
-                    form.getForm().setValues({
-                        standardslist: val
-                    });
-                }
-            }, this);
+            this.on('standardchange', this.onStandardChange, this);
 
             this.on('startqc', function(runs) {
                 //
@@ -404,7 +382,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
 
                 if (runs.length > 0) {
                     //
-                    // build a valid date
+                    // compute a valid date from the file path
                     //
                     var path = runs[0].get('filePath');
                     if (path) {
@@ -423,6 +401,20 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
             }, this);
         }
         return this.northpanel;
+    },
+
+    onStandardChange : function(standards) {
+        var form = this.northpanel.getComponent('sampleform');
+        if (form) {
+            var val = '', sep = '';
+            for (var s=0; s < standards.length; s++) {
+                val += sep + standards[s].get('name');
+                sep = ', ';
+            }
+            form.getForm().setValues({
+                standardslist: val
+            });
+        }
     },
 
     getQCForm : function() {
@@ -555,10 +547,10 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 //
                 // Set the run.dataRows
                 //
-                var samples = this.dupStore.getRange();
+                var samples = this.qcresultview.getStore().getRange();
                 var dataRows = [];
 
-                Ext.each(samples, function(sample) {
+                Ext4.each(samples, function(sample) {
                     if (sample.get('include')) {
                         dataRows.push({
                             Name: sample.get('name'),
@@ -583,7 +575,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         Ext4.Msg.show({
                             title: 'Saved',
                             msg: 'HPLC Run saved successfully.',
-                            buttons: Ext.Msg.OK
+                            buttons: Ext4.Msg.OK
                         });
 
                         this.westpanel.on('expand', function(west) {
@@ -608,7 +600,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         Ext4.Msg.show({
                             title: 'Failed',
                             msg: 'Failed to save HPLC Run.',
-                            buttons: Ext.Msg.OK
+                            buttons: Ext4.Msg.OK
                         });
                     },
                     scope: this
@@ -618,153 +610,11 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         });
     },
 
-    getQCPane : function(model) {
-        var qcPane = Ext4.create('Ext.panel.Panel', {
-            hideHeader: true,
-            items: [{
-                xtype: 'panel',
-                border: false, frame: false,
-                items: [{
-                    xtype: 'box',
-                    autoEl: {
-                        tag: 'h2',
-                        html: model.get('name')
-                    }
-                },{
-                    xtype: 'form',
-                    border: false, frame: false,
-                    items: [{
-                        xtype: 'checkboxfield',
-                        name: 'include',
-                        checked: true,
-                        fieldLabel: 'Include'
-                    },{
-                        xtype: 'fieldcontainer',
-                        layout: 'hbox',
-                        items: [{
-                            itemId: 'xleft',
-                            name: 'xleft',
-                            xtype: 'numberfield',
-                            hideTrigger: true,
-                            emptyText: 'left',
-                            flex: 1,
-                            listeners: {
-                                change: function(field, value) {
-                                    var l = value;
-                                    var r = field.up('fieldcontainer').getComponent('xright').getValue();
-                                    if (r && r > l) {
-                                        var data = LABKEY.hplc.QualityControl.getData(this.contentMap[model.get('name')+'.'+model.get('fileExt')], l, r);
-                                        var aucPeak = LABKEY.hplc.Stats.getAUC(data, 29);
-                                        field.up('form').getComponent('aucfield').setValue(aucPeak.auc);
-                                        field.up('form').getComponent('peakfield').setValue(aucPeak.peakMax);
-
-                                        //
-                                        // calculate concentration
-                                        //
-                                        var auc = aucPeak.auc;
-                                        var combo = Ext4.getCmp('standardslist');
-                                        if (combo && Ext4.isDefined(combo.getValue())) {
-                                            var store = combo.getStore();
-                                            var idx = store.findExact('Key', combo.getValue());
-                                            if (idx > -1) {
-                                                var m = store.getAt(idx);
-                                                var a = m.get('b0');
-                                                var b = m.get('b1');
-                                                var c = m.get('b2');
-
-                                                //
-                                                // quadratic formula
-                                                //
-                                                var inner = Math.pow(b, 2) - (4 * a * c);
-                                                var sqrtInner = Math.sqrt(inner);
-                                                var negB = -1 * b;
-                                                var bottom = 2*a;
-                                                var xpos = (negB + sqrtInner) / bottom;
-                                                var xneg = (negB - sqrtInner) / bottom;
-                                            }
-                                        }
-                                    }
-                                },
-                                scope: this
-                            }
-                        },{
-                            xtype: 'splitter'
-                        },{
-                            itemId: 'xright',
-                            name: 'xright',
-                            xtype: 'numberfield',
-                            hideTrigger: true,
-                            emptyText: 'right',
-                            flex: 1,
-                            listeners: {
-                                change: function(field, value) {
-                                    var l = field.up('fieldcontainer').getComponent('xleft').getValue();
-                                    var r = value;
-                                    if (l && r > l) {
-                                        var data = LABKEY.hplc.QualityControl.getData(this.contentMap[model.get('name')+'.'+model.get('fileExt')], l, r);
-                                        var aucPeak = LABKEY.hplc.Stats.getAUC(data, 29);
-                                        field.up('form').getComponent('aucfield').setValue(aucPeak.auc);
-                                        field.up('form').getComponent('peakfield').setValue(aucPeak.peakMax);
-
-                                        //
-                                        // calculate concentration
-                                        //
-                                        var auc = aucPeak.auc;
-                                        var combo = Ext4.getCmp('standardslist');
-                                        if (combo && Ext4.isDefined(combo.getValue())) {
-                                            var store = combo.getStore();
-                                            var idx = store.findExact('Key', combo.getValue());
-                                            if (idx > -1) {
-                                                var m = store.getAt(idx);
-                                                var a = m.get('b0');
-                                                var b = m.get('b1');
-                                                var c = m.get('b2');
-
-                                                //
-                                                // quadratic formula
-                                                //
-                                                var inner = Math.pow(b, 2) - (4 * a * c);
-                                                var sqrtInner = Math.sqrt(inner);
-                                                var negB = -1 * b;
-                                                var bottom = 2*a;
-                                                var xpos = (negB + sqrtInner) / bottom;
-                                                var xneg = (negB - sqrtInner) / bottom;
-                                            }
-                                        }
-                                    }
-                                },
-                                scope: this
-                            }
-                        }]
-                    },{
-                        itemId: 'aucfield',
-                        xtype: 'displayfield',
-                        fieldLabel: 'Peak Area'
-                    },{
-                        itemId: 'peakfield',
-                        xtype: 'displayfield',
-                        fieldLabel: 'Max Peak'
-                    },{
-                        xtype: 'displayfield',
-                        fieldLabel: 'Concentration'
-                    }]
-                }]
-            }]
-        });
-
-        return qcPane;
-    },
-
-    getSampleFormView : function() {
-        return Ext4.getCmp('sampleformview');
-    },
-
     getEast : function() {
 
         if (!this.eastpanel) {
 
             var view = Ext4.create('Ext.view.View', {
-                id: 'sampleformview',
                 store: {
                     xtype: 'store',
                     model: 'LABKEY.hplc.Sample'
@@ -788,53 +638,28 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                 '<td><input value="{xleft}" placeholder="xleft" name="xleft" style="width: 40px;"/></td>',
                                 '<td><input value="{xright}" placeholder="xright" name="xright" style="width: 40px;"/></td>',
                                 '<td><input value="{base}" name="base" style="width: 40px;"/></td>',
-                                '<td><input value="{include}" name="include" type="checkbox" checked="checked"/></td>',
-                                '<td><span name="response">{peakResponse}</span></td>',
+                                '<td><input value="{include}" name="include" type="checkbox" {include:this.renderChecked}/></td>',
+                                '<td><span name="response">{peakResponse:this.renderPeakResponse}</span></td>',
                                 '<td><button title="copy">C</button></td>',
                             '</tr>',
                         '</tpl>',
-                    '</table>'
+                    '</table>',
+                        {
+                            renderChecked : function(checked) {
+                                var ret = '';
+                                if (checked === true) {
+                                    ret = ' checked="checked" ';
+                                }
+                                return ret;
+                            },
+                            renderPeakResponse : function(response) {
+                                return response.toFixed(3);
+                            }
+                        }
                 ),
                 listeners: {
-                    itemclick: function(view, model,z,a,evt) {
-                        if (evt.target && Ext4.isString(evt.target.tagName) && evt.target.tagName.toLowerCase() === "button") {
-                            Ext4.Msg.show({
-                                msg: 'Copy \'' + model.get('name') + '\' (xleft, right, base) to all other selections?',
-                                buttons: Ext4.Msg.YESNO,
-                                icon: Ext4.window.MessageBox.INFO,
-                                fn: function(b) {
-                                    if (b === 'yes') {
-                                        var dupeModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
-
-                                        var models = view.getStore().getRange(), dm,
-                                                n = dupeModel.get('name'),
-                                                xl = dupeModel.get('xleft'),
-                                                xr = dupeModel.get('xright'),
-                                                base = dupeModel.get('base');
-
-                                        Ext4.each(models, function(m, idx) {
-                                            if (m.name !== n) {
-                                                dm = this.dupStore.getAt(idx);
-                                                m.set('xleft', xl);
-                                                dm.set('xleft', xl);
-
-                                                m.set('xright', xr);
-                                                dm.set('xright', xr);
-
-                                                m.set('base', base);
-                                                dm.set('base', base);
-                                            }
-                                        }, this);
-                                    }
-                                },
-                                scope: this
-                            });
-                        }
-                        else {
-                            // for some reason, focus is not maintained even after a user clicks an input
-                            Ext4.defer(function() { Ext4.get(evt.target).dom.focus(); }, 50);
-                        }
-                    },
+                    viewready: function(v) { this.qcresultview = v; },
+                    itemclick: this.onQCResultItemSelect,
                     select: this.bindCalc,
                     scope: this
                 }
@@ -870,20 +695,11 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
 
             this.on('startqc', function(runs) {
 
-                var _runs = [], dups = [], d, r=0;
-                for (; r < runs.length; r++) {
-                    d = Ext4.clone(runs[r].data);
-                    _runs.push(d);
-                    d = Ext4.clone(d);
-                    dups.push(d);
+                var _runs = [];
+                for (var r=0; r < runs.length; r++) {
+                    _runs.push(Ext4.clone(runs[r].data));
                 }
-
-                this.dupStore = Ext4.create('Ext.data.Store', {
-                    model: 'LABKEY.hplc.Sample'
-                });
-
                 view.getStore().loadData(_runs);
-                this.dupStore.loadData(dups);
 
             }, this);
             this.on('curvechange', function(xleft, xright) { this.renderPlot(this.allContent); }, this);
@@ -894,134 +710,180 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
     },
 
     /**
+     * Fires whenever a user selects any input for a give QC Result row. Primarily used to check if they clicked
+     * 'C' meaning to copy that rows results as a convenience.
+     */
+    onQCResultItemSelect : function(view, model, z, a, evt) {
+        if (evt.target && Ext4.isString(evt.target.tagName) && evt.target.tagName.toLowerCase() === "button") {
+            Ext4.Msg.show({
+                msg: 'Copy \'' + model.get('name') + '\' (xleft, right, base) to all other selections?',
+                buttons: Ext4.Msg.YESNO,
+                icon: Ext4.window.MessageBox.INFO,
+                fn: function(b) {
+                    if (b === 'yes') {
+                        this.updateModels(function() {
+
+                            var store = view.getStore();
+                            var _model = store.getAt(store.findExact('name', model.get('name')));
+
+                            var models = store.getRange(),
+                                    n = _model.get('name'),
+                                    xl = _model.get('xleft'),
+                                    xr = _model.get('xright'),
+                                    base = _model.get('base');
+
+                            Ext4.each(models, function(m) {
+                                if (m.get('name') !== n) {
+                                    m.suspendEvents(true);
+                                    m.set('xleft', xl);
+                                    m.set('xright', xr);
+                                    m.set('base', base);
+                                    m.resumeEvents();
+                                }
+                            }, this);
+
+                            this.updateModels(undefined, undefined, _model);
+
+                        }, this);
+                    }
+                },
+                scope: this
+            });
+        }
+        else {
+            // for some reason, focus is not maintained even after a user clicks an input
+            Ext4.defer(function() { Ext4.get(evt.target).dom.focus(); }, 50);
+        }
+    },
+
+    /**
      * The intent of this method is to gather all input sample results and compare them against the
      * selected standard curve.
      */
     runAnalysis : function() {
-        var standardStore = LABKEY.hplc.StandardCreator.getStandardsStore(this.context);
 
-        //
-        // Determine the selected standard
-        //
-        var standardRowId = this.getQCForm().getValues()['standardrowid'];
-
-        if (Ext4.isNumber(standardRowId)) {
-            var idx = standardStore.findExact('Key', standardRowId);
-
-            var standardModel = standardStore.getAt(idx);
-            var a = standardModel.get('b2');
-            var b = standardModel.get('b1');
-            var c = standardModel.get('b0');
+        this.updateModels(function() {
+            var standardStore = LABKEY.hplc.StandardCreator.getStandardsStore(this.context);
 
             //
-            // Get the set of qc results
+            // Determine the selected standard
             //
-            var resultStore = this.dupStore, concs = [];
-            var rcount = resultStore.getCount(), result;
-            for (var r=0; r < rcount; r++) {
-                result = resultStore.getAt(r);
+            var standardRowId = this.getQCForm().getValues()['standardrowid'];
 
-                if (result.get('include') === true) {
+            if (Ext4.isNumber(standardRowId)) {
+                var idx = standardStore.findExact('Key', standardRowId);
 
-                    var response = result.get('peakResponse');
+                var standardModel = standardStore.getAt(idx);
+                var a = standardModel.get('b2');
+                var b = standardModel.get('b1');
+                var c = standardModel.get('b0');
 
-                    // calculate concentration
-                    var _c = c - response;
+                //
+                // Get the set of qc results
+                //
+                var resultStore = this.qcresultview.getStore(), concs = [];
+                var rcount = resultStore.getCount(), result;
+                for (var r=0; r < rcount; r++) {
+                    result = resultStore.getAt(r);
 
-                    var x = LABKEY.hplc.Stats.getQuadratic(a, b, _c);
-                    var nonDiluted = x[0] * 20; // account for dilution ratio
-                    result.set('concentration', nonDiluted);
-                    concs.push(nonDiluted);
+                    if (result.get('include') === true) {
+
+                        var response = result.get('peakResponse');
+
+                        // calculate concentration
+                        var _c = c - response;
+
+                        var x = LABKEY.hplc.Stats.getQuadratic(a, b, _c);
+                        var nonDiluted = x[0] * 20; // account for dilution ratio
+                        result.set('concentration', nonDiluted);
+                        concs.push(nonDiluted);
+                    }
                 }
-            }
 
-            var mean = 0; var deviation = 0;
-            if (concs.length > 0) {
-                var computed = LABKEY.hplc.Stats.average(concs);
-                mean = computed.mean;
-                deviation = computed.deviation;
-            }
+                var mean = 0; var deviation = 0;
+                if (concs.length > 0) {
+                    var computed = LABKEY.hplc.Stats.average(concs);
+                    mean = computed.mean;
+                    deviation = computed.deviation;
+                }
 
-            Ext4.getCmp('avgconcfield').setValue(mean);
-            Ext4.getCmp('stddevfield').setValue(deviation);
-            Ext4.getCmp('submitactionbtn').setDisabled(false);
-        }
-        else {
-            alert('Please select a standard to base these samples on.');
-        }
+                Ext4.getCmp('avgconcfield').setValue(mean);
+                Ext4.getCmp('stddevfield').setValue(deviation);
+                Ext4.getCmp('submitactionbtn').setDisabled(false);
+            }
+            else {
+                alert('Please select a standard to base these samples on.');
+            }
+        }, this);
     },
 
     bindCalc : function(view, sample) {
         var modelname = sample.get('name');
 
-        // clear listeners
-        Ext4.iterate(this.nodes, function(node) {
-            if (node && Ext4.isFunction(node.removeAllListeners)) {
-                node.removeAllListeners();
-            }
-        }, this);
-
         if (modelname) {
-            var node = Ext4.DomQuery.select('tr[modelname="' + modelname + '"]')[0];
-
-            this.nodes = {
-                sample: sample,
-                leftIn: Ext4.get(Ext4.DomQuery.select('input[name="xleft"]', node)[0]),
-                rightIn: Ext4.get(Ext4.DomQuery.select('input[name="xright"]', node)[0]),
-                baseIn: Ext4.get(Ext4.DomQuery.select('input[name="base"]', node)[0]),
-                include: Ext4.get(Ext4.DomQuery.select('input[name="include"]', node)[0]),
-                responseOut: Ext4.get(Ext4.DomQuery.select('span[name="response"]', node)[0])
-            };
-
-            this.nodes.leftIn.on('keyup', this.updateModels, this);
-            this.nodes.rightIn.on('keyup', this.updateModels, this);
-            this.nodes.baseIn.on('keyup', this.updateModels, this);
-            this.nodes.include.on('click', this.updateModels, this);
-
             this.highlighted = sample.get('name') + '.'  + sample.get('fileExt');
             this.renderPlot(this.allContent);
-
-            this.updateModels();
         }
     },
 
-    computeCalc : function() {
-        var left = parseFloat(this.nodes.leftIn.getValue());
-        var right = parseFloat(this.nodes.rightIn.getValue());
-        var base = parseFloat(this.nodes.baseIn.getValue());
-        var model = this.nodes.sample;
+    updateModels : function(callback, scope, toCopy) {
+        //
+        // Iterate over all QC Results updating there peakResponse based on given values for that row/result
+        //
+        if (Ext4.isDefined(this.qcresultview)) {
+            var view = this.qcresultview;
+            var store = view.getStore();
+            var models = store.getRange();
 
-        var sampleModel = this.dupStore.getAt(this.dupStore.findExact('name', model.get('name')));
-        sampleModel.suspendEvents(true);
-        sampleModel.set('xleft', left);
-        sampleModel.set('xright', right);
-        sampleModel.set('base', base);
+            var xleft, xright, base, include, response;
 
-        if (left > 0 && right > 0 && base > -1) {
-            var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
-            var data = LABKEY.hplc.QualityControl.getData(fileContent, left, right, false);
-            var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
-            this.nodes.responseOut.update(+aucPeak.auc.toFixed(3));
+            Ext4.each(models, function(model) {
 
-            sampleModel.set('xleft', left);
-            sampleModel.set('xright', right);
-            sampleModel.set('base', base);
-            sampleModel.set('auc', aucPeak.auc);
-            sampleModel.set('peakResponse', aucPeak.auc);
-            sampleModel.set('peakMax', aucPeak.peakMax);
-            sampleModel.set('include', this.nodes.include.dom.checked);
-            sampleModel.resumeEvents();
-            this.fireEvent('computedconcentration', this.dupStore);
+                if (Ext4.isDefined(toCopy)) {
+                    xleft = toCopy.get('xleft');
+                    xright = toCopy.get('xright');
+                    base = toCopy.get('base');
+                }
+                else {
+                    xleft = +this._getNodeValue(view, model, 'input[name="xleft"]');
+                    xright = +this._getNodeValue(view, model, 'input[name="xright"]');
+                    base = +this._getNodeValue(view, model, 'input[name="base"]');
+                }
+
+                include = this._getNode(view, model, 'input[name="include"]');
+                response = this._getNode(view, model, 'span[name="response"]');
+
+                var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
+                var data = LABKEY.hplc.QualityControl.getData(fileContent, xleft, xright, false);
+                var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
+                response.update(+aucPeak.auc.toFixed(3));
+
+                model.suspendEvents(true);
+                model.set('xleft', xleft);
+                model.set('xright', xright);
+                model.set('base', base);
+                model.set('auc', aucPeak.auc);
+                model.set('peakResponse', aucPeak.auc);
+                model.set('peakMax', aucPeak.peakMax);
+                model.set('include', include.dom.checked);
+                model.resumeEvents();
+            }, this);
+
+            if (Ext4.isFunction(callback)) {
+                callback.call(scope);
+            }
         }
         else {
-            sampleModel.resumeEvents();
+            console.error('qcresultview not initialized before update.');
         }
     },
 
-    updateModels : function() {
-        if (!this.computeTask) { this.computeTask = new Ext4.util.DelayedTask(this.computeCalc, this); }
+    _getNode : function(view, model, selector) {
+        return Ext4.get(Ext4.DomQuery.select(selector, view.getNodeByRecord(model))[0]);
+    },
 
-        this.computeTask.delay(300);
+    _getNodeValue : function(view, model, selector) {
+        return this._getNode(view, model, selector).getValue();
     },
 
     renderPlot : function(contents) {
