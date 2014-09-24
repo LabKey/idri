@@ -109,7 +109,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
     private static final String HPLC_ASSAY = "HPLC";
     private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
-    private static final String HPLC_PIPELINE_PATH = TestFileUtils.getSampledataPath() + "/HPLC";
+    private static final String HPLC_PIPELINE_PATH = TestFileUtils.getLabKeyRoot() + "/server/customModules/idri/test/sampledata/pHPLC";
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
     private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
     private static final String HPLC_SAMPLE1 = "3004837A.CSV";
@@ -243,6 +243,7 @@ public class FormulationsTest extends BaseWebDriverTest
         validateVisualAssayData();
 
         defineProvisionalHPLCAssay();
+        uploadProvisionalHPLCData();
         defineHPLCAssay();
 //        uploadHPLCAssayData();
 //        validateHPLCAssayData();
@@ -664,7 +665,6 @@ public class FormulationsTest extends BaseWebDriverTest
         // Result Properties
         assertTextPresent("Dilution");
         assertTextPresent("DataFile");
-//        assertTextPresent("Concentration");
 
         // Make Runs/Results editable
         checkCheckbox(Locator.checkboxByName("editableRunProperties"));
@@ -676,6 +676,15 @@ public class FormulationsTest extends BaseWebDriverTest
 
         // Set pipeline path
         setPipelineRoot(HPLC_PIPELINE_PATH);
+    }
+
+    @LogMethod
+    protected void uploadProvisionalHPLCData()
+    {
+        beginAt("/" + getProjectName() + "/idri-mockHPLCWatch.view");
+        waitForText("Ready to Load");
+        click(Locator.tagWithClass("input", "idri-run-btn"));
+        waitForText("Test Run Upload Complete");
     }
 
     @LogMethod

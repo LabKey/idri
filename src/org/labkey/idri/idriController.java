@@ -25,10 +25,12 @@ import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpMaterial;
 import org.labkey.api.exp.api.ExpRun;
@@ -628,6 +630,7 @@ public class idriController extends SpringActionController
     public static class HPLCResourceForm
     {
         public String _path;
+        public boolean _test = false;
 
         public String getPath()
         {
@@ -637,6 +640,16 @@ public class idriController extends SpringActionController
         public void setPath(String path)
         {
             _path = path;
+        }
+
+        public boolean isTest()
+        {
+            return _test;
+        }
+
+        public void setTest(boolean test)
+        {
+            _test = test;
         }
     }
 
@@ -649,15 +662,39 @@ public class idriController extends SpringActionController
             String path = form.getPath();
             WebdavResource resource = WebdavService.get().lookup(path);
             Map<String, String> props = new HashMap<>();
+            Container c = getContainer();
 
             if (null != resource)
             {
                 FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
-                ExpData data = svc.getDataObject(resource, getContainer());
+                ExpData data = svc.getDataObject(resource, c);
+
+                if (form.isTest() && data == null)
+                {
+                    // Generate the data to help the test, replicating what DavController would do for us
+                    File file = resource.getFile();
+                    if (null != file)
+                    {
+                        data = ExperimentService.get().createData(c, new DataType("UploadedFile"));
+                        data.setName(file.getName());
+                        data.setDataFileURI(file.toURI());
+
+                        int scale = ExperimentService.get().getTinfoData().getColumn("DataFileURL").getScale();
+                        String dataFileURL = data.getDataFileUrl();
+                        if (dataFileURL != null && dataFileURL.length() > scale)
+                        {
+                            // If the path is too long to store, bail out without creating an exp.data row
+                        }
+                        else
+                        {
+                            data.save(getUser());
+                        }
+                    }
+                }
 
                 if (null != data)
                 {
-                    TableInfo ti = ExpSchema.TableType.Data.createTable(new ExpSchema(getUser(), getContainer()), ExpSchema.TableType.Data.toString());
+                    TableInfo ti = ExpSchema.TableType.Data.createTable(new ExpSchema(getUser(), c), ExpSchema.TableType.Data.toString());
                     QueryUpdateService qus = ti.getUpdateService();
 
                     try
@@ -665,7 +702,7 @@ public class idriController extends SpringActionController
                         File canonicalFile = FileUtil.getAbsoluteCaseSensitiveFile(resource.getFile());
                         String url = canonicalFile.toURI().toURL().toString();
                         Map<String, Object> keys = Collections.singletonMap(ExpDataTable.Column.DataFileUrl.name(), (Object) url);
-                        List<Map<String, Object>> rows = qus.getRows(getUser(), getContainer(), Collections.singletonList(keys));
+                        List<Map<String, Object>> rows = qus.getRows(getUser(), c, Collections.singletonList(keys));
 
                         if (rows.size() == 1)
                         {
