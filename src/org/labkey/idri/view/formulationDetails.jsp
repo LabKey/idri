@@ -132,6 +132,30 @@
         </td>
     </tr>
 </table>
+<table>
+    <tr>
+        <td style="vertical-align:top;">
+            <table>
+                <thead><h3>Provisional HPLC</h3></thead>
+                <tr>
+                    <td>
+                        <div id="pHPLCDiv"></div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="vertical-align:top;">
+            <table>
+                <thead><h3>HPLC Quality Control</h3></thead>
+                <tr>
+                    <td>
+                        <div id="HPLCQCDiv"></div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </div>
 <script type="text/javascript">
 
@@ -294,7 +318,10 @@
                 }
             }]
         });
-        
+
+        //
+        // Concentrations
+        //
         new LABKEY.QueryWebPart({
             renderTo   : 'concentrationDiv',
             schemaName : 'idri',
@@ -307,6 +334,40 @@
 
         buildPSReports('5C', assayId, 'aps', 'aps-report');
         buildPSReports('5C', assayId, 'nano', 'nano-report');
+
+        //
+        // Provisional HPLC
+        //
+        new LABKEY.QueryWebPart({
+            renderTo: 'pHPLCDiv',
+            schemaName: 'idri',
+            queryName: 'pHPLCSummary',
+            frame: 'none',
+            buttonBarPosition: 'none',
+            showPagination: false,
+            showRecordSelectors: true,
+            suppressRenderErrors: !LABKEY.devMode,
+            parameters: {
+                Formulation: assayId
+            }
+        });
+
+        //
+        // HPLC Quality Control
+        //
+        new LABKEY.QueryWebPart({
+            renderTo: 'HPLCQCDiv',
+            schemaName: 'idri',
+            queryName: 'HPLCSummary',
+            frame: 'none',
+            buttonBarPosition: 'none',
+            showPagination: false,
+            showRecordSelectors: true,
+            suppressRenderErrors: !LABKEY.devMode,
+            parameters: {
+                Formulation: assayId
+            }
+        });
     });
 
     function getOldView() {
