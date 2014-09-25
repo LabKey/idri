@@ -18,10 +18,12 @@ package org.labkey.idri;
 import org.labkey.api.data.Container;
 import org.labkey.api.module.MultiPortalFolderType;
 import org.labkey.api.security.User;
+import org.labkey.api.view.FolderTab;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * User: jNicholas
@@ -30,9 +32,16 @@ import java.util.Arrays;
  */
 public class idriFormulationsFolderType extends MultiPortalFolderType
 {
+    public static final String NAME = "IDRI Formulations";
+
+    private static final List<FolderTab> TABS = Arrays.asList(
+            new idriFolderTabs.OverviewPage("Overview"),
+            new idriFolderTabs.FormulationSummaryPage("Formulation Summary")
+    );
+
     public idriFormulationsFolderType(idriModule module)
     {
-        super("IDRI Formulations",
+        super(NAME,
                 "Manage formulations data, modeling, and assays. One per site.",
                 Arrays.asList(
                         Portal.getPortalPart("Formulation Search").createWebPart(),
@@ -57,5 +66,11 @@ public class idriFormulationsFolderType extends MultiPortalFolderType
         super.configureContainer(c, user);
 
         idriManager.initializeSampleSets(c);
+    }
+
+    @Override
+    public List<FolderTab> getDefaultTabs()
+    {
+        return TABS;
     }
 }
