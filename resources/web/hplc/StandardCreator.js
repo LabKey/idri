@@ -696,7 +696,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
     requestContent : function(def, callback, scope) {
         var sd = def.get('expDataRun');
         if (sd) {
-            LABKEY.hplc.QualityControl.FileContentCache(sd, callback, scope);
+            HPLCService.FileContentCache(sd, callback, scope);
         }
         else {
             console.error('failed to load expDataRun from definition.');
@@ -747,7 +747,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                         //
                         isHighlight = (this.highlighted === filename);
                         var pointLayer = new LABKEY.vis.Layer({
-                            data: LABKEY.hplc.QualityControl.getData(contentMap[filename], xleft, xright, 3),
+                            data: HPLCService.getData(contentMap[filename], xleft, xright, 3),
                             aes: {
                                 x: function(r) { return r[0]; },
                                 y: function(r) { return r[1]; }
@@ -829,16 +829,16 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
             var idx = store.findExact('name', modelname);
             if (idx > -1) {
                 var model = store.getAt(idx);
-                var conc = parseFloat(Ext4.get(node.select('input[name=concentration').elements[0]).getValue());
-                var xleft = parseFloat(Ext4.get(node.select('input[name=xleft').elements[0]).getValue());
-                var xright = parseFloat(Ext4.get(node.select('input[name=xright').elements[0]).getValue());
-                var base = parseFloat(Ext4.get(node.select('input[name=base').elements[0]).getValue());
-                model.set('concentration', conc);
-                model.set('xleft', xleft);
-                model.set('xright', xright);
-                model.set('base', base);
+                model.set('concentration', this._parseFloat(node, 'input[name=concentration]'));
+                model.set('xleft', this._parseFloat(node, 'input[name=xleft]'));
+                model.set('xright', this._parseFloat(node, 'input[name=xright]'));
+                model.set('base', this._parseFloat(node, 'input[name=base]'));
             }
         }
+    },
+
+    _parseFloat : function(node, selector) {
+        return parseFloat(Ext4.get(node.select(selector).elements[0]).getValue());
     },
 
     _processContent : function(content) {
@@ -862,7 +862,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 for (n=0; n < count; n++) {
                     m = store.getAt(n);
                     fname = m.get('expDataRun').name;
-                    data = LABKEY.hplc.QualityControl.getData(this.curveConfig.contentMap[fname], m.get('xleft'), m.get('xright'));
+                    data = HPLCService.getData(this.curveConfig.contentMap[fname], m.get('xleft'), m.get('xright'));
                     var aucPeak = LABKEY.hplc.Stats.getAUC(data, m.get('base'));
                     m.set('auc', aucPeak.auc);
                     m.set('peakMax', aucPeak.peakMax);
@@ -885,7 +885,6 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
 
     renderCalibrationCurve : function(data) {
         var R = LABKEY.hplc.Stats.getPolynomialRegression(data);
-        RR = R;
         var eq = R.equation;
         R.reverseString = 'y = ' + eq[0].toFixed(2) + ' + ' + eq[1].toFixed(2) + 'x ';
         R.reverseString += (eq[2] < 0 ? '- ' : '+ ');

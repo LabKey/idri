@@ -1,0 +1,12 @@
+<libraries xmlns="http://labkey.org/clientLibrary/xml/">
+    <library compileInProductionMode="false">
+        <script path="hplc/regression.js"/>
+        <script path="hplc/Stats.js"/>
+        <script path="hplc/DataService.js"/>
+        <script path="hplc/ProvisionalRun.js"/>
+        <script path="hplc/SpectrumPlot.js"/>
+    </library>
+    <dependencies>
+        <dependency path="vis/vis" />
+    </dependencies>
+</libraries>

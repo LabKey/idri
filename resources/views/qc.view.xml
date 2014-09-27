@@ -4,6 +4,8 @@
         <dependency path="clientapi/ext3"/>
         <dependency path="vis/vis"/>
         <dependency path="hplc/regression.js"/>
+        <dependency path="hplc/Stats.js"/>
+        <dependency path="hplc/DataService.js"/>
         <dependency path="hplc/SpectrumPlot.js"/>
         <dependency path="hplc/ProvisionalRun.js"/>
         <dependency path="hplc/SampleCreator.js"/>

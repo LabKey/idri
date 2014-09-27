@@ -160,7 +160,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         text: 'Start QC',
                         disabled: true,
                         handler: function(b) {
-                            this.fireEvent('startqc', b.up('panel').getComponent('inputsgrid').getSelectionModel().getSelection());
+                            this.fireEvent('startqc', this.getSelectedInputResults());
                         },
                         scope: this
                     },{
@@ -403,6 +403,14 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         return this.northpanel;
     },
 
+    getInputsSelectionModel : function() {
+        return this.westpanel.getComponent('inputsgrid').getSelectionModel();
+    },
+
+    getSelectedInputResults : function() {
+        return this.getInputsSelectionModel().getSelection();
+    },
+
     onStandardChange : function(standards) {
         var form = this.northpanel.getComponent('sampleform');
         if (form) {
@@ -481,7 +489,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 for (var d=0; d < provisionalRuns.length; d++) {
                     var pr = provisionalRuns[d].get('expDataRun');
                     if (pr) {
-                        LABKEY.hplc.QualityControl.FileContentCache(pr, done, this);
+                        HPLCService.FileContentCache(pr, done, this);
                     }
                     else {
                         console.error('Failed to load expDataRun from provisional run.');
@@ -581,8 +589,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         this.westpanel.on('expand', function(west) {
 
                             Ext4.defer(function() {
-                                var selection = this.westpanel.getComponent('inputsgrid');
-                                selection.getSelectionModel().deselectAll();
+                                this.getInputsSelectionModel().deselectAll();
                                 this.getQCForm().getForm().reset();
                                 Ext4.getCmp('submitactionbtn').setDisabled(true);
                                 this.clearPlot();
@@ -854,7 +861,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 response = this._getNode(view, model, 'span[name="response"]');
 
                 var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
-                var data = LABKEY.hplc.QualityControl.getData(fileContent, xleft, xright, false);
+                var data = HPLCService.getData(fileContent, xleft, xright, false);
                 var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
                 response.update(+aucPeak.auc.toFixed(3));
 
@@ -887,8 +894,10 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
     },
 
     renderPlot : function(contents) {
-        var spectrumPlot = Ext4.getCmp('plotarea');
 
+        var spectrumPlot = Ext4.getCmp('plotarea');
+        spectrumPlot.leftRight = [Ext4.getCmp('aucleft').getValue(), Ext4.getCmp('aucright').getValue()];
+        spectrumPlot.lowHigh = [Ext4.getCmp('mvrangelow').getValue(), Ext4.getCmp('mvrangehigh').getValue()];
         spectrumPlot.setHighlight(this.highlighted);
         spectrumPlot.renderPlot(contents);
 

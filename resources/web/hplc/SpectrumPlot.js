@@ -15,13 +15,9 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
 
     xLabel: '',
 
-    leftBoundField: null,
+    leftRight: [0, 30],
 
-    rightBoundField: null,
-
-    lowBoundField: null,
-
-    highBoundField: null,
+    lowHigh: [0, 1200],
 
     id: Ext4.id(),
 
@@ -31,10 +27,13 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
         tag: 'div'
     },
 
+    autoZoom: false,
+
     highlight: undefined,
 
-    initComponent : function() {
-        this.callParent();
+    constructor : function(config) {
+        this.callParent([config]);
+        this.addEvents('zoom');
     },
 
     clearPlot : function() {
@@ -43,19 +42,19 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
 
     renderPlot : function(contents) {
 
+        if (!contents) {
+            if (!this._lastContent) {
+                console.error(this.$className + '.renderPlot requires contents be provided at least once');
+                return;
+            }
+            contents = this._lastContent;
+        }
+
         var layers = [];
         var colors = this.colors;
-        var xleft = Ext4.getCmp(this.leftBoundField).getValue();
-        var xright = Ext4.getCmp(this.rightBoundField).getValue();
-        var low = Ext4.getCmp(this.lowBoundField).getValue();
-        var high = Ext4.getCmp(this.highBoundField).getValue();
 
-        if (!xleft) {
-            xleft = 0;
-        }
-        if (!xright) {
-            xright = 0;
-        }
+        var xleft = this.leftRight[0], xright = this.leftRight[1],
+                low = this.lowHigh[0], high = this.lowHigh[1];
 
         var c=0, isHighlight = false, useHighlight = (this.highlight ? true : false), color;
         for (var i=0; i < contents.length; i++) {
@@ -73,7 +72,7 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
             }
 
             var pointLayer = new LABKEY.vis.Layer({
-                data: LABKEY.hplc.QualityControl.getData(contents[i], xleft, xright, 2),
+                data: HPLCService.getData(contents[i], xleft, xright, 2),
                 aes: {
                     x: function(r) { return r[0]; },
                     y: function(r) { return r[1]; }
@@ -123,6 +122,7 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
             }
         });
 
+        this._lastContent = contents;
         plot.render();
     },
 
@@ -130,7 +130,20 @@ Ext4.define('LABKEY.hplc.SpectrumPlot', {
         this.highlight = highlight;
     },
 
+    resetZoom : function() {
+        this.leftRight = [0, 30];
+        this.lowHigh = [0, 1200];
+        if (this._lastContent) {
+            this.renderPlot();
+        }
+    },
+
     updateZoom : function(left, right, bottom, top) {
+        if (this.autoZoom) {
+            this.leftRight = [left, right];
+            this.lowHigh = [bottom, top];
+            this.renderPlot();
+        }
         this.fireEvent('zoom', left, right, bottom, top);
     }
 });
