@@ -109,6 +109,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
     private static final String HPLC_ASSAY = "HPLC";
     private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
+    private static final String PROVISIONAL_HPLC_RUN = "2014_9_19_15_53_20";
     private static final String HPLC_PIPELINE_PATH = TestFileUtils.getLabKeyRoot() + "/server/customModules/idri/test/sampledata/pHPLC";
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
     private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
@@ -218,6 +219,11 @@ public class FormulationsTest extends BaseWebDriverTest
             ListHelper.ListColumnType.Double,
             "Standard Source determined baseline.");
 
+    @Override
+    public BrowserType bestBrowser()
+    {
+        return BrowserType.CHROME;
+    }
 
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
@@ -243,8 +249,10 @@ public class FormulationsTest extends BaseWebDriverTest
         validateVisualAssayData();
 
         defineProvisionalHPLCAssay();
-        uploadProvisionalHPLCData();
         defineHPLCAssay();
+
+        uploadProvisionalHPLCData();
+        qualityControlHPLCData();
 //        uploadHPLCAssayData();
 //        validateHPLCAssayData();
     }
@@ -685,6 +693,104 @@ public class FormulationsTest extends BaseWebDriverTest
         waitForText("Ready to Load");
         click(Locator.tagWithClass("input", "idri-run-btn"));
         waitForText("Test Run Upload Complete");
+        sleep(1500);
+    }
+
+    @LogMethod
+    protected void qualityControlHPLCData()
+    {
+        String standardName = "LGCTest";
+        String[] standards = {"LGC20371", "LGC40060", "LGC60342", "LGC80021", "LGC10030"};
+        String[] concs = {"20", "40", "60", "80", "100"};
+        String left = "12"; String right = "15"; String base = "40";
+        assert standards.length == concs.length;
+
+        String[] samples = {"QD123-11", "QD123-24", "QD123-31"};
+        String sleft = "14.5"; String sright = "16"; String sbase = "45";
+
+        //
+        // Start QC Process
+        //
+        clickProject(PROJECT_NAME);
+
+        click(Locator.linkWithText(PROVISIONAL_HPLC_ASSAY));
+        waitForElement(Locator.linkWithText(PROVISIONAL_HPLC_RUN));
+
+        DataRegionTable runs = new DataRegionTable("Runs", this);
+        runs.checkCheckbox(0);
+        clickButton("QC Selected Run");
+
+        log("Start the Qualitative Analysis");
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(samples[0]));
+        clickButton("Define Standards", 0);
+
+        for (String std : standards)
+        {
+            // check in concentration order
+            _ext4Helper.checkGridRowCheckbox(std);
+        }
+
+        for (int i=0; i < standards.length; i++)
+        {
+            Locator.XPathLocator runRow = Locator.tagWithAttribute("tr", "modelname", standards[i]);
+            setFormElement(runRow.append(Locator.input("concentration")), concs[i]);
+            if (i == 0)
+            {
+                setFormElement(runRow.append(Locator.input("xleft")), left);
+                setFormElement(runRow.append(Locator.input("xright")), right);
+                setFormElement(runRow.append(Locator.input("base")), base);
+            }
+        }
+
+        click(Locator.button("C").index(0));
+        waitForText("to all other selections?");
+        clickButton("Yes", 0);
+
+        // ensure the copy gets all the way to the last row
+        waitForElement(Locator.tagWithAttribute("tr", "modelname", standards[standards.length-1]).append(Locator.input("base").withAttribute("value", base)));
+
+        setFormElement(Locator.input("standardname"), standardName);
+        clickButton("Calibration Curve", 0);
+        waitForElement(Locator.id("standardrsquared-inputEl").containing("0.99"));
+
+        clickButton("Save", 0);
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(standardName));
+
+        log("Quality Control Samples");
+        clickButton("Return to Samples", 0);
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(samples[0]));
+
+        for (String samp : samples)
+        {
+            _ext4Helper.checkGridRowCheckbox(samp);
+        }
+
+        clickButton("Start QC", 0);
+        sleep(2000); // let the view animate
+
+        _ext4Helper.selectComboBoxItem(Locator.id("compoundlist"), "Squawk");
+        _ext4Helper.selectComboBoxItem(Locator.id("standardslist"), standardName);
+        _ext4Helper.selectComboBoxItem(Locator.id("formulationlist"), FORMULATION);
+        _ext4Helper.selectComboBoxItem(Locator.id("temperaturelist"), "5");
+        _ext4Helper.selectComboBoxItem(Locator.id("timelist"), "T=0");
+
+        Locator.XPathLocator firstSampleRow = Locator.tagWithAttribute("tr", "modelname", samples[0]);
+        setFormElement(firstSampleRow.append(Locator.input("xleft")), sleft);
+        setFormElement(firstSampleRow.append(Locator.input("xright")), sright);
+        setFormElement(firstSampleRow.append(Locator.input("base")), sbase);
+        click(Locator.button("C").index(0));
+        waitForText("to all other selections?");
+        clickButton("Yes", 0);
+
+        // ensure the copy gets all the way to the last row
+        waitForElement(Locator.tagWithAttribute("tr", "modelname", samples[samples.length-1]).append(Locator.input("base").withAttribute("value", sbase)));
+
+        clickButton("Calculate", 0);
+        sleep(500);
+
+        clickButton("Submit Analysis", 0);
+        waitForText("successfully");
+        _ext4Helper.waitForMaskToDisappear();
     }
 
     @LogMethod
