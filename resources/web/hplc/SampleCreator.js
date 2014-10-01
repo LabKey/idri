@@ -384,18 +384,9 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                     //
                     // compute a valid date from the file path
                     //
-                    var path = runs[0].get('filePath');
-                    if (path) {
-                        path = path.split('/');
-                        var folder = path[path.length-2];
-                        if (folder.indexOf('20') == 0) {
-                            folder = folder.split('_');
-                            var date = new Date('' + folder[0] + "-" + folder[1] + "-" + folder[2]);
-                            date.setHours(parseInt(folder[3]));
-                            date.setMinutes(parseInt(folder[4]));
-                            date.setSeconds(parseInt(folder[5]));
-                            Ext4.getCmp('rundate').setValue(date);
-                        }
+                    var date = HPLCService.getDate(runs[0].get('filePath'));
+                    if (date) {
+                        Ext4.getCmp('rundate').setValue(date);
                     }
                 }
             }, this);

@@ -288,5 +288,38 @@ Ext4.define('LABKEY.hplc.DataService', {
             },
             scope: this
         });
+    },
+
+    getDate : function(filePath) {
+        var date;
+
+        if (!Ext4.isEmpty(filePath)) {
+            var path = filePath.split('/');
+
+            var folder = "";
+            if (path.length == 1) {
+                folder = path[0]; // allows for the folder name to be handed in directly
+            }
+            else {
+                folder = path[path.length-2];
+            }
+
+            if (folder.indexOf('20') == 0) {
+                folder = folder.split('_');
+                date = new Date();
+                date.setDate(parseInt(folder[2])); // setDay
+                date.setFullYear(parseInt(folder[0]));
+                date.setMonth(parseInt(folder[1])-1);
+                date.setHours(parseInt(folder[3]));
+                date.setMinutes(parseInt(folder[4]));
+                date.setSeconds(parseInt(folder[5]));
+            }
+        }
+
+        if (!Ext4.isDefined(date)) {
+            Ext4.Msg.alert('Invalid Date requested for:', filePath);
+        }
+
+        return date;
     }
 });
