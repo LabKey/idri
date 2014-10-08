@@ -81,13 +81,15 @@ function showInSearchView(resolvedView, data)
 
 var globalQueryConfig = {};
 
-function getRunIdIfUnique(srchstr, assayName)
+function getRunIdIfUnique(searchElementId)
 {
+    var srchstr = document.getElementById(searchElementId).value.toUpperCase();
+
     var ss = Ext.get(_searchStatus);
 
     if (srchstr.length > 0)
     {
-        if(ss)
+        if (ss)
             ss.update('Searching...');
 
         /* Establish what view we want based on the search string */
@@ -103,7 +105,7 @@ function getRunIdIfUnique(srchstr, assayName)
         document.getElementById('dataRegionDiv').style.display = "none";
         document.getElementById('resultsDiv').style.display    = "none";
 
-        if(view == "RM")
+        if (view == "RM")
         {
             globalQueryConfig.schemaName = 'exp';
             globalQueryConfig.queryName = 'Materials';
@@ -111,7 +113,7 @@ function getRunIdIfUnique(srchstr, assayName)
             globalQueryConfig.action = 'showMaterial';
             globalQueryConfig.filterArray = [ LABKEY.Filter.create("Name",srchstr, LABKEY.Filter.Types.CONTAINS)];
         }
-        else if(view == "FORMULATION")
+        else if (view == "FORMULATION")
         {
             globalQueryConfig.schemaName = 'Samples';
             globalQueryConfig.queryName = 'Formulations';
@@ -121,7 +123,7 @@ function getRunIdIfUnique(srchstr, assayName)
             globalQueryConfig.resolvedView = view;
             // globalQueryConfig.params = { pageId: 'idri.LOT_SUMMARY' };
         }
-        else if(view == "COMPOUND")
+        else if (view == "COMPOUND")
         {
             globalQueryConfig.schemaName = 'Samples';
             globalQueryConfig.queryName = 'Compounds';
@@ -132,7 +134,7 @@ function getRunIdIfUnique(srchstr, assayName)
         }
         else
         {
-            if(ss)
+            if (ss)
                 ss.update("Search failed.");
             return false;
         }
@@ -193,10 +195,6 @@ function onSuccess(data)
 function getSummaryViewURL(rowId)
 {
     var params = { rowId: rowId };
-
-    var searchString = document.getElementById('IdriSearchStr');
-    if (searchString != undefined)
-        params['nameContains'] = searchString.value;
 
     if (Ext.isObject(globalQueryConfig.params)) {
         Ext.iterate(globalQueryConfig.params, function(k, v) { params[k] = v; });

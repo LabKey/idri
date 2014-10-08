@@ -20,33 +20,36 @@
 <%@ page import="org.labkey.api.view.template.ClientDependency" %>
 <%@ page import="org.labkey.idri.idriController" %>
 <%@ page import="java.util.LinkedHashSet" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
+<%@ page import="org.labkey.api.util.UniqueID" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
-
-  public LinkedHashSet<ClientDependency> getClientDependencies()
-  {
-      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
-      resources.add(ClientDependency.fromFilePath("Ext3"));
-      resources.add(ClientDependency.fromFilePath("/formulations/SearchFormulation.js"));
-      resources.add(ClientDependency.fromFilePath("/formulations/FormulationForm.js"));
-      return resources;
-  }
+    public LinkedHashSet<ClientDependency> getClientDependencies()
+    {
+        LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
+        resources.add(ClientDependency.fromFilePath("Ext3"));
+        resources.add(ClientDependency.fromFilePath("/formulations/SearchFormulation.js"));
+        resources.add(ClientDependency.fromFilePath("/formulations/FormulationForm.js"));
+        return resources;
+    }
 %>
-<labkey:form method="get" action="../formulations" onsubmit="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;">
+<%
+    String searchID = "idri-search-" + UniqueID.getRequestScopedUID(HttpView.currentRequest());
+%>
+<form method="GET" action="../formulations" onsubmit="getRunIdIfUnique(<%=PageFlowUtil.jsString(searchID)%>); return false;">
     <table cols="3">
         <tr>
             <td>Search (e.g. QF325)</td>
-            <td colspan=1>
-                <input type="text" id="IdriSearchStr" style="font-size: 18px; font-weight:lighter;" name="nameContains" value="" >
-                <input type="hidden" id="IdriPSAssayName" name="assayName" value="Particle Size" >
+            <td colspan="1">
+                <input type="text" id="<%=text(searchID)%>" style="font-size: 18px; font-weight:lighter;" name="nameContains" value="">
             </td>
-            <td colspan=1>
-                <input type="submit" style="display: none;" id="IdriSearchSubmit"><a class="labkey-button" href="#" onclick="getRunIdIfUnique(document.getElementById('IdriSearchStr').value.toUpperCase(),document.getElementById('IdriPSAssayName').value); return false;" ><span>Search</span></a>
+            <td colspan="1">
+                <%= PageFlowUtil.button("Search").href("javascript:void(0);").onClick("getRunIdIfUnique(" + PageFlowUtil.jsString(searchID) + "); return false;") %>
             </td>
         </tr>
     </table>
-</labkey:form>
+</form>
 <div id="SearchStatusDiv"></div>
 <div id="SearchStatusDiv2"></div>
 <div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", new ActionURL(idriController.CreateFormulationAction.class, getContainer()))%></div>
