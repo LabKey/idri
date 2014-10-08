@@ -115,10 +115,11 @@ function getRunIdIfUnique(srchstr, assayName)
         {
             globalQueryConfig.schemaName = 'Samples';
             globalQueryConfig.queryName = 'Formulations';
-            globalQueryConfig.controller = 'idri';
-            globalQueryConfig.action = 'formulationDetails';
+            globalQueryConfig.controller = 'idri'; // 'project'
+            globalQueryConfig.action = 'formulationDetails'; // 'begin'
             globalQueryConfig.filterArray = [ LABKEY.Filter.create("Name",srchstr, LABKEY.Filter.Types.CONTAINS)];
             globalQueryConfig.resolvedView = view;
+            // globalQueryConfig.params = { pageId: 'idri.LOT_SUMMARY' };
         }
         else if(view == "COMPOUND")
         {
@@ -191,14 +192,17 @@ function onSuccess(data)
 
 function getSummaryViewURL(rowId)
 {
-    var params = {};
-    params['rowId'] = rowId;
+    var params = { rowId: rowId };
 
     var searchString = document.getElementById('IdriSearchStr');
     if (searchString != undefined)
         params['nameContains'] = searchString.value;
 
-    return LABKEY.ActionURL.buildURL(globalQueryConfig.controller, globalQueryConfig.action, LABKEY.ActionURL.getContainer(), params);
+    if (Ext.isObject(globalQueryConfig.params)) {
+        Ext.iterate(globalQueryConfig.params, function(k, v) { params[k] = v; });
+    }
+
+    return LABKEY.ActionURL.buildURL(globalQueryConfig.controller, globalQueryConfig.action, null, params);
 }
 
 var reportObjects = {};
