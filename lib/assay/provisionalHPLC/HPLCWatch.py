@@ -47,7 +47,7 @@ filepatterns = ["*.txt", "*.csv", "*.tsv", "*.SEQ"]
 sleep_interval = 60
 success_interval = 60
 machine_name = ''
-END_RUN_PREFIX = 'POST_'
+END_RUN_PREFIX = 'POST'
 
 class HPLCHandler(PatternMatchingEventHandler):
 
@@ -322,9 +322,14 @@ class HPLCHandler(PatternMatchingEventHandler):
             #
             # Now iterate over each file and determine the dataFileURL
             #
+            runFiles = [] # deep copy
             for i in range(len(self.runFiles)):
-                d = self.getDataFileURL(self.runFiles[i], self.folder)
-                self.runFiles[i]['DataFileUrl'] = d
+                runFiles.append(self.runFiles[i])
+
+            for rf in runFiles:
+                rf['DataFileUrl'] = self.getDataFileURL(rf, self.folder)
+
+            self.runFiles = runFiles
             print "Found Data File URLs..."
 
             #
