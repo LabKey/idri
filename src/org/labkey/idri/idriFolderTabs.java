@@ -22,6 +22,11 @@ import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.FolderTab;
 import org.labkey.api.view.Portal;
+import org.labkey.idri.formulations.ConcentrationsWebPart;
+import org.labkey.idri.formulations.FormulationSearchWebPart;
+import org.labkey.idri.formulations.FormulationSummaryWebPart;
+import org.labkey.idri.formulations.ParticleSizeWebPart;
+import org.labkey.idri.formulations.StabilityWebPart;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +63,11 @@ public class idriFolderTabs
         public List<Portal.WebPart> createWebParts()
         {
             List<Portal.WebPart> parts = new ArrayList<>();
-//            parts.add(Portal.getPortalPart("Formulation Search").createWebPart());
-            // TODO: This is where we'll add the new webparts
+            parts.add(Portal.getPortalPart(FormulationSearchWebPart.NAME).createWebPart());
+            parts.add(Portal.getPortalPart(FormulationSummaryWebPart.NAME).createWebPart());
+            parts.add(Portal.getPortalPart(ConcentrationsWebPart.NAME).createWebPart());
+            parts.add(Portal.getPortalPart(ParticleSizeWebPart.NAME).createWebPart());
+            parts.add(Portal.getPortalPart(StabilityWebPart.NAME).createWebPart());
             return parts;
         }
     }

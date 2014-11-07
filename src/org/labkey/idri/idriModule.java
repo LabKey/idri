@@ -32,7 +32,11 @@ import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.view.WebPartView;
 import org.labkey.idri.assay.hplc.HPLCAssayDataHandler;
 import org.labkey.idri.assay.hplc.HPLCManager;
+import org.labkey.idri.formulations.ConcentrationsWebPart;
+import org.labkey.idri.formulations.FormulationSummaryWebPart;
+import org.labkey.idri.formulations.ParticleSizeWebPart;
 import org.labkey.idri.formulations.FormulationSearchWebPart;
+import org.labkey.idri.formulations.StabilityWebPart;
 import org.labkey.idri.query.ConcentrationsQueryView;
 import org.labkey.idri.query.idriSchema;
 
@@ -73,6 +77,34 @@ public class idriModule extends DefaultModule
                 public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
                 {
                     return new FormulationSearchWebPart();
+                }
+            },
+            new BaseWebPartFactory(FormulationSummaryWebPart.NAME)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                {
+                    return new FormulationSummaryWebPart();
+                }
+            },
+            new BaseWebPartFactory(ConcentrationsWebPart.NAME)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                {
+                    return new ConcentrationsWebPart();
+                }
+            },
+            new BaseWebPartFactory(ParticleSizeWebPart.NAME)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                {
+                    return new ParticleSizeWebPart();
+                }
+            },
+            new BaseWebPartFactory(StabilityWebPart.NAME)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                {
+                    return new StabilityWebPart();
                 }
             },
             new BaseWebPartFactory(WEBPART_CONCENTRATIONS)

@@ -96,6 +96,24 @@ public class idriManager
         return service.createExpMaterial(HttpView.getContextContainer(), materialSrcLSID, formulation.getBatch());
     }
 
+    @Nullable
+    public static ExpSampleSet getCompoundsSampleSet(Container container)
+    {
+        return ExperimentService.get().getSampleSet(container, idriSchema.TABLE_COMPOUNDS);
+    }
+
+    @Nullable
+    public static ExpSampleSet getFormulationSampleSet(Container container)
+    {
+        return ExperimentService.get().getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
+    }
+
+    @Nullable
+    public static ExpSampleSet getRawMaterialsSampleSet(Container container)
+    {
+        return ExperimentService.get().getSampleSet(container, idriSchema.TABLE_RAW_MATERIALS);
+    }
+
     /**
      *
      * @param rowID
@@ -173,29 +191,29 @@ public class idriManager
      */
     public static Map<String, Object> getMaterialType(String materialName)
     {
-        ViewContext ctx = HttpView.getRootContext();        
-        ExpMaterial form = ExperimentService.get().getSampleSet(ctx.getContainer(), idriSchema.TABLE_FORMULATIONS).getSample(materialName);
+        ViewContext ctx = HttpView.getRootContext();
+        ExpMaterial formulationMaterial = getFormulationSampleSet(ctx.getContainer()).getSample(materialName);
 
         Map<String, Object> aggregate = new CaseInsensitiveHashMap<>();
         aggregate.put("Type", "aggregate");
         aggregate.put("Units", "%v/vol");
 
-        if (form != null)
-            return aggregate;
+        if (formulationMaterial == null)
+        {
+            ExpMaterial mat = ExperimentService.get().getExpMaterialsByName(materialName, ctx.getContainer(), ctx.getUser()).get(0);
 
-        ExpMaterial mat = ExperimentService.get().getExpMaterialsByName(materialName, ctx.getContainer(), ctx.getUser()).get(0);
-        
-        if (mat.getCpasType().contains(idriSchema.TABLE_COMPOUNDS))
-        {
-            return getCompoundType(mat);
+            if (mat.getCpasType().contains(idriSchema.TABLE_COMPOUNDS))
+            {
+                return getCompoundType(mat);
+            }
+            else if (mat.getCpasType().contains(idriSchema.TABLE_RAW_MATERIALS.replaceAll(" ", "+")))
+            {
+                ExpMaterial expMat = getCompound(mat.getName());
+                return getCompoundType(expMat);
+            }
         }
-        else if (mat.getCpasType().contains(idriSchema.TABLE_RAW_MATERIALS.replaceAll(" ", "+")))
-        {
-            ExpMaterial expMat = getCompound(mat.getName());
-            return getCompoundType(expMat);
-        }
-        else
-            return aggregate;
+
+        return aggregate;
     }
 
     /**
@@ -214,8 +232,6 @@ public class idriManager
 
     private static Formulation saveFormulationHelper(Formulation formulation, User user, Container container)
     {
-        ExperimentService.Interface service = ExperimentService.get();
-
         // Prototype code to test saving to a formulation demographics dataset
         Study study = StudyService.get().getStudy(container);
         if (study != null)
@@ -257,7 +273,7 @@ public class idriManager
             }
         }
 
-        ExpSampleSet ss = service.getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
+        ExpSampleSet ss = getFormulationSampleSet(container);
         if (ss != null && ss.canImportMoreSamples())
         {
             ExpMaterial exists = ss.getSample(formulation.getBatch());
@@ -382,17 +398,18 @@ public class idriManager
     @Nullable
     public static Formulation getFormulation(String lot)
     {
-        ExperimentService.Interface service = ExperimentService.get();
-
-        Container container = HttpView.getContextContainer();
-        ExpSampleSet ss = service.getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
-        
-        ExpMaterial sampleRow = ss.getSample(lot);
         Formulation formulation = null;
-        if (sampleRow != null)
+        ExpSampleSet ss = getFormulationSampleSet(HttpView.getContextContainer());
+
+        if (null != ss)
         {
-            formulation = Formulation.fromSample(sampleRow, true);
+            ExpMaterial sampleRow = ss.getSample(lot);
+            if (sampleRow != null)
+            {
+                formulation = Formulation.fromSample(sampleRow, true);
+            }
         }
+
         return formulation;
     }
 
@@ -425,9 +442,12 @@ public class idriManager
     {
         List<Formulation> formulations = new ArrayList<>();
 
-        ExpSampleSet ss = ExperimentService.get().getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
-        for (ExpMaterial mat : ss.getSamples())
-            formulations.add(Formulation.fromSample(mat, false));
+        ExpSampleSet ss = getFormulationSampleSet(container);
+        if (ss != null)
+        {
+            for (ExpMaterial mat : ss.getSamples())
+                formulations.add(Formulation.fromSample(mat, false));
+        }
 
         return formulations;
     }
@@ -435,8 +455,8 @@ public class idriManager
     /**
      * Calculates concentrations and returns a list of Concentration objects.
      * @param formulation - The formulation and all associated first-level materials
-     * @param c
-     * @param u
+     * @param c - container
+     * @param u - user
      * @return
      */
     private static List<Concentration> calculateConcentrations(Formulation formulation, Container c, User u)
@@ -505,28 +525,36 @@ public class idriManager
     public static List<Concentration> getConcentrations(Formulation f, Container c, User u, boolean isTopOnly)
     {
         ExperimentService.Interface service = ExperimentService.get();
-        ExpMaterial m = service.getSampleSet(c, idriSchema.TABLE_FORMULATIONS).getSample(f.getBatch());
-        if (m == null)
-            return Collections.emptyList();
+        ExpSampleSet sampleSet = getFormulationSampleSet(c);
 
-        List<Concentration> concentrations = new ArrayList<>();
-        SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE lot = ? AND istop = ?");
-        sql.add(service.getExpMaterialsByName(f.getBatch(), c, u).get(0).getRowId());
-        sql.add(isTopOnly);
-        Collection<Concentration> concCollection = new SqlSelector(getSchema(), sql).getCollection(Concentration.class);
-        concentrations.addAll(concCollection);
-        return concentrations;
+        if (sampleSet != null)
+        {
+            ExpMaterial m = sampleSet.getSample(f.getBatch());
+
+            if (m != null)
+            {
+                List<Concentration> concentrations = new ArrayList<>();
+                SQLFragment sql = new SQLFragment("SELECT * FROM idri.concentrations WHERE lot = ? AND istop = ?");
+                sql.add(service.getExpMaterialsByName(f.getBatch(), c, u).get(0).getRowId());
+                sql.add(isTopOnly);
+                Collection<Concentration> concCollection = new SqlSelector(getSchema(), sql).getCollection(Concentration.class);
+                concentrations.addAll(concCollection);
+                return concentrations;
+            }
+        }
+
+        return Collections.emptyList();
     }
     
     private static List<Concentration> getConcentrations(Material material, Container c, User u)
     {
         ExperimentService.Interface service = ExperimentService.get();
         List<Concentration> concentrations = new ArrayList<>();
-        ExpMaterial m = service.getSampleSet(c, idriSchema.TABLE_RAW_MATERIALS).getSample(material.getMaterialName());
+        ExpMaterial m = getRawMaterialsSampleSet(c).getSample(material.getMaterialName());
         
         if (m == null)
         {
-            m = service.getSampleSet(c, idriSchema.TABLE_FORMULATIONS).getSample(material.getMaterialName());
+            m = getFormulationSampleSet(c).getSample(material.getMaterialName());
             if (m == null)
                 throw new RuntimeException("The material received is not valid.");
 
@@ -607,19 +635,24 @@ public class idriManager
     public static ExpMaterial getCompound(String RawMaterial)
     {
         Container container = HttpView.getRootContext().getContainer();
-        ExperimentService.Interface service = ExperimentService.get();
-        ExpMaterial m = service.getSampleSet(container, idriSchema.TABLE_RAW_MATERIALS).getSample(RawMaterial);
-        
-        // Lookup the Compound for this Raw Material
-        if (m != null)
+        ExpSampleSet rawMaterialsSS = getRawMaterialsSampleSet(container);
+        ExpMaterial m = null;
+
+        if (rawMaterialsSS != null)
         {
-            String pcol = m.getSampleSet().getParentCol().getName();
-            assert pcol != null : idriSchema.TABLE_RAW_MATERIALS + " requires a parent column. Fix the Sample Set to proceed.";
-            Map<PropertyDescriptor, Object> values = m.getPropertyValues();
-            for (PropertyDescriptor pd : values.keySet())
+            m = rawMaterialsSS.getSample(RawMaterial);
+
+            // Lookup the Compound for this Raw Material
+            if (m != null)
             {
-                if (pd.getName().equals(pcol))
-                    return service.getSampleSet(container, idriSchema.TABLE_COMPOUNDS).getSample(values.get(pd).toString());
+                String pcol = rawMaterialsSS.getParentCol().getName();
+                assert pcol != null : idriSchema.TABLE_RAW_MATERIALS + " requires a parent column. Fix the Sample Set to proceed.";
+                Map<PropertyDescriptor, Object> values = m.getPropertyValues();
+                for (PropertyDescriptor pd : values.keySet())
+                {
+                    if (pd.getName().equals(pcol))
+                        return getCompoundsSampleSet(container).getSample(values.get(pd).toString());
+                }
             }
         }
 
@@ -718,35 +751,27 @@ public class idriManager
      */
     public static void initializeSampleSets(Container c)
     {
-        // Create the Compounds Sample Set
-        ExpSampleSet compoundsSS = ExperimentService.get().getSampleSet(c, idriSchema.TABLE_COMPOUNDS);
-
-        // Create the Raw Materials Sample Set
-        ExpSampleSet rawMaterialsSS = ExperimentService.get().getSampleSet(c, idriSchema.TABLE_RAW_MATERIALS);
-
-        // Create the Formulations Sample Set
-        ExpSampleSet formulationsSS = ExperimentService.get().getSampleSet(c, idriSchema.TABLE_FORMULATIONS);
-
         try
         {
             List<GWTPropertyDescriptor> properties;
             User u = new LimitedUser(UserManager.getGuestUser(), new int[0], Collections.singleton(RoleManager.getRole(EditorRole.class)), false);
 
-            if (compoundsSS == null)
+            // Create the Compounds Sample Set
+            if (getCompoundsSampleSet(c) == null)
             {
                 // Definition -- 'Compounds' Sample Set
                 properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Compound Name", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Full Name", "http://www.w3.org/2001/XMLSchema#string"));
-//                properties.add(new GWTPropertyDescriptor("Type of Material", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("CAS Number", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Density", "http://www.w3.org/2001/XMLSchema#double"));
                 properties.add(new GWTPropertyDescriptor("Molecular Weight", "http://www.w3.org/2001/XMLSchema#double"));
 
-                compoundsSS = ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, 0, -1, -1, -1);
+                ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, 0, -1, -1, -1);
             }
 
-            if (rawMaterialsSS == null)
+            // Create the Raw Materials Sample Set
+            if (getRawMaterialsSampleSet(c) == null)
             {
                 properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Identifier", "http://www.w3.org/2001/XMLSchema#string"));
@@ -756,11 +781,11 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Catalogue ID", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Lot ID", "http://www.w3.org/2001/XMLSchema#string"));
 
-                rawMaterialsSS = ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties,
-                        0, -1, -1, 1);
+                ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties, 0, -1, -1, 1);
             }
 
-            if (formulationsSS == null)
+            // Create the Formulations Sample Set
+            if (getFormulationSampleSet(c) == null)
             {
                 properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Batch", "http://www.w3.org/2001/XMLSchema#string"));
@@ -772,8 +797,7 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Comments", "http://www.w3.org/2001/XMLSchema#string"));
                 properties.add(new GWTPropertyDescriptor("Raw Materials", "http://www.w3.org/2001/XMLSchema#string"));
                 
-                formulationsSS = ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_FORMULATIONS, null, properties,
-                        0, -1, -1, 7);
+                ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_FORMULATIONS, null, properties, 0, -1, -1, 7);
             }
         }
         catch (SQLException e)

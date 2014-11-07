@@ -105,23 +105,25 @@ function getRunIdIfUnique(searchElementId)
         document.getElementById('dataRegionDiv').style.display = "none";
         document.getElementById('resultsDiv').style.display    = "none";
 
+        var filters = [LABKEY.Filter.create("Name",srchstr, LABKEY.Filter.Types.CONTAINS)];
+
         if (view == "RM")
         {
             globalQueryConfig.schemaName = 'exp';
             globalQueryConfig.queryName = 'Materials';
             globalQueryConfig.controller = 'experiment';
             globalQueryConfig.action = 'showMaterial';
-            globalQueryConfig.filterArray = [ LABKEY.Filter.create("Name",srchstr, LABKEY.Filter.Types.CONTAINS)];
+            globalQueryConfig.filterArray = filters;
         }
         else if (view == "FORMULATION")
         {
             globalQueryConfig.schemaName = 'Samples';
             globalQueryConfig.queryName = 'Formulations';
-            globalQueryConfig.controller = 'idri'; // 'project'
-            globalQueryConfig.action = 'formulationDetails'; // 'begin'
-            globalQueryConfig.filterArray = [ LABKEY.Filter.create("Name",srchstr, LABKEY.Filter.Types.CONTAINS)];
+            globalQueryConfig.controller = 'project';
+            globalQueryConfig.action = 'begin';
+            globalQueryConfig.filterArray = filters;
             globalQueryConfig.resolvedView = view;
-            // globalQueryConfig.params = { pageId: 'idri.LOT_SUMMARY' };
+            globalQueryConfig.params = { pageId: 'idri.LOT_SUMMARY' };
         }
         else if (view == "COMPOUND")
         {
@@ -129,7 +131,7 @@ function getRunIdIfUnique(searchElementId)
             globalQueryConfig.queryName = 'Compounds';
             globalQueryConfig.controller = 'experiment';
             globalQueryConfig.action = 'showMaterial';
-            globalQueryConfig.filterArray = [ LABKEY.Filter.create("Name",srchstr, LABKEY.Filter.Types.CONTAINS)];
+            globalQueryConfig.filterArray = filters;
             globalQueryConfig.resolvedView = view;
         }
         else
