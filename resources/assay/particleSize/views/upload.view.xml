@@ -1,6 +1,9 @@
 <view xmlns="http://labkey.org/data/xml/view">
     <dependencies>
-        <dependency path="Ext3"/>
-        <dependency path="FileUploadField.js"/>
+        <dependency path="Ext4"/>
+        <dependency path="Dropzone"/>
+        <dependency path="internal-FileDrop"/>
+        <dependency path="particleSize/ProcessLog.js"/>
+        <dependency path="particleSize/upload.js"/>
     </dependencies>
 </view>

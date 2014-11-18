@@ -502,7 +502,7 @@ public class FormulationsTest extends BaseWebDriverTest
         for (File file : allFiles)
         {
             log("uploading " + file.getName());
-            setFormElement(Locator.id("upload-run-field-file"), file);
+            setFormElement(Locator.id("upload-run-field-file-button-fileInputEl"), file);
             waitForElement(Locator.linkWithText(file.getName().split("\\.")[0])); // Strip file extension
             //assertElementNotPresent(Locator.css(".labkey-error")); // TODO: Can't render 'Z-Ave Graph.r'
         }
@@ -723,6 +723,8 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Start the Qualitative Analysis");
         waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(samples[0]));
         clickButton("Define Standards", 0);
+        sleep(1000);
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(standards[0]));
 
         for (String std : standards)
         {
