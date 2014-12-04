@@ -27,6 +27,7 @@ import org.labkey.test.categories.Assays;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.IDRI;
 import org.labkey.test.util.DataRegionTable;
+import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LabKeyExpectedConditions;
 import org.labkey.test.util.ListHelper;
 import org.labkey.test.util.ListHelper.ListColumn;
@@ -34,6 +35,7 @@ import org.labkey.test.util.LogMethod;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -788,7 +790,8 @@ public class FormulationsTest extends BaseWebDriverTest
         waitForElement(Locator.tagWithAttribute("tr", "modelname", samples[samples.length-1]).append(Locator.input("base").withAttribute("value", sbase)));
 
         clickButton("Calculate", 0);
-        sleep(500);
+        shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("avgconc"), "-24.")); // -24.76
+        shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("stddev"), "10.")); // 10.69
 
         clickButton("Submit Analysis", 0);
         waitForText("successfully");
