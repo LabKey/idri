@@ -257,12 +257,12 @@ public class idriManager
                         BatchValidationException errors = new BatchValidationException();
                         if (forms.length == 0)
                         {
-                            info.getUpdateService().insertRows(user, container, _formulation, errors, new HashMap<String, Object>());
+                            info.getUpdateService().insertRows(user, container, _formulation, errors, null, new HashMap<String, Object>());
                         }
                         else
                         {
                             List<Map<String, Object>> result = info.getUpdateService().getRows(user, container, _formulation);
-                            info.getUpdateService().updateRows(user, container, _formulation, result, new HashMap<String, Object>());
+                            info.getUpdateService().updateRows(user, container, _formulation, result, null, new HashMap<String, Object>());
                         }
                     }
                 }
@@ -298,7 +298,7 @@ public class idriManager
 
                 try
                 {
-                    result = qservice.updateRows(user, container, rows, null, null);
+                    result = qservice.updateRows(user, container, rows, null, null, null);
                     formulation.setRowID(Integer.parseInt(result.get(0).get("RowId").toString()));
                 }
                 catch (Exception e)
@@ -319,7 +319,7 @@ public class idriManager
                 try
                 {
                     BatchValidationException errors = new BatchValidationException();
-                    result = qservice.insertRows(user, container, rows, errors, null);
+                    result = qservice.insertRows(user, container, rows, errors, null, null);
                     if (errors.hasErrors())
                         throw errors;
                     formulation.setRowID(Integer.parseInt(result.get(0).get("RowId").toString()));
