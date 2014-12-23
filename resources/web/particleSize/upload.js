@@ -39,15 +39,16 @@
         return filename;
     };
 
-    var handleDataUpload = function(f, action) {
+    var handleDataUpload = function(f, action, process) {
+
         if (!action || !action.result)
         {
-            Ext4.Msg.alert("Upload Failed", "Something went horribly wrong when uploading.");
+            process.publishMessage("Something went horribly wrong when uploading.");
             return;
         }
         if (!action.result.id)
         {
-            Ext4.Msg.alert("Upload Failed", "Failed to upload the data file: " + action.result);
+            process.publishMessage("Failed to upload the data file. This file appears to not be valid.");
             return;
         }
 
@@ -67,12 +68,12 @@
                 success: function (content, format)
                 {
                     data.content = content;
-                    handleRunContent(run, content);
+                    handleRunContent(run, content, process);
                 },
                 failure: function (error, format)
                 {
                     Ext4.Msg.hide();
-                    Ext4.Msg.alert("Upload Failed", "An error occurred while fetching the contents of the data file: " + error.exception);
+                    process.publishMessage(error.exception);
                 }
             });
         }
@@ -264,11 +265,11 @@
         };
     };
 
-    var handleRunContent = function(run, content) {
+    var handleRunContent = function(run, content, process) {
         if (!content)
         {
             Ext4.Msg.hide();
-            Ext4.Msg.alert("Upload Failed", "The data file has no content");
+            process.publishMessage("Upload Failed: The data file has no content");
             return;
         }
 
@@ -276,7 +277,7 @@
         {
             // expected the data file to be parsed as jsonTSV
             Ext4.Msg.hide();
-            Ext4.Msg.alert("Upload Failed", "The data file has no sheets of data");
+            process.publishMessage("Upload Failed: The data file has no sheets of data");
             return;
         }
 
@@ -291,7 +292,7 @@
         var data = sheet.data;
         if (!data.length)
         {
-            Ext4.Msg.alert("Upload Failed", "The data file " + run.name + " contains no rows");
+            process.publishMessage("Upload Failed: The data file " + run.name + " contains no rows");
             return;
         }
 
@@ -300,13 +301,15 @@
             {
                 var oldRun = new LABKEY.Exp.Run({rowId: queryData.rows[0]["RowId"]});
                 oldRun.deleteRun({
-                    success: function() { processRunData(run, data) },
-                    failure: function() { Ext4.Msg.alert('Upload Failed', 'Failed to delete old run.'); }
+                    success: function() { processRunData(run, data, process) },
+                    failure: function() {
+                        process.publishMessage("Upload Failed: Failed to delete old run.");
+                    }
                 });
             }
             else
             {
-                processRunData(run, data);
+                processRunData(run, data, process);
             }
         };
 
@@ -317,7 +320,7 @@
             success: onSuccess,
             failure: function(errorInfo) {
                 Ext4.Msg.hide();
-                Ext4.Msg.alert("Assay query failure", "An error occurred while querying the assay: " + errorInfo.exception);
+                process.publishMessage("Upload Failed: An error occurred while querying the assay: " + errorInfo.exception);
             },
             filterArray: [ LABKEY.Filter.create('name', run.name) ],
             columns: 'name,batch/rowId,rowId'
@@ -326,10 +329,11 @@
         LABKEY.Query.selectRows(selectRowsConfig);
     };
 
-    var processRunData = function(_run, data) {
+    var processRunData = function(_run, data, process) {
 
-        var run = processRun(_run, data);
+        var run = processRun(_run, data, process);
         var filename = run.name;
+        process.data.formulationId = fileNameToBatchNumber(filename);
         run.properties.IDRIBatchNumber = fileNameToBatchNumber(filename);
         var _batchName = filename.split('.')[0].toUpperCase();
 
@@ -346,22 +350,24 @@
                 if (d.rows.length > 0) {
                     // We have a matching sample
                     run.materialInputs = [ { rowId: d.rows[0].RowId } ];
-                    saveBatch(batch);
+                    process.setCommit('formulationName', d.rows[0].Name);
+                    process.setCommit('formulationSampleId', d.rows[0].RowId);
+                    saveBatch(batch, process);
                 }
                 else {
                     Ext4.Msg.hide();
-                    Ext4.Msg.alert("Failed to Save", "This formulation does not exist.");
+                    process.publishMessage("Failed to Save, This formulation does not exist.");
                 }
             },
             failure: function(errorInfo) {
                 Ext4.Msg.hide();
-                Ext4.Msg.alert("Couldn't find matching sample", "An error occurred while fetching the contents of the data file: " + errorInfo.exception);
+                process.publishMessage("Couldn't find matching sample, An error occurred while fetching the contents of the data file: " + errorInfo.exception);
             },
             filterArray: [LABKEY.Filter.create('Batch', _batchName)]
         });
     };
 
-    var processRun = function(run, data) {
+    var processRun = function(run, data, process) {
         // test numbers are 1-3 like extraction numbers, but they get incremented
         // when the extraction number resets, and reset when the time label changes.
         var testNum = 1,
@@ -393,12 +399,13 @@
                 {
                     run.properties.ZAveMean = -888;
                     run.properties.Error = "Patricle Size Data sheet was empty.";
+                    process.publishMessage(run.properties.Error);
                     error = true;
                     break;
                 }
                 else
                 {
-                    console.log("Expected " + data.length + " rows. Got " + i + ".");
+//                    process.publishMessage(run.properties.Error);
                     gapFound = true;
                     continue;
                 }
@@ -408,6 +415,7 @@
                 error = true;
                 run.properties.ZAveMean = -889;
                 run.properties.Error = "Gap between rows containing data.";
+                process.publishMessage(run.properties.Error);
             }
 
             var parseResult = parseSampleNameAdvanced(sampleText);
@@ -420,6 +428,7 @@
             if (parseResult.value == null)
             {
                 run.properties.Error = "Error on Sample name column in row " + (i+1);
+                process.publishMessage(run.properties.Error);
                 run.properties.ZAveMean = -(i+1);
                 error = true;
                 break;
@@ -432,6 +441,7 @@
             else if (parseResult.value == -2)
             {
                 run.properties.Error = "Invalid timepoint given on row " + (i+1);
+                process.publishMessage(run.properties.Error);
                 run.properties.ZAveMean = -(i+1);
                 error = true;
                 break;
@@ -445,6 +455,7 @@
                 {
                     run.properties.Error = "Error: Improperly sized Working Set ending on row " + i;
                     run.properties.ZAveMean = -(i);
+                    process.publishMessage(run.properties.Error);
                     error = true;
                     break;
                 }
@@ -455,6 +466,7 @@
                 {
                     run.properties.Error = "Error: There are multiple Working Sets that result in more than the allowed (" +
                             MAXIMAL_FULL_SET + ") contigious rows for " + lastTimeLabel + "/" + lastMachineType + ".";
+                    process.publishMessage(run.properties.Error);
                     run.properties.ZAveMean = -(i+1);
                     error = true;
                     break;
@@ -496,6 +508,7 @@
             if (dataRow.Pdl >= MAX_PDI)
             {
                 run.properties.Error = "Error: The pdI value for row " + (i+1) + " is 1.0 or more.";
+                process.publishMessage(run.properties.Error);
                 run.properties.ZAveMean = -(i+1);
                 error = true;
                 break;
@@ -503,6 +516,7 @@
             else if (dataRow.ZAve < MIN_ZAVE)
             {
                 run.properties.Error = "Error: The Z-Average for row " + (i+1) + " is less than 1.0";
+                process.publishMessage(run.properties.Error);
                 run.properties.ZAveMean = -(i+1);
                 error = true;
                 break;
@@ -562,6 +576,7 @@
             if (dateManufactureFound)
             {
                 run.properties.Error = "Unrecognized Error. See Sample Name Column.";
+                process.publishMessage(run.properties.Error);
             }
             else
             {
@@ -572,41 +587,71 @@
         return run;
     };
 
-    var saveBatch = function(batch) {
+    var saveBatch = function(batch, process) {
         LABKEY.Experiment.saveBatch({
             assayId: LABKEY.page.assay.id,
             batch: batch,
-            success : onSaveBatch,
+            success : function(_batch) { onSaveBatch.call(this, _batch, process); },
             failure : function (error) {
                 Ext4.Msg.hide();
                 // Break up this string in the source so that it's easier to tell when there's been an actual error -
                 // we can look for the concatenated version in the page
-                Ext4.Msg.alert("Failure when communicating " + "with the server: " + error.exception);
+                process.publishMessage("Failure when communicating " + "with the server: " + error.exception);
             }
         });
     };
 
-    var onSaveBatch = function(batch) {
-        if (batch.id)
-        {
-            var partConfig = {
-                viewProtocolId: LABKEY.page.assay.id
-            };
-            partConfig[LABKEY.page.assay.name + " Runs.Batch/RowId~eq"] = batch.id;
-
-            var webpart = new LABKEY.WebPart({
-                partName: 'Assay Runs',
-                renderTo: 'runs_div',
-                frame: 'none',
-                partConfig: partConfig
-            });
-
-            webpart.render();
-        }
-
-        Ext4.get('upload-run-form').hide();
-        Ext4.get('uploadTextDiv').hide();
+    var onSaveBatch = function(batch, process)
+    {
         Ext4.Msg.hide();
+
+        var batchId = batch.runs[0].id;
+        process.setCommit('formulationSampleURL', LABKEY.ActionURL.buildURL('project', 'begin', null, {
+            rowId: process.get('formulationSampleId'),
+            pageId: 'idri.LOT_SUMMARY'
+        }));
+        process.setCommit('uploadFileURL', LABKEY.ActionURL.buildURL('experiment', 'showRunGraph', null, {rowId: batchId}));
+
+        if (Ext4.isEmpty(process.get('messages')))
+        {
+            var params = {
+                rowId: LABKEY.page.assay.id
+            };
+
+            var filter = LABKEY.Filter.create('Run/RowId', batchId);
+            var prefix = filter.getURLParameterName().replace('query.', 'Data.');
+            params[prefix] = filter.getURLParameterValue();
+
+            process.setCommit('assayResultURL', LABKEY.ActionURL.buildURL('assay', 'assayResults.view', null, params));
+            process.publishMessage("Success");
+            clearCachedReports(process.get('formulationName'));
+        }
+    };
+
+    var clearCachedReports = function(formulationName) {
+        if (!Ext4.isEmpty(formulationName)) {
+
+            var folder = '%40files/PSData/';
+            var _ext = 'PS.png?';
+
+            var fileURLs = [
+                LABKEY.ActionURL.buildURL('_webdav', folder + formulationName + '_nano' + _ext),
+                LABKEY.ActionURL.buildURL('_webdav', folder + formulationName + '_aps' + _ext)
+            ];
+
+            Ext4.each(fileURLs, function(url) {
+                Ext4.Ajax.request({
+                    url: url,
+                    method: 'DELETE',
+                    success: function() { console.log('cleared cache:', formulationName); },
+                    failure: function(response) {
+                        if (response.status !== 404) {
+                            console.log('failed to clear cache:', formulationName);
+                        }
+                    }
+                })
+            });
+        }
     };
 
     var dropInit = function() {
@@ -617,7 +662,7 @@
             return;
         }
 
-        LABKEY.internal.FileDrop.registerDropzone({
+        return LABKEY.internal.FileDrop.registerDropzone({
 
             url: LABKEY.ActionURL.buildURL("assay", "assayFileUpload"),
             uploadMultiple: false,
@@ -643,15 +688,6 @@
                 }
 
                 done();
-            },
-
-            init : function() {
-
-                this.on('success', function(file, response, evt) {
-                    // mimic an Ext.form.action.Submit
-                    var action = {result: Ext4.decode(response)};
-                    handleDataUpload(file, action);
-                });
             }
         });
     };
@@ -675,12 +711,49 @@
                 }
             }],
             listeners: {
-                actioncomplete : handleDataUpload,
-                actionfailed : handleDataUpload
+                actioncomplete : function(_form, action, eOpts){
+                    var process = processLog.getModelInstance({
+                        uploadTime: new Date(),
+                        fileName: action.result.name
+                    });
+                    processLog.getStore().add(process);
+                    processLog.getStore().sync();
+                    handleDataUpload.call(this, action.result, action, process);
+                },
+                actionfailed : function(_form, action, eOpts){ alert("Server Failed"); }
             }
         });
 
-        dropInit();
+        var processLog = Ext4.create('LABKEY.particlesize.ProcessLog', {
+            renderTo: 'processLog',
+            width: 934
+        });
+
+        var drop = dropInit();
+        if (drop) {
+            drop.on('success', function(file, response, evt) {
+                var process = processLog.getModelInstance({
+                    uploadTime: new Date(),
+                    fileName: file.name
+                });
+                processLog.getStore().add(process);
+                processLog.getStore().sync();
+                // mimic an Ext.form.action.Submit
+                var action = {result: Ext4.decode(response)};
+                handleDataUpload(file, action, process);
+
+            });
+        }
+
+        var clearButton  = Ext4.create('Ext.Button', {
+            renderTo: 'clearButton',
+            text: 'Clear',
+            handler: function(){
+                processLog.getStore().removeAll();
+                processLog.getStore().sync();
+            }
+
+        })
     };
 
     var equalsIgnoresCase = function(str1, str2) {

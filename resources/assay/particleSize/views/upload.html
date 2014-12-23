@@ -1,12 +1,23 @@
 <style>
-    #particlesize-drop {
+    .process-item {
         margin-top: 20px;
         margin-left: auto;
         margin-right: auto;
         width: 934px;
+    }
+
+    #particlesize-drop {
         height: 200px;
         background-color: white;
         border: 1px solid #a9a9a9;
+    }
+
+    #processLog ul {
+        padding: 0 0 0 10px;
+    }
+
+    #processLog li {
+        white-space: pre-wrap;
     }
 </style>
 
@@ -29,4 +40,6 @@
 </table>
 
 <div id="upload-run-form"></div>
-<div id="particlesize-drop"></div>
+<div id="particlesize-drop" class="process-item"></div>
+<div id="processLog" class="process-item"></div>
+<div id="clearButton" class="process-item"></div>
