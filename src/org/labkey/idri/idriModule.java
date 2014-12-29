@@ -74,42 +74,42 @@ public class idriModule extends DefaultModule
 
             new BaseWebPartFactory(FormulationSearchWebPart.NAME)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new FormulationSearchWebPart();
                 }
             },
             new BaseWebPartFactory(FormulationSummaryWebPart.NAME)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new FormulationSummaryWebPart();
                 }
             },
             new BaseWebPartFactory(ConcentrationsWebPart.NAME)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new ConcentrationsWebPart();
                 }
             },
             new BaseWebPartFactory(ParticleSizeWebPart.NAME)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new ParticleSizeWebPart();
                 }
             },
             new BaseWebPartFactory(StabilityWebPart.NAME)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new StabilityWebPart();
                 }
             },
             new BaseWebPartFactory(WEBPART_CONCENTRATIONS)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     ConcentrationsQueryView view = new ConcentrationsQueryView(new idriSchema(portalCtx.getUser(), portalCtx.getContainer()));
                     view.setTitle(WEBPART_CONCENTRATIONS);
@@ -119,7 +119,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(WEBPART_CREATE_FORMULATION)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     JspView view = new JspView("/org/labkey/idri/view/createFormulation.jsp");
                     view.setTitle(WEBPART_CREATE_FORMULATION);
