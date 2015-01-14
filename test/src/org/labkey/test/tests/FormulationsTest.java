@@ -793,7 +793,7 @@ public class FormulationsTest extends BaseWebDriverTest
         shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("avgconc"), "-24.")); // -24.76
         shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("stddev"), "10.")); // 10.69
 
-        clickButton("Submit Analysis", 0);
+        waitAndClick(Ext4Helper.Locators.ext4Button("Submit Analysis").enabled());
         waitForText("successfully");
         _ext4Helper.waitForMaskToDisappear();
     }
