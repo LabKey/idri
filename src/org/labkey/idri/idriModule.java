@@ -34,6 +34,7 @@ import org.labkey.idri.assay.hplc.HPLCAssayDataHandler;
 import org.labkey.idri.assay.hplc.HPLCManager;
 import org.labkey.idri.formulations.ConcentrationsWebPart;
 import org.labkey.idri.formulations.FormulationSummaryWebPart;
+import org.labkey.idri.formulations.HPLCWebPart;
 import org.labkey.idri.formulations.ParticleSizeWebPart;
 import org.labkey.idri.formulations.FormulationSearchWebPart;
 import org.labkey.idri.formulations.StabilityWebPart;
@@ -105,6 +106,13 @@ public class idriModule extends DefaultModule
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new StabilityWebPart();
+                }
+            },
+            new BaseWebPartFactory(HPLCWebPart.NAME)
+            {
+                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                {
+                    return new HPLCWebPart();
                 }
             },
             new BaseWebPartFactory(WEBPART_CONCENTRATIONS)

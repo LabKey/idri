@@ -25,6 +25,7 @@ import org.labkey.api.view.Portal;
 import org.labkey.idri.formulations.ConcentrationsWebPart;
 import org.labkey.idri.formulations.FormulationSearchWebPart;
 import org.labkey.idri.formulations.FormulationSummaryWebPart;
+import org.labkey.idri.formulations.HPLCWebPart;
 import org.labkey.idri.formulations.ParticleSizeWebPart;
 import org.labkey.idri.formulations.StabilityWebPart;
 
@@ -68,6 +69,7 @@ public class idriFolderTabs
             parts.add(Portal.getPortalPart(ConcentrationsWebPart.NAME).createWebPart());
             parts.add(Portal.getPortalPart(ParticleSizeWebPart.NAME).createWebPart());
             parts.add(Portal.getPortalPart(StabilityWebPart.NAME).createWebPart());
+            parts.add(Portal.getPortalPart(HPLCWebPart.NAME).createWebPart());
             return parts;
         }
     }
