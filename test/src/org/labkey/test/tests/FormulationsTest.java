@@ -356,7 +356,7 @@ public class FormulationsTest extends BaseWebDriverTest
     {
         DataRegionTable table = new DataRegionTable("Material", this);
 
-        table.clickLink(rowIdx,0);
+        clickAndWait(table.link(rowIdx, 0));
         selectOptionByText(Locator.tagWithName("select", "quf_CompoundLookup"), materialName);
         clickButton("Submit");
     }
@@ -795,7 +795,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         waitAndClick(Ext4Helper.Locators.ext4Button("Submit Analysis").enabled());
         waitForText("successfully");
-        _ext4Helper.waitForMaskToDisappear();
+        waitForElementToDisappear(Ext4Helper.Locators.ext4Button("Submit Analysis").enabled());
     }
 
     @LogMethod
