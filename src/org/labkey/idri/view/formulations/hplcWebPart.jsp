@@ -29,6 +29,7 @@
         resources.add(ClientDependency.fromPath("clientapi/ext3"));
         resources.add(ClientDependency.fromPath("Ext4"));
         resources.add(ClientDependency.fromPath("formulations/SearchFormulation.js")); // buildPSReports
+        resources.add(ClientDependency.fromPath("spectrum"));
         return resources;
     }
 %>
