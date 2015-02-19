@@ -705,7 +705,6 @@ public class FormulationsTest extends BaseWebDriverTest
         String[] standards = {"LGC20371", "LGC40060", "LGC60342", "LGC80021", "LGC10030"};
         String[] concs = {"20", "40", "60", "80", "100"};
         String left = "12"; String right = "15"; String base = "40";
-        assert standards.length == concs.length;
 
         String[] samples = {"QD123-11", "QD123-24", "QD123-31"};
         String sleft = "14.5"; String sright = "16"; String sbase = "45";
