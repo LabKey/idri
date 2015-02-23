@@ -400,7 +400,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         clickButton(addButton, 0);
         _extHelper.selectComboBoxItem(this.getRawMaterialLocator(0), RAW_MATERIAL_1);
-        waitForText("%w/vol", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "%w/vol");
         setFormElement(Locator.name("concentration"), "25.4");
 
         // Test Duplicate Material
@@ -410,7 +410,7 @@ public class FormulationsTest extends BaseWebDriverTest
         sleep(2000);
         setFormElements("input", "concentration", new String[]{"25.4", "66.2"});
         clickButton("Create", 0);
-        waitForText("Duplicate source materials are not allowed.", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "Duplicate source materials are not allowed.");
 
         // Test empty combo
         log("Test empty combo");
@@ -418,14 +418,14 @@ public class FormulationsTest extends BaseWebDriverTest
         _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
         clickButton("Create", 0);
         _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
-        waitForText("Invalid material", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "Invalid material");
         
         // Test empty concentration
         log("Test empty concentration");
         _extHelper.selectComboBoxItem(this.getRawMaterialLocator(2), RAW_MATERIAL_2);
-        waitForText("%v/vol", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "%v/vol");
         clickButton("Create", 0);
-        waitForText("Invalid material.", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "Invalid material.");
 
         // Remove duplicate material
         log("Remove duplicate material");
@@ -434,12 +434,12 @@ public class FormulationsTest extends BaseWebDriverTest
         // Add final material
         clickButton(addButton, 0);
         _extHelper.selectComboBoxItem(this.getRawMaterialLocator(3), RAW_MATERIAL_4);
-        waitForText("mM", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "mM");
         
         // Create        
         setFormElements("input", "concentration", new String[]{"25.4", "66.2", "12.91"});
         clickButton("Create", 0);
-        waitForText("has been created.", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "has been created.");
     }
 
     private Locator.XPathLocator getRawMaterialLocator(Integer index)
@@ -478,7 +478,7 @@ public class FormulationsTest extends BaseWebDriverTest
         assertTextPresent("AnalysisTool");
 
         clickButton("Save", 0);
-        waitForText("Save successful.", 10000);
+        waitForText(10000, "Save successful.");
     }
 
     @LogMethod
@@ -574,7 +574,7 @@ public class FormulationsTest extends BaseWebDriverTest
         assertTextPresent("ForeignObject");
 
         clickButton("Save", 0);
-        waitForText("Save successful.", 10000);
+        waitForText(10000, "Save successful.");
     }
 
     @LogMethod
@@ -586,7 +586,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText(VIS_ASSAY));
         clickButton("Import Data");
 
-        waitForText("What is the Lot Number?", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "What is the Lot Number?");
         waitForElement(Locator.id("lot-field"));
         setFormElement(Locator.name("lot"), FORMULATION);
         clickButton("Next", 0);
@@ -681,7 +681,7 @@ public class FormulationsTest extends BaseWebDriverTest
         checkCheckbox(Locator.checkboxByName("editableResultProperties"));
 
         clickButton("Save", 0);
-        waitForText("Save successful.", 10000);
+        waitForText(10000, "Save successful.");
         clickButton("Save & Close");
 
         // Set pipeline path
@@ -832,7 +832,7 @@ public class FormulationsTest extends BaseWebDriverTest
         checkCheckbox(Locator.checkboxByName("editableResultProperties"));
 
         clickButton("Save", 0);
-        waitForText("Save successful.", 10000);
+        waitForText(10000, "Save successful.");
         clickButton("Save & Close");
     }
 
