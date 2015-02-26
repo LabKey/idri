@@ -28,6 +28,9 @@
 # Depdenencies can normally be installed using the pip package manager (e.g. $> pip install requests)
 
 import sys, time, os, threading, shutil
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.poolmanager import PoolManager
+import ssl
 import requests
 import logging
 import json
@@ -48,6 +51,19 @@ sleep_interval = 60
 success_interval = 60
 machine_name = ''
 END_RUN_PREFIX = 'POST'
+
+class SafeTLSAdapter(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = PoolManager(num_pools=connections,
+                                       maxsize=maxsize,
+                                       block=block,
+                                       ssl_version=ssl.PROTOCOL_TLSv1)
+
+# idri 52: HPLCWatch Error
+# _ssl.c:504: error:14077410:SSL routines:SSL23_GET_SERVER_HELLO:sslv3 alert handshake failure
+# http://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
+session = requests.Session()
+session.mount('https://', SafeTLSAdapter())
 
 class HPLCHandler(PatternMatchingEventHandler):
 
@@ -111,7 +127,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         json = {'file': (name, _file)}
 
         try:
-            r = requests.post(url, files=json, auth=(user, password))
+            r = session.post(url, files=json, auth=(user, password))
             s = r.status_code
             if s == 207 or s == 200:
                 logging.info(" " + str(s) + " Uploaded Successfully: " + name)
@@ -154,7 +170,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         url = self.buildActionURL('idri', 'getHPLCResource')
         url += '?path=' + davPath
 
-        r = requests.get(url, auth=(user, password))
+        r = session.get(url, auth=(user, password))
         s = r.status_code
         if s == 200:
             decoded = json.JSONDecoder().decode(r.text)
@@ -186,7 +202,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         payload['type'] = "Provisional HPLC"
 
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        r = requests.post(assayURL, data=json.dumps(payload), headers=headers, auth=(user, password))
+        r = session.post(assayURL, data=json.dumps(payload), headers=headers, auth=(user, password))
         s = r.status_code
         if s == 200:
             decoded = json.JSONDecoder().decode(r.text)
@@ -213,7 +229,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         actionURL = self.buildActionURL('idri', 'getHPLCPipelineContainer')
         logging.info("...Requesting Pipeline Configuration")
 
-        r = requests.get(actionURL, auth=(user, password))
+        r = session.get(actionURL, auth=(user, password))
         s = r.status_code
         logging.info("...done. Status: " + str(s))
 
@@ -283,7 +299,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         #
         self.folder = self.generateFolderName()
         folderURL = self.getScheme() + '://' + server + self.pipelinePath + '/' + self.folder
-        r = requests.request('MKCOL', folderURL, auth=(user, password))
+        r = session.request('MKCOL', folderURL, auth=(user, password))
         s = r.status_code
 
         if s == 201:
@@ -441,7 +457,7 @@ class HPLCRun():
         # print "****** PAYLOAD ********"
         # print json.dumps(payload)
 
-        r = requests.post(saveURL, data=json.dumps(payload), headers=headers, auth=(user, password))
+        r = session.post(saveURL, data=json.dumps(payload), headers=headers, auth=(user, password))
         s = r.status_code
 
         if s == 400:
