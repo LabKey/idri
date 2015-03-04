@@ -386,9 +386,10 @@ public class FormulationsTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText(FORMULATIONS_NAME));
         clickButton("New Formulation");
 
-        assertTextPresent("Formulation Type*");
-        assertTextPresent("Stability Watch");
-        assertTextPresent("Notebook Page*");
+        assertTextPresent(
+                "Formulation Type*",
+                "Stability Watch",
+                "Notebook Page*");
 
         // Describe Formulation
         setFormElement(Locator.name("batch"), FORMULATION);
@@ -419,7 +420,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Create", 0);
         _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
         waitForText(WAIT_FOR_JAVASCRIPT, "Invalid material");
-        
+
         // Test empty concentration
         log("Test empty concentration");
         _extHelper.selectComboBoxItem(this.getRawMaterialLocator(2), RAW_MATERIAL_2);
@@ -435,7 +436,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton(addButton, 0);
         _extHelper.selectComboBoxItem(this.getRawMaterialLocator(3), RAW_MATERIAL_4);
         waitForText(WAIT_FOR_JAVASCRIPT, "mM");
-        
+
         // Create        
         setFormElements("input", "concentration", new String[]{"25.4", "66.2", "12.91"});
         clickButton("Create", 0);
@@ -451,7 +452,7 @@ public class FormulationsTest extends BaseWebDriverTest
     protected void defineParticleSizeAssay()
     {
         clickProject(PROJECT_NAME);
-        
+
         log("Defining Particle Size Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
         clickButton("New Assay Design");
@@ -466,16 +467,15 @@ public class FormulationsTest extends BaseWebDriverTest
         fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
 
 
-        // Batch Properties
-        assertTextPresent("No fields have been defined.");
-        
-        // Run Properties
-        assertTextPresent("IDRIBatchNumber");
-
-        // Result Properties
-        assertTextPresent("MeasuringTemperature");
-        assertTextPresent("meanCountRate");
-        assertTextPresent("AnalysisTool");
+        assertTextPresent(
+                // Batch Properties
+                "No fields have been defined.",
+                // Run Properties
+                "IDRIBatchNumber",
+                // Result Properties
+                "MeasuringTemperature",
+                "meanCountRate",
+                "AnalysisTool");
 
         clickButton("Save", 0);
         waitForText(10000, "Save successful.");
@@ -562,16 +562,15 @@ public class FormulationsTest extends BaseWebDriverTest
         setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), VIS_ASSAY_DESC);
         fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
 
-        // Batch Properties
-        assertTextPresent("No fields have been defined.");
-
-        // Run Properties
-        assertTextPresent("LotNumber");
-
-        // Result Properties
-        assertTextPresent("PhaseSeparation");
-        assertTextPresent("ColorChange");
-        assertTextPresent("ForeignObject");
+        assertTextPresent(
+                // Batch Properties
+                "No fields have been defined.",
+                // Run Properties
+                "LotNumber",
+                // Result Properties
+                "PhaseSeparation",
+                "ColorChange",
+                "ForeignObject");
 
         clickButton("Save", 0);
         waitForText(10000, "Save successful.");
@@ -642,9 +641,10 @@ public class FormulationsTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText("view runs"));
         clickAndWait(Locator.linkWithText(FORMULATION));
 
-        assertTextPresent("Color changed.");
-        assertTextPresent(TRICKY_CHARACTERS);
-        assertTextPresent("This is a passing comment.");
+        assertTextPresent(
+                "Color changed.",
+                TRICKY_CHARACTERS,
+                "This is a passing comment.");
     }
 
     @LogMethod
@@ -665,16 +665,15 @@ public class FormulationsTest extends BaseWebDriverTest
         setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), PROVISIONAL_HPLC_ASSAY_DESC);
         fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
 
-        // Batch Properties
-        assertTextPresent("No fields have been defined.");
-
-        // Run Properties
-        assertTextPresent("RunIdentifier");
-        assertTextPresent("Method");
-
-        // Result Properties
-        assertTextPresent("Dilution");
-        assertTextPresent("DataFile");
+        assertTextPresent(
+                // Batch Properties
+                "No fields have been defined.",
+                // Run Properties
+                "RunIdentifier",
+                "Method",
+                // Result Properties
+                "Dilution",
+                "DataFile");
 
         // Make Runs/Results editable
         checkCheckbox(Locator.checkboxByName("editableRunProperties"));
@@ -815,17 +814,15 @@ public class FormulationsTest extends BaseWebDriverTest
         setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), HPLC_ASSAY_DESC);
         fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
 
-        // Batch Properties
-        assertTextPresent("No fields have been defined.");
-
-        // Run Properties
-        assertTextPresent("LotNumber");
-        assertTextPresent("CompoundNumber");
-
-        // Result Properties
-        assertTextPresent("Dilution");
-        assertTextPresent("FilePath");
-        assertTextPresent("Concentration");
+        assertTextPresent(
+                // Batch Properties
+                "No fields have been defined.",
+                // Run Properties
+                "LotNumber",
+                "CompoundNumber",
+                // Result Properties
+                "Dilution", "FilePath",
+                "Concentration");
 
         // Make Runs/Results editable
         checkCheckbox(Locator.checkboxByName("editableRunProperties"));
@@ -854,25 +851,25 @@ public class FormulationsTest extends BaseWebDriverTest
         // move files to appropriate locations for samples/standards/methods
         Actions builder = new Actions(getDriver());
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
-            .release(Locator.css(".samples-grid .x4-grid-view").findElement(getDriver()))
-            .build().perform();
+                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
+                .release(Locator.css(".samples-grid .x4-grid-view").findElement(getDriver()))
+                .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE1).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
-            .release(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).findElement(getDriver()))
-            .build().perform();
+                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE1).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
+                .release(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).findElement(getDriver()))
+                .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
-            .release(Locator.css(".standards-grid .x4-grid-view").findElement(getDriver()))
-            .build().perform();
+                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
+                .release(Locator.css(".standards-grid .x4-grid-view").findElement(getDriver()))
+                .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD1).findElement(getDriver()))
-            .release(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
-            .build().perform();
+                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD1).findElement(getDriver()))
+                .release(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
+                .build().perform();
         builder
-            .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_METHOD).findElement(getDriver()))
-            .release(Locator.css(".methods-grid .x4-grid-view").findElement(getDriver()))
-            .build().perform();
+                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_METHOD).findElement(getDriver()))
+                .release(Locator.css(".methods-grid .x4-grid-view").findElement(getDriver()))
+                .build().perform();
 
         clickButton("Next", 0);
 
@@ -901,8 +898,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         // Verify Review
         waitForText("Run Information");
-        assertTextPresent("3004837A");
-        assertTextPresent("3004837B");
+        assertTextPresent("3004837A", "3004837B");
 
         clickButton("Save", 0);
         _extHelper.waitForExtDialog("Save Batch");
