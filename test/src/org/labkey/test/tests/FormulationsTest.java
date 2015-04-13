@@ -15,14 +15,12 @@
  */
 package org.labkey.test.tests;
 
-import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
-import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.Assays;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.IDRI;
@@ -34,21 +32,21 @@ import org.labkey.test.util.ListHelper.ListColumn;
 import org.labkey.test.util.LogMethod;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @Category({CustomModules.class, Assays.class, IDRI.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
     private static final String COMPOUNDS_NAME = "Compounds";
+    private static final String RAW_MATERIALS_NAME = "Raw Materials";
     private static final String FORMULATIONS_NAME = "Formulations";
+
     private final static ListHelper.ListColumnType LIST_KEY_TYPE = ListHelper.ListColumnType.String;
     private final ListColumn LIST_COL_SORT = new ListColumn(
             "sort",
@@ -57,7 +55,7 @@ public class FormulationsTest extends BaseWebDriverTest
             "Used to sort ambigiously named timepoints based on day.");
     private static final String PROJECT_NAME = "FormulationsTest";
     private static final String FOLDER_NAME = "My Study";
-    private static final String RAWMATERIALS_SET_NAME = "Raw Materials";
+
     private static final String TEMPERATURE_LIST = "Temperatures";
     private static final String TIME_LIST = "Timepoints";
     private static final String TYPES_LIST = "FormulationTypes";
@@ -115,11 +113,6 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String HPLC_PIPELINE_PATH = TestFileUtils.getLabKeyRoot() + "/server/customModules/idri/test/sampledata/pHPLC";
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
     private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
-    private static final String HPLC_SAMPLE1 = "3004837A.CSV";
-    private static final String HPLC_SAMPLE2 = "3004837B.CSV";
-    private static final String HPLC_STANDARD1 = "STD1.CSV";
-    private static final String HPLC_STANDARD2 = "STD2.txt";
-    private static final String HPLC_METHOD = "QDEMUL3.M";
 
     private static final String HPLC_STANDARD_LIST = "HPLCStandard";
     private final ListColumn HPLC_STANDARD_NAME_COL = new ListColumn(
@@ -255,8 +248,6 @@ public class FormulationsTest extends BaseWebDriverTest
 
         uploadProvisionalHPLCData();
         qualityControlHPLCData();
-//        uploadHPLCAssayData();
-//        validateHPLCAssayData();
     }
 
     @LogMethod
@@ -271,7 +262,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         // Sample Sets should already exist
         assertElementPresent(Locator.linkWithText(COMPOUNDS_NAME));
-        assertElementPresent(Locator.linkWithText(RAWMATERIALS_SET_NAME));
+        assertElementPresent(Locator.linkWithText(RAW_MATERIALS_NAME));
         assertElementPresent(Locator.linkWithText(FORMULATIONS_NAME));
     }
 
@@ -367,7 +358,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickProject(PROJECT_NAME);
 
         log("Enterting raw material information");
-        clickAndWait(Locator.linkWithText(RAWMATERIALS_SET_NAME));
+        clickAndWait(Locator.linkWithText(RAW_MATERIALS_NAME));
         clickButton("Import More Samples");
         click(Locator.radioButtonById("insertOnlyChoice"));
         setFormElement(Locator.id("textbox"), RAWMATERIALS_HEADER + RAWMATERIALS_DATA_1 + RAWMATERIALS_DATA_2 + RAWMATERIALS_DATA_3 + RAWMATERIALS_DATA_4);
@@ -492,7 +483,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         assertTextPresent("Must have working sets of size");
 
-        File dataRoot = new File(TestFileUtils.getLabKeyRoot(), "/sampledata/particleSize");
+        File dataRoot = TestFileUtils.getSampleData("particleSize");
         File[] allFiles = dataRoot.listFiles(new FilenameFilter()
         {
             public boolean accept(File dir, String name)
@@ -506,7 +497,6 @@ public class FormulationsTest extends BaseWebDriverTest
             log("uploading " + file.getName());
             setFormElement(Locator.id("upload-run-field-file-button-fileInputEl"), file);
             waitForElement(Locator.linkWithText(file.getName().split("\\.")[0])); // Strip file extension
-            //assertElementNotPresent(Locator.css(".labkey-error")); // TODO: Can't render 'Z-Ave Graph.r'
         }
     }
 
@@ -834,121 +824,6 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    protected void uploadHPLCAssayData()
-    {
-        clickProject(PROJECT_NAME);
-
-        log("Uploading HPLC Data");
-        clickAndWait(Locator.linkWithText(HPLC_ASSAY));
-        assertElementPresent(Locator.css("#dataregion_Runs > tbody > tr").containing("No runs to show."));
-
-        clickButton("Import Data");
-        _fileBrowserHelper.selectFileBrowserItem("HPLCRun/");
-
-        clickButton("Import HPLC", 0);
-        _extHelper.waitForExtDialog("HPLC Assay Upload", WAIT_FOR_JAVASCRIPT);
-
-        // move files to appropriate locations for samples/standards/methods
-        Actions builder = new Actions(getDriver());
-        builder
-                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
-                .release(Locator.css(".samples-grid .x4-grid-view").findElement(getDriver()))
-                .build().perform();
-        builder
-                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE1).waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT))
-                .release(Locator.css(".x4-grid-row").withText(HPLC_SAMPLE2).findElement(getDriver()))
-                .build().perform();
-        builder
-                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
-                .release(Locator.css(".standards-grid .x4-grid-view").findElement(getDriver()))
-                .build().perform();
-        builder
-                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_STANDARD1).findElement(getDriver()))
-                .release(Locator.css(".x4-grid-row").withText(HPLC_STANDARD2).findElement(getDriver()))
-                .build().perform();
-        builder
-                .clickAndHold(Locator.css(".x4-grid-row").withText(HPLC_METHOD).findElement(getDriver()))
-                .release(Locator.css(".methods-grid .x4-grid-view").findElement(getDriver()))
-                .build().perform();
-
-        clickButton("Next", 0);
-
-        // Fill out Sample Form
-        waitForText("Preview not Available");
-        _ext4Helper.selectComboBoxItem("Formulation", FORMULATION);
-        setFormElement(Locator.name("Diluent"), "Starch");
-        setFormElement(Locator.name("Dilution"), "123.45");
-        _ext4Helper.selectComboBoxItem("Temperature", "5");
-        _ext4Helper.selectComboBoxItem("Time", "T=0");
-        clickButton("Next", 0);
-
-        // Replicate sample
-        _ext4Helper.selectComboBoxItem(Locator.xpath("//tr[./td/input[@name='replicatechoice']]").index(1), HPLC_SAMPLE1);
-        clickButton("Next", 0);
-
-        // Enter standard info
-        _ext4Helper.selectComboBoxItem(Locator.xpath("//input[@name='Compound']/../..").index(0), "Alum");
-        _ext4Helper.selectComboBoxItem(Locator.xpath("//input[@name='Compound']/../..").index(1), "Squawk");
-        setFormElement(Locator.name("Concentration"), "789.01");
-        setFormElement(Locator.name("Concentration").index(1), "789.02");
-        setFormElement(Locator.xpath("(//input[@name='Diluent'])[3]"), "Not Starch");
-        setFormElement(Locator.xpath("(//input[@name='Diluent'])[4]"), "Some Starch");
-
-        clickButton("Next", 0);
-
-        // Verify Review
-        waitForText("Run Information");
-        assertTextPresent("3004837A", "3004837B");
-
-        clickButton("Save", 0);
-        _extHelper.waitForExtDialog("Save Batch");
-        assertElementPresent(Locator.css(".ext-mb-text").withText("Save Successful"));
-        clickButton("OK", 0);
-        waitForTextToDisappear(HPLC_STANDARD1);
-    }
-
-    private final String[] HPLC_ROWS = {"EDIT STD1 3004837B   Not Starch standard Alum 789.01 /HPLCRun/STD1.CSV TD789 5 T=0  HPLCRun"+File.separator+"QDEMUL3.M",
-                                        "EDIT STD2 3004837B   Some Starch standard Squawk 789.02 /HPLCRun/STD2.txt TD789 5 T=0  HPLCRun"+File.separator+"QDEMUL3.M",
-                                        "EDIT 3004837A     Starch sample     /HPLCRun/3004837A.CSV TD789 5 T=0  HPLCRun"+File.separator+"QDEMUL3.M",
-                                        "EDIT STD1 3004837B   Not Starch standard Alum 789.01 /HPLCRun/STD1.CSV TD789 5 T=0  HPLCRun"+File.separator+"QDEMUL3.M",
-                                        "EDIT STD2 3004837B   Some Starch standard Squawk 789.02 /HPLCRun/STD2.txt TD789 5 T=0  HPLCRun"+File.separator+"QDEMUL3.M",
-                                        "EDIT 3004837B     Starch sample     /HPLCRun/3004837A.CSV TD789 5 T=0  HPLCRun"+File.separator+"QDEMUL3.M"};
-    @LogMethod
-    private void validateHPLCAssayData()
-    {
-        clickProject(PROJECT_NAME);
-        waitAndClick(Locator.linkWithText(HPLC_ASSAY));
-
-        Locator methodLink = Locator.linkWithText(" HPLCRun" + File.separator + HPLC_METHOD);
-        waitForElement(methodLink);
-        try
-        {
-            int responseCode = WebTestHelper.getHttpGetResponse(methodLink.findElement(getDriver()).getAttribute("href"));
-            assertEquals("Bad response from method link: " + responseCode, HttpStatus.SC_OK, responseCode);
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-
-        click(Locator.linkWithText(FORMULATION));
-        waitForElement(Locator.linkWithText("Alum"));
-
-        DataRegionTable table = new DataRegionTable("Data", this);
-        assertEquals("Unexpected number of result rows", 6, table.getDataRowCount());
-
-        List<WebElement> rows = Locator.css(".labkey-row, .labkey-alternate-row").findElements(getDriver());
-
-        for (int i = 0; i < rows.size(); i++)
-        {
-            assertEquals("Unexpected row data", HPLC_ROWS[i], rows.get(i).getText());
-        }
-
-
-        waitForElement(Locator.css(".labkey-nav-page-header").withText(HPLC_ASSAY + " Results"));
-    }
-
-    @LogMethod
     protected void performSearch()
     {
         clickProject(PROJECT_NAME);
@@ -956,7 +831,6 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Using Formulation search");
         setFormElement(Locator.name("nameContains"), FORMULATION);
         clickButton("Search");
-
     }
 
     @Override

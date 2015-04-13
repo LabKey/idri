@@ -1,0 +1,300 @@
+Batch	DM	BatchSize	NB_Pg	Adjuvant	Squalene_Oil	PC	Failure	UsedInExperiments	Comments	
+CX-1	Feb 03	NA	NA	MPL - 1 mg/ml	Shark - Sigma	Egg - Avanti				
+TD209	10 17 06	400 mL	162-3	NA	Shark - Sigma	Egg - Avanti				
+TD220	11 30 06	400 mL	162-13	GLA - 1mg/ml	Shark - Sigma	Egg - Avanti		ID-B60-077RP-06-MK, ID-B60-082-07-MK, ID-B60-082RP-07-MK,ID-B60-080-06-MK, ID-GO1-902-07-SVLA, ID-B20-084-07-MK, ID-B20-085-07-MK, ID-B20-086-07-MK, ID-B44-639-07-SB, ID-B20-093-07-MK; ID-B60-083-07-MK; ID-B60-083RP-07-MK; ID-B60-083-B-07-MK, ID-B60-083-BRP-07-MK, ID-SBRI-01-06-RCFM, ID-B44-501-07-YG, ID-L01-307-07-MDVR, ID-B60-088-07-MK, ID-B60-088RP-07-MK, ID-G011-908-1-07-SB, ID-B40L01-309-07-VR, ID-G01-908RP2-07-SBSV, ID-B60-089-07-MK-SWR, ID-B20-091-07-MK 		
+TD241	01 30 07	300 mL	162-15	NA	Shark - Sigma	Egg - Avanti		ID-G01-637-07-YG, ID-L01-307-07-MDVR, ID-G01-908-07-SBSV, ID-G01-908RP-07-SBSV, ID-G01-908RP2-07-SBSV 		
+TD246	02 15 07	100mL	176-11	NA	Shark - Sigma	Soy - SPC Lipoid			F68	
+TD252	02 23 07	75mL	176-14	NA	Shark - Sigma	Egg - Avanti			no vitE	
+TD253	02 23 07	75mL	176-14	NA	Shark - Sigma	Soy - Avanti			no vitE	
+TD259	03 1 07	450 mL	162-42	NA	Shark - Sigma	NA			MF-59	
+TD261	03 5 07	100mL	176-19	NA	Shark - Sigma	Egg - Avanti	pooled w/ TD262	ID-G011-914-07-SB, ID-G011-915-07-SB	mixed w/ small Silverson	
+TD293	03 27 07	9 mL	162-69	CpG1826 - 1.25 mg/mL	Shark - Sigma	Egg - Avanti		ID-B20-084-07-MK, ID-B20-085-07-MK, ID-B20-105-08-SB		
+TD296	03 28 07	50mL	176-39	NA	Olive - Wilshire	Soy - Avanti			no vitE, F68	
+TD297	03 28 07	50mL	176-39	NA	Olive - Wilshire	Soy - ALC 90G			vo vitE, F68	
+TD298	03 29 07	50mL	176-40	NA	Olive - Nutriscience	Soy - Avanti			vo vitE, F68	
+TD299	03 29 07	50mL	176-40	NA	Olive - Nutriscience	Soy - ALC 90G			no vitE, F68	
+TD300	03 30 07	50mL	176-41	NA	Miglyol 810	NA			MF59, Twn 80 and Span 85	
+TD301	03 30 07	50mL	176-41	NA	Olive - Wilshire	NA			MF59, Twn 80 and Span 85	
+TD321	05 7 07	11 mL	162-84	CpG2395 - 1.25 mg/mL	Shark - Sigma	Egg - Avanti		ID-B20-093-07-MK, C05-028-09-RC		
+TD322	05 7 07	14 mL	162-84	GLA/CpG2395 - 1.0/1.25 mg/mL	Shark - Sigma	Egg - Avanti		ID-B20-093-07-MK, Steve Reed		
+TD324	04 26 07	11 mL	162-84	GDQ - 1 mg/mL	Shark - Sigma	Egg - Avanti		ID-B20-093-07-MK		
+TD326	04 26 07	11 mL	162-84	GDQ/CpG2395 - 1.0/1.25 mg/mL	Shark - Sigma	Egg - Avanti		ID-B20-093-07-MK		
+TD330	05 1 07	60mL	176-60	NA	Olive - Wilshire	Soy - Avanti			Twn 80, no vit E	
+TD332	05 3 07	60mL	176-62	NA	Olive - Nutriscience	Soy - Avanti			Twn 80	
+TD336	05 8 07	400mL	176-63	GLA - 1mg/ml	Shark - Sigma	Egg - Avanti		ID-B20-097-SB, ID-B20-095-07-MK, ID-G011-914-07-SB, ID-G011-915-07-SB, ID-B60-097-07-MK, ID-B60-097-RP-07-MK, ID-B20-090-07-MK, ID-G22-004-08-ML, ID-G22-005-08-ML, ID-G22-006-08-ML, ID-C03-001-08-SVRC, ID-G20-009-08-SB, QIMR, ID-G01-B12-674-VR, ID-G20-210-VR, Brazil Dog Study - 05/02/08, ID-G011-922-08-SY, ID-B12-653-08-YG, ID-L01-301-08-MD, ID-B12-109H-08-AB, Dr Valenzuela, ID-B12-655-08-YG, Dr Orme		
+TD337	05 9 07	200mL	176-65	GLA - 1mg/ml	Shark - Sigma	Egg - Avanti		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117), Dr Orme	no vit E	
+TD339	06 13 07	100mL	176-88	NA	Shark - Sigma	Synthetic - DOPC			no vit E, F68	
+TD349	07 18 07	12 mL	197-28	GLA/GDQ - 1mg/ml	Shark - Sigma	Egg - Avanti		ID-B44-722-07-SB, ID-B60-089-07-MK-SWR		
+TD353	07 25 07	100mL	176-24	tomatine-20ug/ml	Shark - Sigma	Egg - Avanti			w/ vit E	
+TD354	07 26 07	5mL	176-25	GLA/CpG-1.0/1.25mg/ml	Shark - Sigma	Egg - Avanti			CpG 1826	
+TD362	08 9 07	8 mL	197-32	GDQ/CpG1826 - 1.0/1.25 mg/mL	Shark - Sigma	Egg - Avanti				
+TD419	10 26 07	5mL	176-185	GLA - 100ug/ml	NA	DOPC - Avanti			liposome formulation	
+TD421	10 29 07	100 mL	197-52	NA	Shark - Sigma	Egg - Avanti			F68	
+TD422	10 29 07	100 mL	197-52	NA	Olive - Wilshire	Egg - Avanti			F68	
+TD423	10 29 07	100 mL	197-52	NA	Miglyol 810	Egg - Avanti			F68	
+TD424	10 29 07	100 mL	197-52	NA	Shark - Sigma	Soy - Avanti			F68	
+TD427	10 29 07	100 mL	197-52	NA	Shark - Sigma	Soy - Avanti			Twn 80	
+TD428	10 29 07	100 mL	197-52	NA	Olive - Wilshire	Soy - Avanti			Twn 80	
+TD431	11 2 07	5mL	213-1	GLA/GDQ - .83/.17 mg/ml	NA	DOPC - Avanti			liposome formulation	
+TD432	11 5 07	5mL	176-189	NA	NA	DOPC - Avanti			liposome formulation	
+TD435	11 8 07	70mL	213-4	NA	Miglyol 810	Soy - Avanti			F68, no vit E	
+TD436	11 8 07	60mL	213-4	NA	Shark - Sigma	Soy - Avanti			F68, no vit E	
+TD437	11 8 07	100mL	213-4	NA	Olive - Wilshire	Egg - Avanti		used in MM6 cell tests by Jeff G (195-39)	F68, no vit E	
+TD438	11 8 07	80mL	213-4	NA	Miglyol 810	Egg - Avanti			F68, no vit E	
+TD439	11 8 07	80mL	213-4	NA	Shark - Sigma	Egg - Avanti			F68, no vit E	
+TD440	11 12 07	1 mL	213-5	GLA/GDQ - 5 mg/ml, .25 mg/ml	NA	DOPC - Avanti			liposome formulation	
+TD443	11 28 07	80mL	176-192	NA	Shark - Sigma	Synthetic - DOPC			Twn80, no vit E	
+TD444	11 28 07	80mL	176-192	NA	Olive - Wilshire	Synthetic - DOPC			Twn80, no vit E	
+TD445	11 28 07	80mL	176-192	NA	Shark - Sigma	Soy - Avanti			Twn80, no vit E	
+TD446	11 28 07	80mL	176-192	NA	Olive - Wilshire	Soy - Avanti			Twn80, no vit E	
+TD447	11 28 07	80mL	176-192	NA	Miglyol 810	Soy - Avanti			Twn80, no vit E	
+TD448	11 29 07	5mL	222-1	AMRI GLA - 1mg/ml	NA	DOPC - Avanti			liposome formulation	
+TD449	11 30 07	40mL	213-15	NA	Olive - Nutriscience	Egg - Avanti			F68, no vit E	
+TD450	11 30 07	40mL	213-15	NA	Miglyol 810	Soy - Avanti			Twn 80	
+TD451	11 30 07	40mL	213-15	NA	Olive - Nutriscience	Egg - Avanti		used in MM6 cell tests by Jeff G (195-39)	Twn 80, no vit E	
+TD452	12 3 07	50mL	213-14,18	NA	Shark - Sigma	Synthetic blend - Avanti			F68, no vit E	
+TD465	12 13 07	100 mL	197-76	NA	Shark - Sigma	Egg - Avanti			lexan(PC)	
+TD466	12 13 07	100 mL	197-76	NA	Shark - Sigma	Egg - Avanti			PC	
+TD467	12 13 07	100 mL	197-76	NA	Shark - Sigma	Egg - Avanti			PETG	
+TD485	01 7 08	4mL	222-13	NA	Shark - Sigma	Egg - Avanti		ID-G20-003-07-SB	Fluzone @ .2ug/100ul	
+TD486	01 7 08	4mL	222-13	GLA - 5ug/100ul	Shark - Sigma	Egg - Avanti		ID-G20-003-07-SB	Fluzone @ .2ug/100ul	
+TD487	01 7 08	4mL	222-13	GDQ - 10ug/100ul	Shark - Sigma	Egg - Avanti		ID-G20-003-07-SB	Fluzone @ .2ug/100ul	
+TD488	01 7 08	4mL	222-13	CpG - 25ug/100ul	Shark - Sigma	Egg - Avanti		ID-G20-003-07-SB	Fluzone @ .2ug/100ul	
+TD489	01 7 08	4mL	222-13	GLA/CpG - 5/25ug/100ul	Shark - Sigma	Egg - Avanti		ID-G20-003-07-SB	Fluzone @ .2ug/100ul	
+TD490	01 7 08	4mL	222-13	GLA/GDQ - 5/10ug/100ul	Shark - Sigma	Egg - Avanti		ID-G20-003-07-SB	Fluzone @ .2ug/100ul	
+TD498	01 10 08	50mL	213-30	NA	Shark - Sigma	Egg - Avanti			Tween 80, no vit E	
+TD499	01 10 08	50mL	213-30	NA	Shark - Sigma	DPPC/DSPC - Avanti			F68, no vit E	
+TD506	01 15 08	60mL	213-36	NA	Miglyol 810	Soy - Avanti			Tween80 0.005% V/V, no vit E	
+TD507	01 15 08	60mL	213-36	NA	Miglyol 810	Soy - Avanti			Tween80 0.013% V/V, no vit E	
+TD508	01 15 08	60mL	213-36	NA	Miglyol 810	Soy - Avanti			Tween80 0.1% V/V, no vit E	
+TD509	01 16 08	60mL	213-36	NA	Miglyol 810	Soy - Avanti			Tween80 0.3% V/V, no vit E	
+TD510	01 16 08	60mL	213-36	NA	Miglyol 810	Soy - Avanti			Tween 80 0.5% V/V, no vit E	
+TD511	01 16 08	60mL	213-36	NA	Miglyol 810	Soy - Avanti			Tween80 0.6% V/V, no vit E	
+TD512	01 21 08	10 mL	197-85	Poly-IC - 1 mg/mL	NA	NA		B70-001-08-SB	AQ	
+TD513	01 21 08	10 mL	197-85	CpG 1826 - 1.25 mg/mL	NA	NA		B70-001-08-SB	AQ	
+TD514	01 21 08	5 mL	197-85	GLA/CpG 1826 - 1/1.25 mg/mL	Shark - Sigma	Egg - Avanti		ID-B20-106-08-SB		
+TD515	01 22 08	2mL	222-19	NA	NA	DOPC - Avanti			liposomes, cationic	
+TD516	01 23 08	2mL	222-20	GLA - 1mg/ml	NA	DOPC - Avanti			liposomes, cationic	
+TD517	01 23 08	15 mL	197-88	CpG - 0.75 mg/mL	NA	NA			Alum and 10103	
+TD518	01 24 08	20 mL	197-88	CpG - 0.95 mg/mL	NA	NA			Alum and 10103	
+TD523	01 25 08	30 mg	197-91	GLA	NA	DPPC - Avanti			AF lyo	
+TD533	02 1 08	60mL	222-24	NA	Miglyol 810	Soy - Avanti			no vit E, Twn20	
+TD536	02 6 08	0.8 mL	213-48	QS21-API - 0.5 mg/ml	NA	NA			PBS	
+TD537	02 6 08	0.8 mL	213-48	QS21-API - 0.5 mg/ml	NA	DOPC			liposomes 	
+TD538	02 6 08	0.8 mL	213-48	QS21-XYL - 0.5 mg/ml	NA	NA			PBS	
+TD539	02 6 08	0.8 mL	213-48	QS21-XYL - 0.5 mg/ml	NA	DOPC			liposomes	
+TD543	02 6 08	100 mL	213-49	NA	Shark - Sigma	Egg - Avanti			microfluidization time vs. particle size	
+TD550	02 18 08		197-103	CpG1826 - 2.5 mg/mL	Shark - Sigma	Egg - Avanti		ID-C03-001-08-SVRC, ID-B12-653-08-YG, ID-B12-655-08-YG		
+TD551	02 18 08		197-103	GLA/CpG1826 - 1/2.5 mg/mL	Shark - Sigma	Egg - Avanti		ID-C03-001-08-SVRC		
+TD557		5 mL		GLA	Shark - Sigma	Egg - Avanti			2.5% oil in PBS	
+TD558		5 mL		GLA	Shark - Sigma	Egg - Avanti			2.5% oil in PBS	
+TD559		5 mL		GLA	Shark - Sigma	Egg - Avanti			2.5% oil in PBS	
+TD560	02 29 08	10 mL	197-114	NA	Shark - Sigma	Egg - Avanti			2.5% oil in PBS	
+TD561	02 29 08	4 mL	197-113	GLA - 4 mg/mL	Shark - Sigma	Egg - Avanti		ID-C04-003-08-SY, ID-C04-003RP-08-SY, ID-C04-004-08-SY, ID-C04-004RP-08-SY, ID-C03-003-08-SVCTRC		
+TD562	03 3 08	1 mL	197-115	GDQ - 1 mg/mL	NA	NA		ID-G20-009-08-SB	AQ	
+TD563	03 3 08	5 mL	197-115	IMQ - 1 mg/ml	NA	NA		ID-G20-009-08-SB	AQ	
+TD564	03 3 08	5 mL	197-115	IMQ - 1 mg/ml	Shark - Sigma	Egg - Avanti		ID-G20-009-08-SB		
+TD565	03 3 08	5 mL	197-115	GLA/IMQ - 1mg/mL	Shark - Sigma	Egg - Avanti		ID-G20-009-08-SB		
+TD566	03 3 08	5 mL	197-115	GLA/GDQ - 1mg/ml	Shark - Sigma	Egg - Avanti		QIMR, DR Chitnis, ID-B20-106-08-SB		
+TD567	03 3 08	20 mL	197-116	GLA - 40 ug/mL	NA	NA		Dr Corradin	Alum - 1 mg/mL	
+TD588	03 14 08	3mL	222-39	IMQ - 20ug/100ul	NA	NA		ID-B44-729-08-SB; 261-47	Fluzone @ 0.2ug/100ul	
+TD589	03 14 08	4mL	222-39	IMQ - 20ug/100ul	Shark - Sigma	Egg - Avanti		ID-B44-729-08-SB	Fluzone @ 0.2ug/100ul	
+TD590	03 14 08	6mL	222-39	GLA - 5ug/100ul	Shark - Sigma	Egg - Avanti		ID-B44-729-08-SB	Fluzone @ 0.2ug/100ul	
+TD591	03 14 08	2mL	222-39	IMQ/GLA - 20/5ug/100ul	Shark - Sigma	Egg - Avanti		ID-B44-729-08-SB	Fluzone @ 0.2ug/100ul	
+TD592	03 14 08	4mL	222-39	NA	Shark - Sigma	Egg - Avanti		ID-B44-729-08-SB	Fluzone @ 0.2ug/100ul	
+TD606	04 11 08	2 mL	197-145	GLA/CpG1826 - 400/500 ug/mL	Shark - Sigma	Egg - Avanti		Dr Orme	4% oil, F68	
+TD610	04 14 08	35 mL	197-146	GLA - 80 ug/ml	Shark - Sigma	Egg - Avanti			4% Oil	
+TD611	04 14 08	45 mL	197-146	GLA - 160 ug/mL	Shark - Sigma	Egg - Avanti			4% Oil	
+TD623	04 15 08	3 mL	197-147	GLA/GDQ - 1/1 mg/mL	Shark - Sigma	Egg - Avanti		Dr Corradin x2		
+TD624	04 15 08	3 mL	197-147	GLA/CpG1826 - 1/1.25 mg/mL	Shark - Sigma	Egg - Avanti		Dr Corradin x2		
+TD625	04 15 08	3 mL	197-147	GLA/GDQ/CpG1826 - 1/1/1.25 mg/mL	Shark - Sigma	Egg - Avanti		Dr Corradin x2		
+TD630	04 17 08	5mL	222-54	NA	Fluorinert FC-40	NA			F68	
+TD631	04 17 08	5mL	222-54	NA	Fluorinert FC-70	NA			F68	
+TD632	04 17 08	5mL	222-54	NA	Fluorinert FC-77	NA			F68	
+TD633	04 17 08	500 mL	197-148	GLA - 1 mg/mL	Shark - Sigma	Egg - Avanti		ID-B60-100-08-SV, ID-C04-003-08-SY, ID-C04-003RP-08-SY, ID-C04-004-08-SY, ID-C04-004RP-08-SY, ID-B44-732-08-SB, ID-N01-003-08-SB, Dr Khader, ID-G011-104test-08-AB, Dr. Chetan, ID-C03-003-08-SVCTRC, Allan Thomas - Malaria, C05-008-08-HW, C05-007-08-HW, C05-006-08-HW, Dr Corradin - 2x, ID-C05-009-08-HW, ID-C05-006-08-HW, ID-B20-106-08-SB, ID-G20-047-08, Dr Orme, ID-B20-105-08-SB, ID-L01-305-08-MDVR, ID-C05-023-08-HW, ID-C05-007-08-rpt-HW, ID-B60-102-08-SV, ID-L01-306-08-MD, ID-G20-051-08-SYKC; ID-C05-026-08; ID-G20-051-08; Dr. George K. Lewis, Dr. Anita Milicic, Angelo Izzo (CSU), ID-G20-112-08EL, Dr. Risini Weeratna (Pfizer, Canada), ID-C03-003-RPT, Steve Reed, Dr. Rima McLeod, Dr. Gary Nabel, Dr. Corradin, Dr. Robin Shattock, ID-C04-005-09-SY, IDC		
+TD634	04 22 08	500 mL	197-152	NA	Shark - Sigma	Egg - Avanti		ID-B60-100-08-SV, ID-C04-003-08-SY, ID-C04-003RP-08-SY, ID-C04-004-08-SY, ID-C04-004RP-08-SY, ID-B44-732-08-SB, ID-N01-003-08-SB, ID-B44-733-08-SB, Dr. Chetan, Allan Thomas - Malaria, C05-008-08-HW, C05-007-08-HW, C05-006-08-HW, Dr Corradin - 2x, ID-C05-009-08-HW, ID-B20-106-08-SB, ID-G20-047-08, ID-C05-007-08-rpt-HW, Dr. Anita Milicic		
+TD635	05 2 08	4 mL	197-153	R848 - 5 mg/mL	NA	NA		Brazil Dog Study - 05/02/08	AQ	
+TD636	05 2 08	3 mL	197-153	CpG2007 - 5 mg/mL	NA	NA		Brazil Dog Study - 05/02/08	AQ	
+TD637	05 2 08	3 mL	197-153	CpG2395 - 5 mg/mL	NA	NA		Brazil Dog Study - 05/02/08	AQ	
+TD638	05 16 08	30 mL	197-154	NA	NA	NA		Apptec fluzone tox study	0.9% saline, made extra on 6/2/08	
+TD639	05 16 08	21 mL	197-154	GLA - 100 ug/mL	Shark - Sigma	Egg - Avanti		Apptec fluzone tox study	made extra on 6/2/08	
+TD640	05 16 08	NA	197-154	NA	NA	NA		Apptec fluzone tox study	fluzone - Lot# U25 12AA	
+TD641	05 16 08	14.7	197-154	GLA - 7.14 ug/mL	Shark - Sigma	Egg - Avanti		Apptec fluzone tox study	made extra on 6/2/08	
+TD642	05 16 08	14.7	197-154	GLA - 35.7 ug/mL	Shark - Sigma	Egg - Avanti		Apptec fluzone tox study	made extra on 6/2/08	
+TD643	05 16 08	14.7	197-154	GLA - 71.4 ug/mL	Shark - Sigma	Egg - Avanti		Apptec fluzone tox study	made extra on 6/2/08	
+TD644	05 13 08	10 mL	197-156	unknown - 1 mg/mL	NA	NA		261-47	SP	
+TD645	05 13 08	1 mL	197-156	DLA - 1 mg/mL	NA	POPC - Avanti			SP - Lot# 200A-26	
+TD646	05 13 08	10 mL	197-156	R848 - 1 mg/mL	NA	NA		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117)	AQ - Alexis	
+TD647	05 13 08	2 mL	197-156	R848 - 1 mg/mL	NA	NA		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117)	AQ - 3M	
+TD648	05 13 08	1 mL	197-156	GDQ - 1 mg/mL	NA	NA			AQ - Invivogen	
+TD649	05 13 08	10 mL	197-156	GDQ - 1 mg/mL	NA	NA			AQ - Alexis	
+TD650	05 13 08	0.5 mL	197-156	CL097 - 1 mg/mL 	NA	NA		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117)	AQ - Invivogen	
+TD651	05 14 08	200 mL	197-157	NA	Shark - Sigma	NA			Span85 - F68 - 5% oil	
+TD653	05 14 08	200 mL	197-157	NA	Shark - Sigma	NA			Tween80 - Tet901 - 5% oil	
+TD654	05 16 08	0.5 mL	197-159	CL075 - 1 mg/mL	NA	NA		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117)	AQ - Invivogen	
+TD655	05 16 08	0.1 mL	197-159	ssPolyU/Lyovec - 1 mg/mL	NA	NA		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117)	AQ - Invivogen	
+TD656	05 19 08	10 mL	197-160	AMRI GLA JLD - 1 mg/mL	NA	NA		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117)	old 	
+TD658	05 19 08	10 mL	197-160	MPL - 1 mg/ml	NA	NA		used in MM6, mBMDC, RAW cell tests by Jeff G (folder 08-0117), given to Ajay for Leish work		
+TD659	05 19 08			RSQ - 2 mg/mL						
+TD660	06 16 08	7 ml		NA	Shark - Sigma	Egg - Avanti		SNBL USA fluzone tox study		
+TD661	06 16 08	7 ml		GLA - 2.86 ug/ml	Shark - Sigma	Egg - Avanti		SNBL USA fluzone tox study		
+TD662	06 16 08	7 ml		GLA - 14.29 ug/ml	Shark - Sigma	Egg - Avanti		SNBL USA fluzone tox study		
+TD663	06 16 08	7 ml		GLA - 71.4 ug/ml	Shark - Sigma	Egg - Avanti		SNBL USA fluzone tox study		
+TD665	05 27 08	3.5 mL	197-166	NA	NA	NA		ID-C04-002-08-SY	Alum pierce	
+TD666	05 27 08	3.5 mL	197-166	NA	NA	NA		ID-C04-002-08-SY	Alum 1 mg/ml	
+TD667	05 27 08	3.5 mL	197-166	GLA - 50 ug/mL	NA	NA		ID-C04-002-08-SY	Alum 1 mg/ml	
+TD668	05 27 08	3.5 mL	197-166	GLA - 200 ug/mL	NA	NA		ID-C04-002-08-SY	Alum 1 mg/ml	
+TD669	05 27 08	3.5 mL	197-166	GLA - 400 ug/mL	NA	NA		ID-C04-002-08-SY	Alum 1 mg/ml	
+TD670	06 2 08	10 mL	197-167	R848 - 2 mg/ml	NA	NA		ID-B12-653-08-YG, ID-B12-109H-08-AB, ID-B12-655-08-YG, used in 167-179, 167-184, 167-188	AQ	
+TD671	06 2 08	5 mL	197-167	CpG1826 - 2.5 mg/mL	NA	NA		ID-B12-653-08-YG, ID-B12-655-08-YG	AQ	
+TD672	06 4 08	9 mL	197-170	GLA - 1 mg/ml	NA	NA		ID-C04-003-08-SY, ID-C04-003RP-08-SY, ID-C04-004-08-SY, ID-C04-004RP-08-SY	SP	
+TD674	06 9 08	5 mL	197-17	AMRI TLR4 NH4 - 1 mg/ml	NA	NA			organic/aqueous	
+TD675	06 9 08	7 mL	197-17	AMRI TLR4 TEA - 1 mg/ml	NA	NA			organic/aqueous	
+TD676	06 9 08	5 mL	197-17	GLA - 1 mg/ml	NA	NA			organic/aqueous	
+TD677	06 9 08	90 mL	213-119	NA	Miglyol 810	Soy - Avanti			no vit E, microfluidized ~9min instead of 6min	
+TD678	06 9 08	150 mL	213-119	NA	Shark - Sigma	Egg - Avanti		Steve Reed (for Miriam)	F68, no vit E	
+TD679	06 9 08	150 mL	213-119	NA	Olive - Wilshire	Soy - Avanti			no vit E	
+TD680	06 9 08	150 mL	213-119	NA	Olive - Wilshire	Egg - Avanti			no vit E	
+TD683	06 30 08	600 mL	197-181	GLA - 250 ug/mL	Shark - Sigma	Egg - Avanti			7% oil	
+TD684	06 30 08	600 mL	197-181	NA	Shark - Sigma	Egg - Avanti			7% oil	
+TD685	07 1 08	200 mL		NA	Shark - Sigma	NA			0.5% Span 85, 0.5% Pluronic L44	
+TD686	07 1 08	200 mL		NA	Shark - Sigma	NA			0.5% Tween 80, 0.1% Pluronic L44	
+TD687	07 1 08	200 mL		NA	Shark - Sigma	NA			0.5% Tween 80, 0.1% Pluronic F68	
+TD688	07 1 08	200 mL		NA	Shark - Sigma	NA			0.1% Tween 80, made on small microfluidizer	
+TD689	07 1 08	200 mL		NA	Shark - Sigma	NA			0.5% Tween 80, made on small microfluidizer	
+TD690	07 1 08	200 mL		NA	Shark - Sigma	NA			1% Tween 80, made on small microfluidizer	
+TD691	07 1 08	200 mL		NA	Shark - Sigma	NA			1% w/v Pluronic F68	
+TD695	07 29 08	10 mL	213-144	NA	NA	DPPC - Avanti			AF without the GLA	
+TD696	08 5 08	10 mL	197-188	R848 - 2.5 mg/ml	NA	NA		ID-B44-732-08-SB, ID-N01-003-08-SB, BMDC, Leish Major therapy model, Dr. Chetan	125 mM ammonium phosphate pH 5.1	
+TD697	08 5 08	10 mL	197-188	GDQ - 0.5 mg/mL	Shark - Sigma	Egg - Avanti		ID-B44-733-08-SB		
+TD702	08 15 08	120 mL	213-157	GLA - 0.4 mg/ml	Olive - Wilshire	Soy - Avanti		Dr Orme	4% oil, Tween 80, no vit E	
+TD703	08 19 08	9 mL	213-160	GLA - 1mg/ml	NA	DPPC - Avanti		Pfizer, GLA + L110 lyo, GLA + ID83 lyo		
+TD707	08 20 08	20 mL	197-190	GLA/CpG2395 - 100/4000 ug/ml	Shark - Sigma	Egg - Avanti			4% oil	
+TD708	08 21 08	3.5 mL	197-191	GLA - 250 ug/mL	Shark - Sigma	Egg - Avanti		IDC	4% oil	
+TD709	08 21 08	3.5 mL	197-191	GLA/CpG2395 - 250/5000 ug/ml	Shark - Sigma	Egg - Avanti		IDC	4% oil	
+TD710	08 21 08	21 mL	197-191	GLA - 100 ug/mL	Shark - Sigma	Egg - Avanti		B20-101-08-RC-NHP 	4% oil	
+TD711	08 22 08	200 mL	197-192	NA	Shark - Sigma	Egg - Avanti		Dr Orme	4% oil, 0.2% Tween 80	
+TD712	08 27 08	200 ml	197-193	GLA - 400 ug/mL	Shark - Sigma	Egg - Avanti			4% oil, 0.2% Tween 80, 2.5x PC amount	
+TD713	09 2 08	10 mL		GLA/RSQ - 1mg/ml	Shark - Sigma	Egg - Avanti		Allan Thomas - Malaria, Dr. Anita Milicic, Heeney/Suzy Blows/Paul Tonks, Dr. Gary Nabel	made from TD336	
+TD717	09 8 08	0.5 mL	261-7	CLO75 - 1 mg/mL	NA	NA			AQ	
+TD718	09 8 08	0.5 mL	261-7	CLO97 - 1 mg/mL	NA	NA			AQ	
+TD719	09 9 08	0.5 mL	261-7	GLA - 1.76 mg/ml	NA	NA			AF	
+TD720	09 9 08	0.5 mL	261-7	DTLA - 1.72 mg/ml	NA	NA			AF	
+TD722	09 11 08	4 ml	261-13	IMQ - 1.25 mg/ml	Shark - Sigma	Egg - Avanti		ID-L01-304-08-MD 		
+TD723	09 11 08	4 ml	261-13	CpG1826 - 1.25 mg/mL	Shark - Sigma	Egg - Avanti		ID-L01-304-08-MD 		
+TD724	09 11 08	4 ml	261-13	GLA/IMQ - 1/1.25mg/mL	Shark - Sigma	Egg - Avanti		ID-L01-304-08-MD 		
+TD725	09 11 08	4 ml	261-13	GLA/CpG1826 - 1/1.25 mg/ml	Shark - Sigma	Egg - Avanti		ID-L01-304-08-MD 		
+TD726	09 11 08	4 ml	261-13	IMQ/CpG1826 - 1.25 mg/ml	Shark - Sigma	Egg - Avanti		ID-L01-304-08-MD 		
+TD727	09 11 08	4 ml	261-13	GLA/Imq/CpG1826 - 1/1.25/1.25 mg/ml	Shark - Sigma	Egg - Avanti		ID-L01-304-08-MD 		
+TD728	09 11 08	100 mL	261-14	NA	Shark - Sigma	Egg - Avanti		IDC	4% oil	
+TD729	09 12 08	100 ml	261-14	GLA - 1 mg/mL	Shark - Sigma	Egg - Avanti		IDC	4% oil	
+TD730	09 15 08	10 mL	261-15	R848 - 1 mg/mL	Shark - Sigma	Egg - Avanti		Dr. Chetan		
+TD735	09 23 08	30 mL	261-17	MPL - 1 mg/ml	NA	DPPC - Avanti		MPL + L110 lyo, MPL + ID83 lyo, 261-47, ID-G20-114-09	AF	
+TD736	09 23 08	10 mL	261-17	NA	NA	DPPC - Avanti			AF control	
+TD737	09 26 08	10 mL	261-18	GLA/CpG1826 - 1/1.25 mg/ml	Shark - Sigma	Egg - Avanti		Allan Thomas - Malaria, ID-B20-105-08-SB, Dr. Anita Milicic		
+TD738	09 26 08	3 ml	261-18	GLA/R848/CpG1826 - 1/1/1.25 mg/ml	Shark - Sigma	Egg - Avanti		Allan Thomas - Malaria		
+TD739	09 30 08	30 mL	261-19	GLA - 1 mg/ml	NA	NA			SP	
+TD740	10 2 08	10 mL	261-19	GLA - 1 mg/ml	NA	NA			SP	
+TD743	10 3 08	25 mL	261-20	GLA - 40 ug/mL	NA	NA		Dr Corradin	Alum - 1 mg/ml	
+TD744	10 9 08	4 mL	261-23	R853 - 2.5 mg/ml	NA	NA			AQ - 125 mM Ammonium Phosphate	
+TD745	10 14 08	60 mL	213-170	R848 - 0.4 mg/ml	Shark - Sigma	Egg - Avanti		G20-048-08-RC	4% oil	
+TD746	10 14 08	60 mL	213-170	R853 - 0.4 mg/ml	Shark - Sigma	Egg - Avanti			4% oil	
+TD747	10 14 08	60 mL	213-170	R848-pam-0.4 mg/ml	Shark - Sigma	Egg - Avanti		G20-054-09-SY	4% oil	
+TD748	10 28 08	36 mL	261-32	GLA - 1 mg/ml	NA	NA		pfizer	AF	
+TD749	10 31 08	9 mL	261-32	GLA - 1 mg/ml	NA	NA		Dr Tendler	SP	
+TD750	11 3 08	1 mL	261-33	IMQ - 1 mM	NA	NA		Guinea pig WBA	AQ	
+TD751	11 3 08	1 mL	261-33	GDQ - 1 mM	NA	NA		Guinea pig WBA	AQ	
+TD752	11 3 08	1 mL	261-33	R848 - 1 mM	NA	NA		Guinea pig WBA	AQ	
+TD753	11 5 08	60 mL	213-182	NA	Shark - Sigma	NA			MF59 (5% oil, 0.5% Tween 80, 0.5% Span 85)	
+TD754	11 5 08	50 mL	213-182	GLA - 0.4 mg/ml	Shark - Sigma	NA			MF59 (5% oil, 0.5% Tween 80, 0.5% Span 85)	
+TD756	11 24 08	120 ml	261-38	GLA - 1 mg/ml	Shark - Sigma	Egg - Avanti		ID-C03-003-RPT, C06-038-09-RC	2% oil	
+TD757	11 24 08	4 ml	273-1	GLA - 1 mg/ml	NA	DPPC/DPPG		Steve Brazil, James DSC	liposomes in saline	
+TD758	11 20 08	3.5 ml	213-191	R848 - 0.54 mg/ml	NA	DPPC/DPPG		Steve Brazil, James DSC	liposomes R848 'in'	
+TD759	11 24 08	3.5 ml	273-1	R848 - 0.54 mg/ml	NA	DPPC/DPPG		James DSC	liposomes R848 'out'	
+TD760	12 1 08	10 mL	261-39	GLA - 1mg/ml	NA	DPPC - Avanti		261-47	AF SMPLA-11	
+TD761	12 1 08	10 mL	261-39	GLA - 1mg/ml	NA	DPPC - Avanti			AF SMPLA-14	
+TD763	12 1 08	10 mL	261-39	GLA - 1mg/ml	NA	DPPC - Avanti		261-47	SP SMPLA-14	
+TD764	12 2 08	5 mL	261-40	NA	NA	DPPC/DPPG		Yasu	cholesterol liposomes	
+TD765	12 2 08	5 mL	261-40	NA	NA	DPPC/DPPG		Yasu	ergosterol liposomes	
+TD766	12 3 08	10 mL	261-41	GLA - 100 ug/mL	Shark - Sigma	Egg - Avanti		IDC	2% oil	
+TD767	12 3 08	10 mL	261-41	GLA - 500 ug/mL	Shark - Sigma	Egg - Avanti		IDC	2% oil	
+TD768	12 3 08	10 mL	261-41	NA	Shark - Sigma	Egg - Avanti		IDC	2% oil	
+TD769	12 3 08	3.5 mL	273-1	R848 - 0.4 mg/ml	NA	DPPC/DPPG			Liposomes w/R848 loaded	
+TD770	12 3 08	2 mL	273-2	R848-PEG - 1 mg/ml	NA	NA		G20-053-09-SY	aqueous	
+TD772	12 4 08	500 mL	261-42	GLA - 1 mg/ml	Shark - Sigma	Egg - Avanti		Heeney/Suzy Blows/Paul Tonks, ID-G20-112-08EL, Dr. Chetan Chitnis, Dr. Antonio Campos-Neto, TD836, TD837, TD839, TD840, C06-037-09-RC, C06-038-09-RC, Dr. Anjali Yadava, G20-054-09-SY, C06-041-09-RC, IDC, B60-103-08-IZ, C05-042-09-SB, C05-043-09-SBRC, G20-203-09, Steve Reed (for Julio), Bob Seder, Dr. Corradin		
+TD773	12 4 08	200 mL	261-42	NA	Shark - Sigma	Egg - Avanti			Isotonic	
+TD774	12 5 08	400 mL	273-6	GLA - 200 ug/mL	Shark - Sigma, Vitamin E	NA			AS03...0.5% Tween (2.5% squalene, 2.5% vitamin E added after aqueous phase (10mM citrate buffer))	
+TD775	12 19 08	60 mL	273-14	NA	Shark - Sigma	Egg - Avanti		ID-C05-15-08-RC	5% v/v oil, 0.5% w/v Tween, 0.96% w/v eggPC	
+TD776	12 19 08	60 mL	273-14	GLA - 500 ug/mL	Shark - Sigma	Egg - Avanti		ID-C05-15-08-RC	5% v/v oil, 0.5% w/v Tween, 0.96% w/v eggPC	
+TD777	01 12 09	10 mL	261-46	unknown - 10 mg/mL	NA	NA		261-47	AQ	
+TD778	01 13 09	10 mL	261-46	GLA - 500 ug/mL	Shark - Sigma	Egg - Avanti		Hunter Lauten (Barry Bloom Lab)	2% oil	
+TD779	01 13 09	10 mL	261-46	NA	Shark - Sigma	Egg - Avanti		Hunter Lauten (Barry Bloom Lab)	2% oil	
+TD783	01 19 09	100 mL	279-1	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 3% w/v PC	
+TD784	01 19 09	100 mL	279-1	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.9% w/v PC	
+TD785	01 19 09	100 mL	279-1	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1% w/v PC	
+TD786	01 21 09	500 mL	261-48	MPL - 1 mg/ml	Shark - Sigma	Egg - Avanti				
+TD787	01 21 09	30 mL	261-49	GLA - 1 mg/mL	NA	DPPC - Avanti		Dr. Risini Weeratna (Pfizer, Canada)	AF, GLA Lot #: SMPLA-11	
+TD788	01 21 09	50 mL	261-49	GLA - 1 mg/mL	NA	DPPC - Avanti			AF, GLA Lot #: 0.6 mg/ml SMPLA-10 & 0.4 mg/ml SMPLA-14	
+TD789	01 22 09	2 mL	273	GDQ - 1 mg/ml	Shark - Sigma	Egg - Avanti		C05-028-09-RC	TD634 added to Invivogen GDQ	
+TD790	01 22 09	100 mL	279-4	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.3% w/v PC	
+TD791	01 22 09	100 mL	279-4	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.70% w/v PC	
+TD792	01 26 09	500 ml	279-7	NA	Shark - Sigma	Egg - Avanti		Heeney/Suzy Blows/Paul Tonks, ID-C03-003-RPT, G21-012, Dr. Chetan Chitnis, Kelly Rausch/Yimin Wu, Dr. Gary Nabel, Dr. Corradin, James Chesko (Lyo-study), TD837, TD840, C06-037-09-RC, C06-038-09-RC, Jeralyn (QC), C05-034-09, G20-054-09-SY, C06-041-09-RC, IDC, C05-042-09-SB, C05-043-09-SBRC, G20-203-09		
+TD795	01 28 09	3 ml	273-29	GLA - 1 mg/ml	NA	DPPC/DPPG		C06-017-09-RC	liposomes (PC+PG lipid is 55 mg/ml)	
+TD796	01 28 09	3 ml	273-29	NA	NA	DPPC/DPPG		C06-017-09-RC	liposomes (PC+PG lipid is 55 mg/ml)	
+TD798	02 2 09	100mL	279-12	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.0% w/v PC	
+TD799	02 3 09	100mL	279-12	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.0% w/v PC	
+TD800	02 5 09	100mL	279-13	NA	Shark - Sigma	NA			MF59 (5% oil, 0.5% Tween 80, 0.5% Span 85)	
+TD801	02 5 09	100mL	279-13	NA	Shark - Sigma	NA			MF59 (5% oil, 0.5% Tween 80, 0.5% Span 85)	
+TD802	02 5 09	100mL	279-13	NA	Shark - Sigma	NA			MF59 (5% oil, 0.5% Tween 80, 0.5% Span 85)	
+TD803	02 9 09	100mL	279-14	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.0% w/v PC	
+TD804	02 9 09	100mL	279-14	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.9% w/v PC	
+TD805	02 9 09	100mL	279-14	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 3% w/v PC	
+TD806	02 11 09	10 ml	NA	R848 - 1 mg/ml	Shark - Sigma	Egg - Avanti		Dr. Chetan Chitnis	SE obtained from Lot # TD792	
+TD807	02 12 09	100mL	279-15	NA	Miglyol 810	Egg - Avanti			10% Miglyol 810, 1.9% w/v PC	
+TD808	02 12 09	100mL	279-15	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 0.5% w/v PC	
+TD809	02 12 09	100mL	279-15	NA	Shark - Sigma	Egg - Avanti			LCD: 10% v/v oil, 1.9% w/v PC in Aqueous Phase	
+TD812	02 12 09	5 ml	NA	GLA - 0.5 mg/ml	Shark - Sigma	Egg - Avanti		Kelly Rausch/Yimin Wu	Combined Lot # TD633 & TD792	
+TD813	02 16 09	500 mL	279-17	NA	Shark - Sigma	NA			MF59 (5% oil, 0.5% Tween 80, 0.5% Span 85)	
+TD814	02 12 09	6 mL	273-35	NA	NA	DPPC/DPPG/Chol		Sent to Robert Seder	Liposomes (PC+PG lipid is 50 mg/ml, PBS buffer)	
+TD815	02 12 09	3 mL	273-35	GLA - 1 mg/ml	NA	DPPC/DPPG/Chol		Sent to Robert Seder	Liposomes (PC+PG lipid is 50 mg/ml, PBS buffer)	
+TD816	02 17 09	3.5 mL	273-35	NA	NA	DPPC/DPPG/Chol		Sent to Robert Seder	Liposomes (NH4SO3 internal buffer, NaCl external buffer, PC+PG lipid is 20 mg/ml)	
+TD817	02 17 09	3.5 mL	273-35	R848 - 0.86 mg/ml	NA	DPPC/DPPG/Chol		Sent to Robert Seder	Liposomes (NH4SO3 internal buffer, NaCl external buffer, PC+PG lipid is 20 mg/ml)	
+TD818	02 17 09	3.5 mL	273-35	NA	NA	DOPC/DOTAP/Chol		Sent to Robert Seder	Liposomes (in water, 8.75 mg/ml DOPC+DOTAP, sonicated 7 min at 30C)	
+TD819	02 17 09	7 mL	273-35	Poly(I:C)-0.7 mg/ml invivogen	NA	DOPC/DOTAP/Chol		Sent to Robert Seder	Liposomes (in water, 8.75 mg/ml DOPC+DOTAP, sonicated 7 minutes at 32C)	
+TD820	02 20 09	100 mL	279-18	NA	Olive - Wilshire	Egg - Avanti			LCD: 10% v/v oil, 1.9% w/v PC	
+TD821	02 20 09	100 mL	279-18	NA	Shark - Sigma	DPPC - Avanti			LCD: 10% v/v oil, 1.9% w/v PC	
+TD822	02 23 09	10 ml	NA	R848 - 1 mg/ml	Shark - Sigma	Egg - Avanti		Dr. Gary Nabel, Dr. Chetan Chitnis	SE obtained from Lot # TD792	
+TD823	03 3 09	2 mg	NA	R848 - powder	NA	NA		Dr. Robin Shattock	3M Lot # P400	
+TD825	03 9 09	100mL	279-21	NA	NA	Egg - Avanti			1.9% Egg PC in H2O	
+TD826	03 9 09	100mL	279-21	NA	Shark	NA			10% Squalene in H2O	
+TD827	03 10 09	10 ml	NA	R848 - 1 mg/ml	NA	NA		Dr. Sandra Chang, Jeff Guerdian, IDC	AQ (dH2O, (NH4)3PO4 @ pH 5.1)	
+TD828	03 4 09	3.5 ml	273-43	GLA - 1.1 mg/ml, R848 - 0.88 mg/ml	NA	DPPC/DPPG/Chol			Liposomes (~20 mg/ml phospholipid, GLA in bilayer, R848 loaded via amine gradient)	
+TD829	03 4 09	3.5 ml	273-43	GLA - 1.1 mg/ml	NA	DPPC/DPPG/Chol			Liposomes w/GLA in bilayer (~20 mg/ml phospholipid)	
+TD830	03 5 09	5 ml	273-42	NA	NA	NA			Niosomes (Tween40/Span40/Chol ~5 mg/ml)	
+TD831	03 6 09	5 ml	273-42	NA	NA	NA			Niosomes (Tween40/Span40/Chol ~25 mg/ml)	
+TD832	03 5 09	5 ml	273-42	GLA - 1 mg/ml	NA	NA			GLA-Niosomes (Tween40/Span40/Chol ~5 mg/ml)	
+TD833	03 6 09	5 ml	273-42	GLA - 1 mg/ml	NA	NA			GLA-Niosomes (Tween40/Span40/Chol ~25 mg/ml)	
+TD834	03 4 09	3.5 ml	273-43	R848 - 0.78 mg/ml	NA	DPPC/DPPG/Chol			Liposomes (~20 mg/ml phospholipid, R848 loaded w/amine gradient)	
+TD835	03 4 09	3.5 ml	273-43	NA	NA	DPPC/DPPG/Chol			Liposomes (~20 mg/ml phospholipid)	
+TD836	03 18 09	10 ml	278-28	GLA - 0.4 mg/ml	Shark - Sigma	Egg - Avanti		Kelly Rausch/Yimin Wu	4% Oil, GLA-SE obtained from TD772
+TD837	03 18 09	10 ml	278-31	GLA - 0.1 mg/ml	Shark - Sigma	Egg - Avanti		Kelly Rausch/Yimin Wu	4% Oil, SE obtained from TD792, GLA-SE obtained from TD772, diluent - Aqueous Phase B
+TD838	03 18 09	10 ml	278-34	GDQ - 1 mg/mL	NA	NA		ID-B70-002-09-FMSB	AQ
+TD839	03 24 09	20 ml	278-38	GLA - 0.4 mg/ml	Shark - Sigma	Egg - Avanti		Kelly Rausch/Yimin Wu	4% Oil, GLA-SE obtained from TD772
+TD840	03 24 09	20 ml	278-40	GLA - 0.1 mg/ml	Shark - Sigma	Egg - Avanti		Kelly Rausch/Yimin Wu	4% Oil, SE obtained from TD792, GLA-SE obtained from TD772, diluent - Aqueous Phase B
+TD841	03 25 09	3.5 ml	273-47	GLA - 0.9 mg/ml, R848 - 0.9 mg/ml	NA	DPPC/DPPG/Chol		For Bob Seder	Liposomes (~20 mg/ml phospholipid, GLA in bilayer, R848 loaded via amine gradient)
+TD842	03 25 09	3.5 ml	273-47	GLA - 0.9 mg/ml 	NA	DPPC/DPPG/Chol		For Bob Seder	Liposomes (~20 mg/ml phospholipid, GLA in bilayer, amine gradient)
+TD843	04 8 09	20 ml	278-44	R848 - 1 mg/ml	NA	NA		Dr. Chetan Chitnis, G20-053-09-SY, G20-054-09-SY, Jeralyn (QC)	AQ (dH2O, (NH4)3PO4 @ pH 5.1)
+TD844	04 9 09	3 ml	273-48	R848-pamoate (1 mg/ml)	NA	NA		G20-053-09-SY	in water
+TD845	04 10 09	4 ml	273-48	GLA - 1 mg/ml	NA	DPPC/DPPG/Chol		C06-041-09-RC	same as TD795
+TD846	04 9 09	10 ml	NA	NA	NA	NA		G20-053-09-SY	Control for R848-AQ (250 mM Ammonium Phosphate Buffer, pH 5.1)
+TD847	04 10 09	5 ml	273-48	NA	NA	DPPC/DPPG/Chol		C06-041-09-RC	same as TD796
+TD848	04 10 09	100 mL	279-37	NA	Miglyol 810	DPPC			10% Miglyol 810, 1.9% w/v DPPC
+TD849	04 13 09	25 ml		GLA - 500 ug/mL	Shark - Sigma	Egg - Avanti		Hunter Lauten (Barry Bloom Lab)	2% oil (Combination of Lot #'s TD756 & TD792 and Aqueous Phase B buffer)
+TD850	04 13 09	50 ml		NA	NA	DPPC		IDC	Control for GLA-AF, 0.108 mg/ml DPPC
+TD851	04 14 09	10 ml		GLA - 1 mg/ml	NA	DPPC		Bob Seder	AF (HPLC analysis for DM performed under sample name GLA-AF-CF)
+TD852	04 13 09	80mL 	279-37		Shark - Alfa Aesar	Egg - Avanti, Egg PG			~50% Egg PC/~50% Egg PG
+TD853	04 15 09	100 mL	279-37	NA	Olive - Wilshire	DPPC			10% Olive Squalene & 1.9% DPPC
+TD854	04 10 09	10 mL	261-63	R848 - 1 mg/ml	NA	NA			DMSO - tested on HPLC on 4/10/09
+TD855	04 10 09	10 mL	261-63	R853 - 1 mg/ml	NA	NA			DMSO - tested on HPLC on 4/10/09
+TD856	04 10 09	0.5 mL	261-63	CL075 - 0.5 mg/mL	NA	NA			DMSO - tested on HPLC on 4/10/09
+TD857	04 10 09	0.5 mL	261-63	CL075 - 0.5 mg/mL	NA	NA			Aq - tested on HPLC on 4/10/09
