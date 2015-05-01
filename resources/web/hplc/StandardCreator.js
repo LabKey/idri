@@ -131,6 +131,10 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                             filterFn: function(item) {
                                 return item.get('name').indexOf('QD') == -1;
                             }
+                        },{
+                            filterFn: function(item) {
+                                return item.get('name').indexOf('QG') == -1;
+                            }
                         }]);
                     },
                     selectionchange: function(g, selects) {
