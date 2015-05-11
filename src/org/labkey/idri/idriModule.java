@@ -21,8 +21,8 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.module.DefaultModule;
+import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.view.BaseWebPartFactory;
 import org.labkey.api.view.JspView;
@@ -33,10 +33,10 @@ import org.labkey.api.view.WebPartView;
 import org.labkey.idri.assay.hplc.HPLCAssayDataHandler;
 import org.labkey.idri.assay.hplc.HPLCManager;
 import org.labkey.idri.formulations.ConcentrationsWebPart;
+import org.labkey.idri.formulations.FormulationSearchWebPart;
 import org.labkey.idri.formulations.FormulationSummaryWebPart;
 import org.labkey.idri.formulations.HPLCWebPart;
 import org.labkey.idri.formulations.ParticleSizeWebPart;
-import org.labkey.idri.formulations.FormulationSearchWebPart;
 import org.labkey.idri.formulations.StabilityWebPart;
 import org.labkey.idri.query.ConcentrationsQueryView;
 import org.labkey.idri.query.idriSchema;
@@ -151,7 +151,7 @@ public class idriModule extends DefaultModule
         idriSchema.register(this);
 
         // add folder types
-        ModuleLoader.getInstance().registerFolderType(this, new idriFormulationsFolderType(this));
+        FolderTypeManager.get().registerFolderType(this, new idriFormulationsFolderType(this));
 
         // listen for webdav events
         ServiceRegistry.get(FileContentService.class).addFileListener(new idriFileListener());
