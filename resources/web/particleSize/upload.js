@@ -35,6 +35,12 @@
             filename = filename.substring(2, filename.length);
             filename = '2' + filename;
         }
+        else if (/^QG/.test(filename))
+        {
+            // QG is used as 3000-3999 test runs.
+            filename = filename.substring(2, filename.length);
+            filename = '3' + filename;
+        }
 
         return filename;
     };
@@ -89,7 +95,7 @@
     // 3 - extraction number
     // 4 - Machine Type
     var parseSampleNameAdvanced = function(sampleText) {
-        // Arguement - sampleText is equivalent to one row in the file.
+        // Argument - sampleText is equivalent to one row in the file.
 
         // Possible pattern types recognized
         // 1. [ TIME PERIOD ] [ SAMPLE # ]              nano -- Missing TEMP
