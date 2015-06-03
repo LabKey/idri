@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests;
 
+import com.google.common.base.Function;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
@@ -31,6 +32,7 @@ import org.labkey.test.util.ListHelper;
 import org.labkey.test.util.ListHelper.ListColumn;
 import org.labkey.test.util.LogMethod;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
@@ -781,9 +783,28 @@ public class FormulationsTest extends BaseWebDriverTest
         shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("avgconc"), "-24.")); // -24.76
         shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("stddev"), "10.")); // 10.69
 
+        waitForSampleFormValidation();
         waitAndClick(Ext4Helper.Locators.ext4Button("Submit Analysis").enabled());
         waitForText("successfully");
         waitForElementToDisappear(Ext4Helper.Locators.ext4Button("Submit Analysis").enabled());
+    }
+
+    private void waitForSampleFormValidation()
+    {
+        shortWait().until(new Function<WebDriver, Boolean>()
+        {
+            @Override
+            public Boolean apply(WebDriver webDriver)
+            {
+                return (Boolean)executeScript("return Ext4.getCmp('sampleform').isValid();");
+            }
+
+            @Override
+            public String toString()
+            {
+                return "sample form to be valid";
+            }
+        });
     }
 
     @LogMethod
