@@ -760,7 +760,7 @@ public class FormulationsTest extends BaseWebDriverTest
         }
 
         clickButton("Start QC", 0);
-        sleep(2000); // let the view animate
+        waitForElementToDisappear(Locator.id("sampleinputs").notHidden());
 
         _ext4Helper.selectComboBoxItem(Locator.id("compoundlist"), "Squawk");
         _ext4Helper.selectComboBoxItem(Locator.id("standardslist"), standardName);

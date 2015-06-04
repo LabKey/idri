@@ -110,6 +110,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 region: 'west',
                 title: 'Available Inputs',
                 header: false,
+                id: 'sampleinputs',
                 width: 250,
                 border: false, frame: false,
                 style: 'border-right: 1px solid lightgrey; overflow-x: hidden; overflow-y: auto;',
