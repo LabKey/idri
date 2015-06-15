@@ -65,7 +65,8 @@ public class idriFormulationsFolderType extends MultiPortalFolderType
     {
         super.configureContainer(c, user);
 
-        idriManager.initializeSampleSets(c);
+        idriManager.initializeSampleSets(c, user);
+        idriManager.initializeLists(c, user);
     }
 
     @Override

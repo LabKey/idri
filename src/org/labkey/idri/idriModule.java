@@ -52,7 +52,8 @@ public class idriModule extends DefaultModule
 {
     public static final String WEBPART_CONCENTRATIONS = "Concentrations";
     public static final String WEBPART_CREATE_FORMULATION = "Formulation Creation";
-    
+    public static final String WEBPART_TASKLIST = "Formulations Task List";
+
     public String getName()
     {
         return "idri";
@@ -110,9 +111,19 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(HPLCWebPart.NAME)
             {
-                public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart)
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new HPLCWebPart();
+                }
+            },
+            new BaseWebPartFactory(WEBPART_TASKLIST)
+            {
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
+                {
+                    JspView view = new JspView("/org/labkey/idri/view/formulations/taskList.jsp");
+                    view.setViewName(WEBPART_TASKLIST);
+                    view.setTitle("Task List");
+                    return view;
                 }
             },
             new BaseWebPartFactory(WEBPART_CONCENTRATIONS)

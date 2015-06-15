@@ -29,8 +29,10 @@
   {
       LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
       resources.add(ClientDependency.fromPath("clientapi/ext3"));
+      resources.add(ClientDependency.fromPath("clientapi/ext4"));
       resources.add(ClientDependency.fromPath("FileUploadField.js"));
       resources.add(ClientDependency.fromPath("formulations/FormulationForm.js"));
+      resources.add(ClientDependency.fromPath("formulations/TaskForm.js"));
       return resources;
   }
 %>
@@ -54,6 +56,7 @@
 <div id ="formulation-upload"></div>
 <div id="formulation-panel"></div>
 <div id="form-example"></div>
+<div id="ext-taskList-panel"></div>
 <script type="text/javascript">
 
     Ext.onReady(function(){

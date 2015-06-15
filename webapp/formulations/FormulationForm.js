@@ -23,6 +23,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         this.materialCount = -1;
         this.lastChecked = "";
         this.isUpdate = false;
+        this.hasStabilityProfile = false;
         
         /* This store contains all known source materials */
         this.materialStore = new Ext.data.ArrayStore({
@@ -66,20 +67,35 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
         LABKEY.idri.FormulationPanel.superclass.initComponent.apply(this, arguments);
 
-        this.on('afterrender', function(){
-            var urlRowID = LABKEY.ActionURL.getParameter("RowId");
-            if (urlRowID)
-            {
-                var collection = this.formulationStore.query("rowID", urlRowID);
-                if (collection)
+        this.on('afterrender', function() {
+            Ext4.onReady(function() {
+                this.stabilityStore = new LABKEY.ext4.Store({
+                    schemaName: 'lists',
+                    queryName: 'StabilityProfile'
+                });
+
+                this.taskListStore = new LABKEY.ext4.Store({
+                    schemaName: 'lists',
+                    queryName: 'TaskList'
+                });
+
+                this.stabilityStore.load();
+                this.taskListStore.load();
+
+                var urlRowID = LABKEY.ActionURL.getParameter("RowId");
+                if (urlRowID)
                 {
-                    var first = collection.first();
-                    if (first)
+                    var collection = this.formulationStore.query("rowID", urlRowID);
+                    if (collection)
                     {
-                        this.loadFormulation(first.json.batch);
+                        var first = collection.first();
+                        if (first)
+                        {
+                            this.loadFormulation(first.json.batch);
+                        }
                     }
                 }
-            }
+            }, this);
         }, this, {single: true});
     },
 
@@ -90,13 +106,22 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             url : LABKEY.ActionURL.buildURL('idri', 'getFormulation.api'),
             method : 'GET',
             params : {materialName: materialName},
-            success : function(panel, form) {
+            success : function() {
                 this.getEl().unmask();
-                var cmp = Ext.getCmp('submit-formulation-btn');
-                if (cmp)
-                {
-                    this.isUpdate = true;
-                    cmp.setText("Save Changes");
+                this.isUpdate = true;
+                this.getSubmitBtn().setText('Save Changes');
+
+                var idx = this.formulationStore.findExact('batch', materialName);
+                if (idx != -1) {
+                    var rowID = this.formulationStore.getAt(idx).get('rowID');
+
+                    if (this.stabilityStore.findExact('lotNum', rowID) != -1) {
+                        this.setStabilityWatch(true);
+                        this.hasStabilityProfile = true;
+                    }
+                }
+                else {
+                    console.warn('Unable to find formulation:', materialName);
                 }
             },
             failure : function()
@@ -234,11 +259,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                                                     {
                                                         this.isUpdate = false;
                                                         field.setValue(val);
-                                                        var cmp = Ext.getCmp('submit-formulation-btn');
-                                                        if (cmp)
-                                                        {
-                                                            cmp.setText("Save Changes");
-                                                        }
+                                                        this.getSubmitBtn().setText('Save Changes');
                                                     }
                                                 },
                                                 icon: Ext.MessageBox.QUESTION,
@@ -311,6 +332,31 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             }],
             scope : this
         });
+    },
+
+    onStabilityWatch : function() {
+        var sb = Ext.getCmp('stability-check'),
+            onStability = false;
+
+        if (sb) {
+            onStability = sb.getValue() === true;
+        }
+        else {
+            console.error('Unable to determine stability watch state. Cannot find form element.');
+        }
+
+        return onStability;
+    },
+
+    setStabilityWatch : function(onStability) {
+        var sb = Ext.getCmp('stability-check');
+
+        if (sb) {
+            sb.setValue(onStability === true)
+        }
+        else {
+            console.error('Unable to set stability watch state. Cannot find form element.');
+        }
     },
 
     getMaterialItems : function(parentID)
@@ -452,68 +498,140 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         this.formulations.push(obj.formulation);
         this.formulationStore = this.getFormulationsStore();
         this.getEl().unmask();
-        var mainParams = {
-            'rowId': obj.formulation['rowID']
-        };
-        var _link = window.location.origin + LABKEY.ActionURL.buildURL("idri", "formulationDetails.view", LABKEY.ActionURL.getContainer(), mainParams);
+        var _link = LABKEY.ActionURL.buildURL('project', 'begin', null, {
+            rowId: obj.formulation['rowID'],
+            pageId: 'idri.LOT_SUMMARY'
+        });
         this.showMsg("Formulation : <a href='" + _link + "'>" + obj.formulation.batch + "</a> has been " + (this.isUpdate ? "updated." : "created."), false);
-        var cmp = Ext.getCmp('stability-check');
-        if (cmp && cmp.getValue())
-        {
-            this.informStabilityGroup(obj, _link);
+
+        var onStability = this.onStabilityWatch();
+        if (onStability) {
+            if (!this.hasStabilityProfile) {
+                this.informStabilityGroup(obj, _link);
+                this.showTaskWindow(obj.formulation);
+            }
+            else {
+                Ext.Msg.show({
+                    title: 'Stability Profile',
+                    msg: 'Would you like to change the Stability Profile?<br/>Note, changing the Stability Profile will delete all tasks and create new ones.',
+                    buttons: Ext.Msg.YESNO,
+                    fn: function(id) {
+                        if (id == 'yes') {
+                            this.showTaskWindow(obj.formulation);
+                        }
+                    },
+                    icon: Ext.MessageBox.QUESTION,
+                    scope: this
+                });
+            }
+        }
+        else if (!onStability && this.hasStabilityProfile) {
+            Ext.Msg.show({
+                title: 'Removed From Stability Watch',
+                msg: 'This formulation was taken off stability watch. Would you like to remove related tasks?',
+                buttons: Ext.Msg.YESNO,
+                fn: function (id) {
+                    if (id == 'yes') {
+                        var formulationRowId = obj.formulation.rowID;
+
+                        var stabilityProfile = this.stabilityStore.findRecord('lotNum', formulationRowId);
+                        if (stabilityProfile) {
+                            this.stabilityStore.remove();
+                            this.stabilityStore.sync();
+                        }
+
+                        var tasks = this.taskListStore.getRange(),
+                            removed = [];
+
+                        Ext.each(tasks, function(task) {
+                            if (task.get('lotNum') === formulationRowId) {
+                                removed.push(task);
+                            }
+                        });
+
+                        if (!Ext.isEmpty(removed)) {
+                            this.taskListStore.remove(removed);
+                            this.taskListStore.sync();
+                        }
+                    }
+                },
+                icon: Ext.MessageBox.QUESTION,
+                scope: this
+            });
         }
 
-        cmp = Ext.getCmp('submit-formulation-btn');
-        if (cmp)
-        {
-            cmp.setText('Create');
-        }
+        // reset back to the initial state
+        this.getSubmitBtn().setText('Create');
         this.isUpdate = false;
+        this.hasStabilityProfile = false;
         this.formPanel.getForm().reset();
         this.resetMaterials();
     },
 
-
-    informStabilityGroup : function(obj, _link)
-    {
-        var getUserConfig = {
-            groupId : 1043, // 'Stability'
-            success : function(usersInfo, response)
-            {
-                var users = usersInfo.users;
-                var recipients = [];
-                for (var i = 0; i < users.length; i++)
-                    recipients.push(LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, users[i].email));
-
-                var val = obj.formulation.batch;
-                LABKEY.Message.sendMessage({
-                    msgFrom : 'ops@labkey.com',
-                    msgSubject : 'Formulation added on LabKey',
-                    msgRecipients : recipients,
-                    msgContent : [
-                        LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, "<h4>Stability Review Requested</h4>" +
-                                "Formulation : <a href='" + _link + "'>" + val + "</a> has been processed.<br/><br/>IDRI LabKey Administration Team")
-                    ],
-                    successCallback : function(result)
-                    {
-                        console.info("Email(s) sent successfully.");
-                    },
-                    errorCallback : function(errorInfo, responseObj)
-                    {
-                        LABKEY.Utils.displayAjaxErrorResponse(responseObj, errorInfo);
+    showTaskWindow : function(formulation) {
+        Ext4.onReady(function() {
+            var window = Ext4.create('Ext.window.Window', {
+                title: 'Stability Profile',
+                height: 425,
+                width: 625,
+                bodyStyle: 'padding:5px; padding-top; 30px;',
+                items: [{
+                    xtype: 'idri-taskpanel',
+                    rowId: formulation.rowID,
+                    listeners: {
+                        profilecreated: function() {
+                            if (window) {
+                                window.close();
+                            }
+                        }
                     }
-                });
-            },
-            failure : function(errorInfo, response)
-            {
-                console.info("Failed to send email.");
-            },
-            scope: this
-        };
-
-        LABKEY.Security.getUsers(getUserConfig);
+                }],
+                autoShow: true
+            });
+        });
     },
 
+    informStabilityGroup : function(obj, _link) {
+        if (!LABKEY.devMode) {
+            var getUserConfig = {
+                groupId : 1043, // 'Stability'
+                success : function(usersInfo, response) {
+                    var users = usersInfo.users,
+                        recipients = [],
+                        val = obj.formulation.batch;
+
+                    for (var i = 0; i < users.length; i++) {
+                        recipients.push(LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, users[i].email));
+                    }
+
+                    LABKEY.Message.sendMessage({
+                        msgFrom : 'ops@labkey.com',
+                        msgSubject : 'Formulation added on LabKey',
+                        msgRecipients : recipients,
+                        msgContent : [
+                            LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, "<h4>Stability Review Requested</h4>" +
+                                    "Formulation : <a href='" + _link + "'>" + val + "</a> has been processed.<br/><br/>IDRI LabKey Administration Team")
+                        ],
+                        successCallback : function(result) {
+                            console.info("Email(s) sent successfully.");
+                        },
+                        errorCallback : function(errorInfo, responseObj) {
+                            LABKEY.Utils.displayAjaxErrorResponse(responseObj, errorInfo);
+                        }
+                    });
+                },
+                failure : function(errorInfo, response) {
+                    console.info("Failed to send email.");
+                },
+                scope: this
+            };
+
+            LABKEY.Security.getUsers(getUserConfig);
+        }
+        else {
+            console.log('Skipping informStabilityGroup (devMode).');
+        }
+    },
 
     onMaterialLoad : function(combo, material)
     {
@@ -576,7 +694,6 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         parent.doLayout();
         parent.conc.clearInvalid();
     },
-
 
     onMaterialSelect : function(cb, rec, idx)
     {
@@ -647,5 +764,13 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         }
         
         return formulation;
+    },
+
+    getSubmitBtn : function() {
+        var btn = Ext.getCmp('submit-formulation-btn');
+        if (!btn) {
+            console.error('Unable to find submit button.');
+        }
+        return btn;
     }
 });

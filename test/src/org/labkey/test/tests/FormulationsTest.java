@@ -28,8 +28,6 @@ import org.labkey.test.categories.IDRI;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LabKeyExpectedConditions;
-import org.labkey.test.util.ListHelper;
-import org.labkey.test.util.ListHelper.ListColumn;
 import org.labkey.test.util.LogMethod;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -38,9 +36,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 @Category({CustomModules.class, Assays.class, IDRI.class})
 public class FormulationsTest extends BaseWebDriverTest
@@ -48,30 +45,12 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String COMPOUNDS_NAME = "Compounds";
     private static final String RAW_MATERIALS_NAME = "Raw Materials";
     private static final String FORMULATIONS_NAME = "Formulations";
-
-    private final static ListHelper.ListColumnType LIST_KEY_TYPE = ListHelper.ListColumnType.String;
-    private final ListColumn LIST_COL_SORT = new ListColumn(
-            "sort",
-            "Sort Order",
-            ListHelper.ListColumnType.Integer,
-            "Used to sort ambigiously named timepoints based on day.");
     private static final String PROJECT_NAME = "FormulationsTest";
-    private static final String FOLDER_NAME = "My Study";
 
     private static final String TEMPERATURE_LIST = "Temperatures";
     private static final String TIME_LIST = "Timepoints";
     private static final String TYPES_LIST = "FormulationTypes";
     private static final String MATERIAL_TYPES_LIST = "MaterialTypes";
-    private final ListColumn MATERIAL_COL_TYPE = new ListColumn(
-            "type",
-            "Type",
-            ListHelper.ListColumnType.String,
-            "Type of Compound.");
-    private final ListColumn MATERIAL_COL_UNITS = new ListColumn(
-            "units",
-            "Units",
-            ListHelper.ListColumnType.String,
-            "Measure of Units for given type.");
 
     private static final String COMPOUNDS_HEADER = "Compound Name\tFull Name\tCAS Number\tDensity\tMolecular Weight\n";
     private static final String COMPOUNDS_DATA_1 = "Alum\tAluminum Hydroxide\t21645-51-2\t\t78.0\n";  // adjuvant
@@ -116,105 +95,17 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
     private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
 
-    private static final String HPLC_STANDARD_LIST = "HPLCStandard";
-    private final ListColumn HPLC_STANDARD_NAME_COL = new ListColumn(
-            "Name",
-            "Name",
-            ListHelper.ListColumnType.String,
-            "Name of the Standard.");
-    private final ListColumn HPLC_STANDARD_PROVRUN_COL = new ListColumn(
-            "provisionalRun",
-            "provisionalRun",
-            ListHelper.ListColumnType.Integer,
-            "Provisional HPLC Assay Run ID.");
-    private final ListColumn HPLC_RSQUARED_COL = new ListColumn(
-            "rsquared",
-            "rsquared",
-            ListHelper.ListColumnType.Double,
-            "Standard's calculated R-Squared value.");
-    private final ListColumn HPLC_STANDARD_B0_COL = new ListColumn(
-            "b0",
-            "b0",
-            ListHelper.ListColumnType.Double,
-            "b0 part of the standard equation.");
-    private final ListColumn HPLC_STANDARD_B1_COL = new ListColumn(
-            "b1",
-            "b1",
-            ListHelper.ListColumnType.Double,
-            "b1 part of the standard equation.");
-    private final ListColumn HPLC_STANDARD_B2_COL = new ListColumn(
-            "b2",
-            "b2",
-            ListHelper.ListColumnType.Double,
-            "b2 part of the standard equation.");
-    private final ListColumn HPLC_STANDARD_ERROR_COL = new ListColumn(
-            "error",
-            "error",
-            ListHelper.ListColumnType.Double,
-            "Expected error.");
+    @Override
+    public List<String> getAssociatedModules()
+    {
+        return Collections.singletonList("idri");
+    }
 
-    private static final String HPLC_STANDARD_SOURCE_LIST = "HPLCStandardSource";
-    private final ListColumn HPLC_SS_NAME_COL = new ListColumn(
-            "name",
-            "name",
-            ListHelper.ListColumnType.String,
-            "Name of the Standard Source.");
-    private final ListColumn HPLC_SS_CONC_COL = new ListColumn(
-            "concentration",
-            "concentration",
-            ListHelper.ListColumnType.Double,
-            "Standard Source calculated concentration.");
-    private final ListColumn HPLC_SS_XLEFT_COL = new ListColumn(
-            "xleft",
-            "xleft",
-            ListHelper.ListColumnType.Double,
-            "Standard Source determined xleft-bound.");
-    private final ListColumn HPLC_SS_XRIGHT_COL = new ListColumn(
-            "xright",
-            "xright",
-            ListHelper.ListColumnType.Double,
-            "Standard Source determined xright-bound.");
-    private final ListColumn HPLC_SS_AUC_COL = new ListColumn(
-            "auc",
-            "auc",
-            ListHelper.ListColumnType.Double,
-            "Standard Source calculated area under the curve.");
-    private final ListColumn HPLC_SS_PEAKMAX_COL = new ListColumn(
-            "peakMax",
-            "peakMax",
-            ListHelper.ListColumnType.Double,
-            "Standard Source calculated peak maximum.");
-    private final ListColumn HPLC_SS_PEAKRESPONSE_COL = new ListColumn(
-            "peakResponse",
-            "peakResponse",
-            ListHelper.ListColumnType.Double,
-            "Standard Source calculated peak response.");
-    private final ListColumn HPLC_SS_FILEPATH_COL = new ListColumn(
-            "filePath",
-            "filePath",
-            ListHelper.ListColumnType.String,
-            "Standard Source data file path.");
-    private final ListColumn HPLC_SS_FILENAME_COL = new ListColumn(
-            "fileName",
-            "fileName",
-            ListHelper.ListColumnType.String,
-            "Standard Source data file name.");
-    private final ListColumn HPLC_SS_FILEEXT_COL = new ListColumn(
-            "fileExt",
-            "fileExt",
-            ListHelper.ListColumnType.String,
-            "Standard Source data file extension.");
-    private final ListColumn HPLC_SS_STD_COL = new ListColumn(
-            "standard",
-            "standard",
-            ListHelper.ListColumnType.Integer,
-            "Standard Source associated standard definition.",
-            new ListHelper.LookupInfo(null, "lists", HPLC_STANDARD_LIST));
-    private final ListColumn HPLC_SS_BASE_COL = new ListColumn(
-            "base",
-            "base",
-            ListHelper.ListColumnType.Double,
-            "Standard Source determined baseline.");
+    @Override
+    protected String getProjectName()
+    {
+        return PROJECT_NAME;
+    }
 
     @Override
     public BrowserType bestBrowser()
@@ -232,14 +123,13 @@ public class FormulationsTest extends BaseWebDriverTest
     public void testSteps()
     {
         setupFormulationsProject();
-        setupTimeTemperature();
+        setupLists();
         setupCompounds();
         setupRawMaterials();
 
         insertFormulation();
         defineParticleSizeAssay();
         uploadParticleSizeData();
-//        validateParticleSizeCopyToStudy();
 
         defineVisualAssay();
         uploadVisualAssayData();
@@ -257,10 +147,8 @@ public class FormulationsTest extends BaseWebDriverTest
     {
         enableEmailRecorder();
         _containerHelper.createProject(PROJECT_NAME, "IDRI Formulations");
-//        _containerHelper.createSubfolder(PROJECT_NAME, FOLDER_NAME, "Study");
-//        createDefaultStudy();
 
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         // Sample Sets should already exist
         assertElementPresent(Locator.linkWithText(COMPOUNDS_NAME));
@@ -269,70 +157,32 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    protected void setupTimeTemperature()
+    protected void setupLists()
     {
-        clickProject(PROJECT_NAME);
-        assertTextPresent("There are no user-defined lists in this folder");
+        goToProjectHome();
 
-        log("Add list -- " + TEMPERATURE_LIST);
-        _listHelper.createList(PROJECT_NAME, TEMPERATURE_LIST, LIST_KEY_TYPE, "temperature");
-        assertTextPresent(TEMPERATURE_LIST);
+        loadList(TEMPERATURE_LIST, TEMPERATURE_HEADER + TEMPERATURE_DATA);
+        loadList(TIME_LIST, TIME_HEADER + TIME_DATA);
+        loadList(TYPES_LIST, TYPES_HEADER + TYPES_DATA);
+        loadList(MATERIAL_TYPES_LIST, MTYPES_HEADER + MTYPES_DATA);
+    }
 
-        log("Upload temperature data");
+    private void loadList(String name, String tsvData)
+    {
+        log("Upload " + name + " data");
+        clickAndWait(Locator.linkWithText(name));
         _listHelper.clickImportData();
-        _listHelper.submitTsvData(TEMPERATURE_HEADER + TEMPERATURE_DATA);
-
+        _listHelper.submitTsvData(tsvData);
         clickAndWait(Locator.linkWithText("Lists"));
-
-        log("Add list -- " + TIME_LIST);
-        _listHelper.createList(PROJECT_NAME, TIME_LIST, LIST_KEY_TYPE, "time", LIST_COL_SORT);
-        _listHelper.clickImportData();
-        _listHelper.submitTsvData(TIME_HEADER + TIME_DATA);
-
-        clickAndWait(Locator.linkWithText("Lists"));
-
-        log("Add list -- " + TYPES_LIST);
-        _listHelper.createList(PROJECT_NAME, TYPES_LIST, LIST_KEY_TYPE, "type");
-        _listHelper.clickImportData();
-        setFormElement(Locator.id("tsv3"), TYPES_HEADER + TYPES_DATA);
-        clickButton("Submit", 0);
-        _extHelper.waitForExtDialog("Success");
-        assertTextPresent("6 rows inserted.");
-
-        waitForElement(Locator.id("query"));
-        assertTextPresent(TYPES_DATA.split("\n"));
-        clickAndWait(Locator.linkWithText("Lists"));
-
-        log("Add list -- " + MATERIAL_TYPES_LIST);
-        _listHelper.createList(PROJECT_NAME, MATERIAL_TYPES_LIST, ListHelper.ListColumnType.AutoInteger, "key", MATERIAL_COL_TYPE, MATERIAL_COL_UNITS);
-        _listHelper.clickImportData();
-        _listHelper.submitTsvData(MTYPES_HEADER + MTYPES_DATA);
-
-        log("Add list -- " + HPLC_STANDARD_LIST);
-        _listHelper.createList(PROJECT_NAME, HPLC_STANDARD_LIST, ListHelper.ListColumnType.AutoInteger, "Key",
-                HPLC_STANDARD_NAME_COL, HPLC_STANDARD_PROVRUN_COL, HPLC_RSQUARED_COL, HPLC_STANDARD_B0_COL,
-                HPLC_STANDARD_B1_COL, HPLC_STANDARD_B2_COL, HPLC_STANDARD_ERROR_COL);
-
-        log("Add list -- " + HPLC_STANDARD_SOURCE_LIST);
-        _listHelper.createList(PROJECT_NAME, HPLC_STANDARD_SOURCE_LIST, ListHelper.ListColumnType.AutoInteger, "Key",
-                HPLC_SS_NAME_COL, HPLC_SS_CONC_COL, HPLC_SS_XLEFT_COL, HPLC_SS_XRIGHT_COL, HPLC_SS_AUC_COL,
-                HPLC_SS_PEAKMAX_COL, HPLC_SS_PEAKRESPONSE_COL, HPLC_SS_FILEPATH_COL, HPLC_SS_FILENAME_COL,
-                HPLC_SS_FILEEXT_COL, HPLC_SS_STD_COL, HPLC_SS_BASE_COL);
     }
 
     @LogMethod
     protected void setupCompounds()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Entering compound information");
         clickAndWait(Locator.linkWithText(COMPOUNDS_NAME));
-
-        // Add compound lookup
-        clickAndWait(Locator.linkWithText("Edit Fields"));
-
-        _listHelper.addField(new ListColumn("CompoundLookup", "Type of Material", null, null, new ListHelper.LookupInfo(PROJECT_NAME, "lists", "MaterialTypes")));
-        clickButton("Save");
 
         clickButton("Import More Samples");
         click(Locator.radioButtonById("insertOnlyChoice"));
@@ -357,9 +207,9 @@ public class FormulationsTest extends BaseWebDriverTest
     @LogMethod
     protected void setupRawMaterials()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
-        log("Enterting raw material information");
+        log("Entering raw material information");
         clickAndWait(Locator.linkWithText(RAW_MATERIALS_NAME));
         clickButton("Import More Samples");
         click(Locator.radioButtonById("insertOnlyChoice"));
@@ -372,7 +222,7 @@ public class FormulationsTest extends BaseWebDriverTest
     {
         String addButton = "Add Another Material";
 
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Inserting a Formulation");
         clickAndWait(Locator.linkWithText("Sample Sets"));
@@ -393,14 +243,14 @@ public class FormulationsTest extends BaseWebDriverTest
         setFormElement(Locator.name("nbpg"), "549-87");
 
         clickButton(addButton, 0);
-        _extHelper.selectComboBoxItem(this.getRawMaterialLocator(0), RAW_MATERIAL_1);
+        _extHelper.selectComboBoxItem(getRawMaterialLocator(0), RAW_MATERIAL_1);
         waitForText(WAIT_FOR_JAVASCRIPT, "%w/vol");
         setFormElement(Locator.name("concentration"), "25.4");
 
         // Test Duplicate Material
         log("Test Duplicate Material");
         clickButton(addButton, 0);
-        _extHelper.selectComboBoxItem(this.getRawMaterialLocator(1), RAW_MATERIAL_1);
+        _extHelper.selectComboBoxItem(getRawMaterialLocator(1), RAW_MATERIAL_1);
         sleep(2000);
         setFormElements("input", "concentration", new String[]{"25.4", "66.2"});
         clickButton("Create", 0);
@@ -416,7 +266,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         // Test empty concentration
         log("Test empty concentration");
-        _extHelper.selectComboBoxItem(this.getRawMaterialLocator(2), RAW_MATERIAL_2);
+        _extHelper.selectComboBoxItem(getRawMaterialLocator(2), RAW_MATERIAL_2);
         waitForText(WAIT_FOR_JAVASCRIPT, "%v/vol");
         clickButton("Create", 0);
         waitForText(WAIT_FOR_JAVASCRIPT, "Invalid material.");
@@ -427,7 +277,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         // Add final material
         clickButton(addButton, 0);
-        _extHelper.selectComboBoxItem(this.getRawMaterialLocator(3), RAW_MATERIAL_4);
+        _extHelper.selectComboBoxItem(getRawMaterialLocator(3), RAW_MATERIAL_4);
         waitForText(WAIT_FOR_JAVASCRIPT, "mM");
 
         // Create        
@@ -436,7 +286,7 @@ public class FormulationsTest extends BaseWebDriverTest
         waitForText(WAIT_FOR_JAVASCRIPT, "has been created.");
     }
 
-    private Locator.XPathLocator getRawMaterialLocator(Integer index)
+    private Locator.XPathLocator getRawMaterialLocator(int index)
     {
         return Locator.xpath("//div[./input[@id='material" + index + "']]");
     }
@@ -444,7 +294,7 @@ public class FormulationsTest extends BaseWebDriverTest
     @LogMethod
     protected void defineParticleSizeAssay()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Defining Particle Size Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
@@ -477,7 +327,7 @@ public class FormulationsTest extends BaseWebDriverTest
     @LogMethod
     protected void uploadParticleSizeData()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Uploading Particle Size Data");
         clickAndWait(Locator.linkWithText(PS_ASSAY));
@@ -503,43 +353,9 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    private void validateParticleSizeCopyToStudy()
-    {
-        clickProject(PROJECT_NAME);
-        clickAndWait(Locator.linkWithText(PS_ASSAY));
-
-        DataRegionTable runs = new DataRegionTable("Runs", this);
-        assertEquals("Wrong number of " + PS_ASSAY + " runs", 1, runs.getDataRowCount());
-        runs.checkCheckbox(0);
-
-        clickButton("Copy to Study");
-        selectOptionByText(Locator.name("targetStudy"), "/" + getProjectName() + "/" + FOLDER_NAME + " (" + FOLDER_NAME + " Study)");
-        clickButton("Next", 0);
-        Locator.name("participantId").waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT);
-
-        List<WebElement> ptidFields = getDriver().findElements(By.name("participantId"));
-        List<WebElement> visitFields = getDriver().findElements(By.name("visitId"));
-        for (WebElement el: ptidFields)
-        {
-            el.sendKeys("placeholder");
-        }
-        for (WebElement el: visitFields)
-        {
-            el.sendKeys("1");
-        }
-
-        waitAndClick(WAIT_FOR_JAVASCRIPT, getButtonLocator("Copy to Study"), 0);
-
-        waitAndClick(Locator.linkWithText(FORMULATION));
-
-        waitForElement(Locator.id("folderBar").withText(PROJECT_NAME));
-        assertElementPresent(Locator.linkWithText("copied"), 99);
-    }
-
-    @LogMethod
     protected void defineVisualAssay()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Defining Visual Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
@@ -571,7 +387,7 @@ public class FormulationsTest extends BaseWebDriverTest
     @LogMethod
     protected void uploadVisualAssayData()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Uploading Visual Data");
         clickAndWait(Locator.linkWithText(VIS_ASSAY));
@@ -642,13 +458,13 @@ public class FormulationsTest extends BaseWebDriverTest
     @LogMethod
     protected void defineProvisionalHPLCAssay()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Defining Provisional HPLC Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
         clickButton("New Assay Design");
 
-        assertTextPresent("High performance liquid chromotography assay");
+        assertTextPresent("High performance liquid chromatography assay");
         checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Provisional HPLC"));
         clickButton("Next");
 
@@ -703,7 +519,7 @@ public class FormulationsTest extends BaseWebDriverTest
         //
         // Start QC Process
         //
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         click(Locator.linkWithText(PROVISIONAL_HPLC_ASSAY));
         waitForElement(Locator.linkWithText(PROVISIONAL_HPLC_RUN));
@@ -810,13 +626,13 @@ public class FormulationsTest extends BaseWebDriverTest
     @LogMethod
     protected void defineHPLCAssay()
     {
-        clickProject(PROJECT_NAME);
+        goToProjectHome();
 
         log("Defining HPLC Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
         clickButton("New Assay Design");
 
-        assertTextPresent("High performance liquid chromotography assay");
+        assertTextPresent("High performance liquid chromatography assay");
         checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "HPLC"));
         clickButton("Next");
 
@@ -842,27 +658,5 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Save", 0);
         waitForText(10000, "Save successful.");
         clickButton("Save & Close");
-    }
-
-    @LogMethod
-    protected void performSearch()
-    {
-        clickProject(PROJECT_NAME);
-
-        log("Using Formulation search");
-        setFormElement(Locator.name("nameContains"), FORMULATION);
-        clickButton("Search");
-    }
-
-    @Override
-    public List<String> getAssociatedModules()
-    {
-        return null;
-    }
-
-    @Override
-    protected String getProjectName()
-    {
-        return PROJECT_NAME;
     }
 }

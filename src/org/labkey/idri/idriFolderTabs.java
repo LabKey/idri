@@ -70,6 +70,7 @@ public class idriFolderTabs
             parts.add(Portal.getPortalPart(ParticleSizeWebPart.NAME).createWebPart());
             parts.add(Portal.getPortalPart(StabilityWebPart.NAME).createWebPart());
             parts.add(Portal.getPortalPart(HPLCWebPart.NAME).createWebPart());
+            parts.add(Portal.getPortalPart(idriModule.WEBPART_TASKLIST).createWebPart());
             return parts;
         }
     }

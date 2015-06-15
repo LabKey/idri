@@ -22,6 +22,7 @@ import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.PropertyStorageSpec;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
@@ -31,11 +32,14 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.PropertyDescriptor;
+import org.labkey.api.exp.PropertyType;
 import org.labkey.api.exp.api.ExpMaterial;
 import org.labkey.api.exp.api.ExpSampleSet;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
+import org.labkey.api.exp.property.Domain;
+import org.labkey.api.exp.property.DomainProperty;
 import org.labkey.api.exp.query.SamplesSchema;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.BatchValidationException;
@@ -43,11 +47,7 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.UserSchema;
-import org.labkey.api.security.LimitedUser;
 import org.labkey.api.security.User;
-import org.labkey.api.security.UserManager;
-import org.labkey.api.security.roles.EditorRole;
-import org.labkey.api.security.roles.RoleManager;
 import org.labkey.api.study.Study;
 import org.labkey.api.study.StudyService;
 import org.labkey.api.view.HttpView;
@@ -749,55 +749,54 @@ public class idriManager
      * nothing.
      * @param c
      */
-    public static void initializeSampleSets(Container c)
+    public static void initializeSampleSets(Container c, User user)
     {
         try
         {
             List<GWTPropertyDescriptor> properties;
-            User u = new LimitedUser(UserManager.getGuestUser(), new int[0], Collections.singleton(RoleManager.getRole(EditorRole.class)), false);
 
             // Create the Compounds Sample Set
             if (getCompoundsSampleSet(c) == null)
             {
                 // Definition -- 'Compounds' Sample Set
                 properties = new ArrayList<>();
-                properties.add(new GWTPropertyDescriptor("Compound Name", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Full Name", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("CAS Number", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Density", "http://www.w3.org/2001/XMLSchema#double"));
-                properties.add(new GWTPropertyDescriptor("Molecular Weight", "http://www.w3.org/2001/XMLSchema#double"));
+                properties.add(new GWTPropertyDescriptor("Compound Name", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Full Name", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("CAS Number", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Density", PropertyType.DOUBLE.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Molecular Weight", PropertyType.DOUBLE.getTypeUri()));
 
-                ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, 0, -1, -1, -1);
+                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, 0, -1, -1, -1);
             }
 
             // Create the Raw Materials Sample Set
             if (getRawMaterialsSampleSet(c) == null)
             {
                 properties = new ArrayList<>();
-                properties.add(new GWTPropertyDescriptor("Identifier", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Material Name", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Supplier", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Source", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Catalogue ID", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Lot ID", "http://www.w3.org/2001/XMLSchema#string"));
+                properties.add(new GWTPropertyDescriptor("Identifier", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Material Name", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Supplier", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Source", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Catalogue ID", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Lot ID", PropertyType.STRING.getTypeUri()));
 
-                ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties, 0, -1, -1, 1);
+                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties, 0, -1, -1, 1);
             }
 
             // Create the Formulations Sample Set
             if (getFormulationSampleSet(c) == null)
             {
                 properties = new ArrayList<>();
-                properties.add(new GWTPropertyDescriptor("Batch", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("DM", "http://www.w3.org/2001/XMLSchema#dateTime"));
-                properties.add(new GWTPropertyDescriptor("batchsize", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("nbpg", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Failure", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Type", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Comments", "http://www.w3.org/2001/XMLSchema#string"));
-                properties.add(new GWTPropertyDescriptor("Raw Materials", "http://www.w3.org/2001/XMLSchema#string"));
+                properties.add(new GWTPropertyDescriptor("Batch", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("DM", PropertyType.DATE_TIME.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("batchsize", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("nbpg", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Failure", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Type", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Comments", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Raw Materials", PropertyType.STRING.getTypeUri()));
                 
-                ExperimentService.get().createSampleSet(c, u, idriSchema.TABLE_FORMULATIONS, null, properties, 0, -1, -1, 7);
+                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_FORMULATIONS, null, properties, 0, -1, -1, 7);
             }
         }
         catch (SQLException e)
@@ -808,5 +807,165 @@ public class idriManager
         {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void initializeLists(Container c, User user)
+    {
+        try
+        {
+            ListService.Interface listService = ListService.get();
+            ListDefinition list;
+            Domain listDomain;
+
+            // Create 'Temperatures' list
+            list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Varchar);
+            list.setKeyName("temperature");
+            list.save(user);
+
+            // Create 'Timepoints' list
+            list = listService.createList(c, "Timepoints", ListDefinition.KeyType.Varchar);
+            list.setKeyName("time");
+            listDomain = list.getDomain();
+            if (null != listDomain)
+            {
+                addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+            }
+            list.save(user);
+
+            // Create 'MaterialTypes' list
+            list = listService.createList(c, "MaterialTypes", ListDefinition.KeyType.AutoIncrementInteger);
+            list.setKeyName("key");
+
+            listDomain = list.getDomain();
+            if (null != listDomain)
+            {
+                addDomainProperty(listDomain, "type", "Type", PropertyType.STRING, c);
+                addDomainProperty(listDomain, "units", "Units", PropertyType.STRING, c);
+            }
+
+            list.save(user);
+
+            // Create 'FormulationTypes' list
+            list = listService.createList(c, "FormulationTypes", ListDefinition.KeyType.Varchar);
+            list.setKeyName("type");
+            list.save(user);
+
+            // Create 'TaskList' list
+            list = listService.createList(c, "TaskList", ListDefinition.KeyType.Varchar);
+            list.setKeyName("Key");
+
+            listDomain = list.getDomain();
+            if (null != listDomain)
+            {
+                addDomainProperty(listDomain, "cat", "Category", PropertyType.STRING, c);
+                addDomainLookupProperty(listDomain, "lotNum", "Lot Num", PropertyType.INTEGER, c, "Samples", "Formulations");
+                addDomainLookupProperty(listDomain, "temperature", "Temp", PropertyType.STRING, c, "lists", "Temperatures");
+                addDomainLookupProperty(listDomain, "timepoint", "Timepoint", PropertyType.STRING, c, "lists", "Timepoints");
+                addDomainProperty(listDomain, "type", "formulation", PropertyType.STRING, c);
+                addDomainProperty(listDomain, "typeof", "type", PropertyType.STRING, c);
+                addDomainProperty(listDomain, "date", "Date Due", PropertyType.DATE_TIME, c);
+                addDomainProperty(listDomain, "comment", "comment", PropertyType.STRING, c);
+                addDomainProperty(listDomain, "complete", "Complete", PropertyType.BOOLEAN, c);
+                addDomainProperty(listDomain, "failed", "Failed", PropertyType.BOOLEAN, c);
+            }
+            list.save(user);
+
+            // Create 'TimepointsHPLCUV' list
+            list = listService.createList(c, "TimepointsHPLCUV", ListDefinition.KeyType.Varchar);
+            list.setKeyName("time");
+            listDomain = list.getDomain();
+            if (null != listDomain)
+            {
+                addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+            }
+            list.save(user);
+
+            // Create 'StabilityProfile' list
+            list = listService.createList(c, "StabilityProfile", ListDefinition.KeyType.AutoIncrementInteger);
+            list.setKeyName("Key");
+            listDomain = list.getDomain();
+            if (null != listDomain)
+            {
+                addDomainLookupProperty(listDomain, "lotNum", "Lot Num", PropertyType.INTEGER, c, "Samples", "Formulations");
+                addDomainProperty(listDomain, "profile", "Profile", PropertyType.MULTI_LINE, c);
+            }
+            list.save(user);
+
+            // Create 'HPLCStandard' list
+            list = listService.createList(c, "HPLCStandard", ListDefinition.KeyType.AutoIncrementInteger);
+            list.setKeyName("Key");
+            listDomain = list.getDomain();
+            if (null != listDomain)
+            {
+                addDomainProperty(listDomain, "Name", null, PropertyType.STRING, c);
+                addDomainProperty(listDomain, "provisionalRun", null, PropertyType.INTEGER, c);
+                addDomainProperty(listDomain, "rsquared", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "b0", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "b1", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "b2", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "error", null, PropertyType.DOUBLE, c);
+            }
+            list.save(user);
+
+            // Create 'HPLCStandardSource' list
+            list = listService.createList(c, "HPLCStandardSource", ListDefinition.KeyType.AutoIncrementInteger);
+            list.setKeyName("Key");
+            listDomain = list.getDomain();
+            if (null != listDomain)
+            {
+                addDomainProperty(listDomain, "name", null, PropertyType.STRING, c);
+                addDomainProperty(listDomain, "concentration", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "xleft", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "xright", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "auc", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "peakMax", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "peakResponse", null, PropertyType.DOUBLE, c);
+                addDomainProperty(listDomain, "filePath", null, PropertyType.STRING, c);
+                addDomainProperty(listDomain, "fileName", null, PropertyType.STRING, c);
+                addDomainProperty(listDomain, "fileExt", null, PropertyType.STRING, c);
+                addDomainLookupProperty(listDomain, "standard", null, PropertyType.INTEGER, c, "lists", "HPLCStandard");
+            }
+            list.save(user);
+
+            // Setup lookup for compound material type
+            ExpSampleSet compounds = getCompoundsSampleSet(c);
+            if (null != compounds)
+            {
+                Domain sampleDomain = compounds.getType();
+                if (null != sampleDomain)
+                {
+                    addDomainLookupProperty(sampleDomain, "CompoundLookup", "Type of Material", PropertyType.INTEGER, c, "lists", "MaterialTypes");
+                    sampleDomain.save(user);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static DomainProperty addDomainProperty(Domain domain, String name, @Nullable String label, PropertyType type, Container c)
+    {
+        PropertyDescriptor pd = new PropertyDescriptor(domain.getTypeURI(), type.getTypeUri(), name, c);
+        DomainProperty property = domain.addProperty(new PropertyStorageSpec(pd));
+        if (null != label)
+            property.setLabel(label);
+        return property;
+    }
+
+    private static DomainProperty addDomainLookupProperty(Domain domain, String name, @Nullable String label, PropertyType type, Container c, String lookupSchema, String lookupQuery)
+    {
+        PropertyDescriptor pd = new PropertyDescriptor(domain.getTypeURI(), type.getTypeUri(), name, c);
+        DomainProperty property = domain.addProperty(new PropertyStorageSpec(pd));
+        pd = property.getPropertyDescriptor();
+        pd.setLookupContainer(c.getEntityId().toString());
+        pd.setLookupSchema(lookupSchema);
+        pd.setLookupQuery(lookupQuery);
+
+        if (null != label)
+            property.setLabel(label);
+        return property;
     }
 }

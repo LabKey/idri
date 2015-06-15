@@ -1,4 +1,4 @@
 <ap:provider xmlns:ap="http://labkey.org/study/assay/xml">
     <ap:name>HPLC</ap:name>
-    <ap:description>High performance liquid chromotography assay.</ap:description>
+    <ap:description>High performance liquid chromatography assay.</ap:description>
 </ap:provider>
