@@ -276,7 +276,7 @@
                         });
                     }
                     else {
-                        console.error("Unable to hijack all the 'details' links for pHPLC chromatograms. Selector might have changed?");
+                        console.log("Unable to hijack all the 'details' links for pHPLC chromatograms. There are no rows or the selector might have changed?");
                     }
                 }
             }

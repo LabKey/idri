@@ -248,14 +248,18 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
             }
         }, this);
 
-        if (!Ext4.isEmpty(deleteRecord)) {
-            this.taskStore.remove(deleteRecord);
-            this.taskStore.sync();
-        }
-
-        Ext4.defer(function() {
+        if (Ext4.isEmpty(deleteRecord)) {
             this.getTasks();
-        }, 2000, this);
+        }
+        else {
+            this.taskStore.remove(deleteRecord);
+            this.taskStore.sync({
+                success: function() {
+                    this.getTasks();
+                },
+                scope: this
+            });
+        }
     },
 
     onRefresh : function() {

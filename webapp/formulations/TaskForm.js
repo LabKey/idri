@@ -252,37 +252,55 @@ Ext4.define('LABKEY.idri.TaskPanel', {
 
         if (this.isUpdate)
         {
+            // Update the profile
             var record = stores.stabilityStore.findRecord('lotNum', this.rowId);
             record.set('profile', _profile);
 
-            stores.stabilityStore.sync();
+            stores.stabilityStore.sync({
+                success: function() {
 
-            // delete all tasks for the lot
-            var tasks = stores.taskListStore.getRange(),
-                removed = [];
-            Ext4.each(tasks, function(task) {
-                if (task.get('lotNum') === this.rowId) {
-                    removed.push(task);
-                }
-            }, this);
+                    // delete all tasks for the lot
+                    var tasks = stores.taskListStore.getRange(),
+                        removed = [];
 
-            if (!Ext4.isEmpty(removed)) {
-                stores.taskListStore.remove(removed);
-                stores.taskListStore.sync();
-            }
+                    Ext4.each(tasks, function(task) {
+                        if (task.get('lotNum') === this.rowId) {
+                            removed.push(task);
+                        }
+                    }, this);
+
+                    if (Ext4.isEmpty(removed)) {
+                        this.addTasks();
+                    }
+                    else {
+                        stores.taskListStore.remove(removed);
+                        stores.taskListStore.sync({
+                            success: function() {
+                                this.addTasks();
+                            },
+                            scope: this
+                        });
+                    }
+                },
+                scope: this
+            });
         }
         else
         {
+            // Create the profile
             stores.stabilityStore.add({
                 lotNum: this.rowId,
                 profile: _profile,
                 scope: this
             });
 
-            stores.stabilityStore.sync();
+            stores.stabilityStore.sync({
+                success: function() {
+                    this.addTasks();
+                },
+                scope: this
+            });
         }
-
-        this.addTasks();
     },
 
     addTasks : function()
@@ -332,7 +350,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
 
                 if (tempTime >= currentDate)
                 {
-                    this.taskListStore.add({
+                    stores.taskListStore.add({
                         lotNum: this.rowId,
                         cat: 'UV',
                         timepoint: recTime.get("time"),
@@ -367,18 +385,23 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             }, this);
         }
 
-        stores.taskListStore.sync();
-
-        Ext4.Msg.show({
-            title: 'Stability Profile',
-            msg: 'The Stability Profile have been Created',
-            buttons: Ext4.Msg.OK,
-            fn: function (id)
-            {
-                if (id == 'ok')
-                {
-                    this.fireEvent('profilecreated');
-                }
+        stores.taskListStore.sync({
+            success: function() {
+                Ext4.Msg.show({
+                    title: 'Stability Profile',
+                    msg: 'The Stability Profile have been Created',
+                    buttons: Ext4.Msg.OK,
+                    fn: function (id)
+                    {
+                        if (id == 'ok')
+                        {
+                            // This is a little strange to only fire the event if the user hits 'ok'. They could
+                            // just close the box, etc.
+                            this.fireEvent('profilecreated');
+                        }
+                    },
+                    scope: this
+                });
             },
             scope: this
         });

@@ -851,7 +851,7 @@ public class idriManager
             list.save(user);
 
             // Create 'TaskList' list
-            list = listService.createList(c, "TaskList", ListDefinition.KeyType.Varchar);
+            list = listService.createList(c, "TaskList", ListDefinition.KeyType.AutoIncrementInteger);
             list.setKeyName("Key");
 
             listDomain = list.getDomain();

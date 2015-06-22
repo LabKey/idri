@@ -533,25 +533,34 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                 fn: function (id) {
                     if (id == 'yes') {
                         var formulationRowId = obj.formulation.rowID;
-
                         var stabilityProfile = this.stabilityStore.findRecord('lotNum', formulationRowId);
-                        if (stabilityProfile) {
-                            this.stabilityStore.remove();
-                            this.stabilityStore.sync();
-                        }
+                        var removeTasks = function() {
+                            var tasks = this.taskListStore.getRange(),
+                                    removed = [];
 
-                        var tasks = this.taskListStore.getRange(),
-                            removed = [];
+                            Ext.each(tasks, function(task) {
+                                if (task.get('lotNum') === formulationRowId) {
+                                    removed.push(task);
+                                }
+                            });
 
-                        Ext.each(tasks, function(task) {
-                            if (task.get('lotNum') === formulationRowId) {
-                                removed.push(task);
+                            if (!Ext.isEmpty(removed)) {
+                                this.taskListStore.remove(removed);
+                                this.taskListStore.sync();
                             }
-                        });
+                        };
 
-                        if (!Ext.isEmpty(removed)) {
-                            this.taskListStore.remove(removed);
-                            this.taskListStore.sync();
+                        if (stabilityProfile) {
+                            this.stabilityStore.remove(stabilityProfile);
+                            this.stabilityStore.sync({
+                                success: function() {
+                                    removeTasks.call(this);
+                                },
+                                scope: this
+                            });
+                        }
+                        else {
+                            removeTasks.call(this);
                         }
                     }
                 },
