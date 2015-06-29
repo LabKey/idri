@@ -818,114 +818,150 @@ public class idriManager
             Domain listDomain;
 
             // Create 'Temperatures' list
-            list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Varchar);
-            list.setKeyName("temperature");
-            list.save(user);
+            list = listService.getList(c, "Temperatures");
+            if (null == list)
+            {
+                list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Varchar);
+                list.setKeyName("temperature");
+                list.save(user);
+            }
 
             // Create 'Timepoints' list
-            list = listService.createList(c, "Timepoints", ListDefinition.KeyType.Varchar);
-            list.setKeyName("time");
-            listDomain = list.getDomain();
-            if (null != listDomain)
+            list = listService.getList(c, "Timepoints");
+            if (null == list)
             {
-                addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+                list = listService.createList(c, "Timepoints", ListDefinition.KeyType.Varchar);
+                list.setKeyName("time");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+                }
+                list.save(user);
             }
-            list.save(user);
 
             // Create 'MaterialTypes' list
-            list = listService.createList(c, "MaterialTypes", ListDefinition.KeyType.AutoIncrementInteger);
-            list.setKeyName("key");
-
-            listDomain = list.getDomain();
-            if (null != listDomain)
+            list = listService.getList(c, "MaterialTypes");
+            if (null == list)
             {
-                addDomainProperty(listDomain, "type", "Type", PropertyType.STRING, c);
-                addDomainProperty(listDomain, "units", "Units", PropertyType.STRING, c);
-            }
+                list = listService.createList(c, "MaterialTypes", ListDefinition.KeyType.AutoIncrementInteger);
+                list.setKeyName("key");
 
-            list.save(user);
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "type", "Type", PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "units", "Units", PropertyType.STRING, c);
+                }
+
+                list.save(user);
+            }
 
             // Create 'FormulationTypes' list
-            list = listService.createList(c, "FormulationTypes", ListDefinition.KeyType.Varchar);
-            list.setKeyName("type");
-            list.save(user);
+            list = listService.getList(c, "FormulationTypes");
+            if (null == list)
+            {
+                list = listService.createList(c, "FormulationTypes", ListDefinition.KeyType.Varchar);
+                list.setKeyName("type");
+                list.save(user);
+            }
 
             // Create 'TaskList' list
-            list = listService.createList(c, "TaskList", ListDefinition.KeyType.AutoIncrementInteger);
-            list.setKeyName("Key");
-
-            listDomain = list.getDomain();
-            if (null != listDomain)
+            list = listService.getList(c, "TaskList");
+            if (null == list)
             {
-                addDomainProperty(listDomain, "cat", "Category", PropertyType.STRING, c);
-                addDomainLookupProperty(listDomain, "lotNum", "Lot Num", PropertyType.INTEGER, c, "Samples", "Formulations");
-                addDomainLookupProperty(listDomain, "temperature", "Temp", PropertyType.STRING, c, "lists", "Temperatures");
-                addDomainLookupProperty(listDomain, "timepoint", "Timepoint", PropertyType.STRING, c, "lists", "Timepoints");
-                addDomainProperty(listDomain, "type", "formulation", PropertyType.STRING, c);
-                addDomainProperty(listDomain, "typeof", "type", PropertyType.STRING, c);
-                addDomainProperty(listDomain, "date", "Date Due", PropertyType.DATE_TIME, c);
-                addDomainProperty(listDomain, "comment", "comment", PropertyType.STRING, c);
-                addDomainProperty(listDomain, "complete", "Complete", PropertyType.BOOLEAN, c);
-                addDomainProperty(listDomain, "failed", "Failed", PropertyType.BOOLEAN, c);
+                list = listService.createList(c, "TaskList", ListDefinition.KeyType.AutoIncrementInteger);
+                list.setKeyName("Key");
+
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "cat", "Category", PropertyType.STRING, c);
+                    addDomainLookupProperty(listDomain, "lotNum", "Lot Num", PropertyType.INTEGER, c, "Samples", "Formulations");
+                    addDomainLookupProperty(listDomain, "temperature", "Temp", PropertyType.STRING, c, "lists", "Temperatures");
+                    addDomainLookupProperty(listDomain, "timepoint", "Timepoint", PropertyType.STRING, c, "lists", "Timepoints");
+                    addDomainProperty(listDomain, "type", "formulation", PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "typeof", "type", PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "date", "Date Due", PropertyType.DATE_TIME, c);
+                    addDomainProperty(listDomain, "comment", "comment", PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "complete", "Complete", PropertyType.BOOLEAN, c);
+                    addDomainProperty(listDomain, "failed", "Failed", PropertyType.BOOLEAN, c);
+                }
+                list.save(user);
             }
-            list.save(user);
 
             // Create 'TimepointsHPLCUV' list
-            list = listService.createList(c, "TimepointsHPLCUV", ListDefinition.KeyType.Varchar);
-            list.setKeyName("time");
-            listDomain = list.getDomain();
-            if (null != listDomain)
+            list = listService.getList(c, "TimepointsHPLCUV");
+            if (null == list)
             {
-                addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+                list = listService.createList(c, "TimepointsHPLCUV", ListDefinition.KeyType.Varchar);
+                list.setKeyName("time");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+                }
+                list.save(user);
             }
-            list.save(user);
 
             // Create 'StabilityProfile' list
-            list = listService.createList(c, "StabilityProfile", ListDefinition.KeyType.AutoIncrementInteger);
-            list.setKeyName("Key");
-            listDomain = list.getDomain();
-            if (null != listDomain)
+            list = listService.getList(c, "StabilityProfile");
+            if (null == list)
             {
-                addDomainLookupProperty(listDomain, "lotNum", "Lot Num", PropertyType.INTEGER, c, "Samples", "Formulations");
-                addDomainProperty(listDomain, "profile", "Profile", PropertyType.MULTI_LINE, c);
+                list = listService.createList(c, "StabilityProfile", ListDefinition.KeyType.AutoIncrementInteger);
+                list.setKeyName("Key");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainLookupProperty(listDomain, "lotNum", "Lot Num", PropertyType.INTEGER, c, "Samples", "Formulations");
+                    addDomainProperty(listDomain, "profile", "Profile", PropertyType.MULTI_LINE, c);
+                }
+                list.save(user);
             }
-            list.save(user);
 
             // Create 'HPLCStandard' list
-            list = listService.createList(c, "HPLCStandard", ListDefinition.KeyType.AutoIncrementInteger);
-            list.setKeyName("Key");
-            listDomain = list.getDomain();
-            if (null != listDomain)
+            list = listService.getList(c, "HPLCStandard");
+            if (null == list)
             {
-                addDomainProperty(listDomain, "Name", null, PropertyType.STRING, c);
-                addDomainProperty(listDomain, "provisionalRun", null, PropertyType.INTEGER, c);
-                addDomainProperty(listDomain, "rsquared", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "b0", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "b1", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "b2", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "error", null, PropertyType.DOUBLE, c);
+                list = listService.createList(c, "HPLCStandard", ListDefinition.KeyType.AutoIncrementInteger);
+                list.setKeyName("Key");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "Name", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "provisionalRun", null, PropertyType.INTEGER, c);
+                    addDomainProperty(listDomain, "rsquared", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "b0", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "b1", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "b2", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "error", null, PropertyType.DOUBLE, c);
+                }
+                list.save(user);
             }
-            list.save(user);
 
             // Create 'HPLCStandardSource' list
-            list = listService.createList(c, "HPLCStandardSource", ListDefinition.KeyType.AutoIncrementInteger);
-            list.setKeyName("Key");
-            listDomain = list.getDomain();
-            if (null != listDomain)
+            list = listService.getList(c, "HPLCStandardSource");
+            if (null == list)
             {
-                addDomainProperty(listDomain, "name", null, PropertyType.STRING, c);
-                addDomainProperty(listDomain, "concentration", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "xleft", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "xright", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "auc", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "peakMax", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "peakResponse", null, PropertyType.DOUBLE, c);
-                addDomainProperty(listDomain, "filePath", null, PropertyType.STRING, c);
-                addDomainProperty(listDomain, "fileName", null, PropertyType.STRING, c);
-                addDomainProperty(listDomain, "fileExt", null, PropertyType.STRING, c);
-                addDomainLookupProperty(listDomain, "standard", null, PropertyType.INTEGER, c, "lists", "HPLCStandard");
+                list = listService.createList(c, "HPLCStandardSource", ListDefinition.KeyType.AutoIncrementInteger);
+                list.setKeyName("Key");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "name", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "concentration", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "xleft", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "xright", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "auc", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "peakMax", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "peakResponse", null, PropertyType.DOUBLE, c);
+                    addDomainProperty(listDomain, "filePath", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "fileName", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "fileExt", null, PropertyType.STRING, c);
+                    addDomainLookupProperty(listDomain, "standard", null, PropertyType.INTEGER, c, "lists", "HPLCStandard");
+                }
+                list.save(user);
             }
-            list.save(user);
 
             // Setup lookup for compound material type
             ExpSampleSet compounds = getCompoundsSampleSet(c);
