@@ -48,7 +48,7 @@ import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
-import org.labkey.api.security.RequiresPermissionClass;
+import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.services.ServiceRegistry;
@@ -116,7 +116,7 @@ public class idriController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class GetDerivationGraphDescriptionAction extends ApiAction<MaterialTypeForm>
     {
         private String start;
@@ -187,7 +187,7 @@ public class idriController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class CreateFormulationAction extends SimpleViewAction
     {
         @Override
@@ -219,7 +219,7 @@ public class idriController extends SpringActionController
         }
     }
     
-    @RequiresPermissionClass(UpdatePermission.class)
+    @RequiresPermission(UpdatePermission.class)
     public class SaveFormulationAction extends MutatingApiAction<SaveFormulationForm>
     {
         Formulation _formulation;
@@ -269,7 +269,7 @@ public class idriController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(UpdatePermission.class)
+    @RequiresPermission(UpdatePermission.class)
     public class DeleteFormulationAction extends FormViewAction<ExpObjectForm>
     {
         @Override
@@ -312,7 +312,7 @@ public class idriController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class GetFormulationAction extends ApiAction<MaterialTypeForm>
     {
         @Override
@@ -349,7 +349,7 @@ public class idriController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class GetMaterialTypeAction extends ApiAction<MaterialTypeForm>
     {
         @Override
@@ -389,7 +389,7 @@ public class idriController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class FormulationDetailsAction extends SimpleViewAction<ExpObjectForm>
     {
         private Formulation _formulation;
@@ -601,7 +601,7 @@ public class idriController extends SpringActionController
     /**
      * Meant to mimic PipelineController.getPipelineContainerAction but with the incorporated HPLC path context
      */
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class getHPLCPipelineContainerAction extends ApiAction
     {
         public ApiResponse execute(Object form, BindException errors) throws Exception
@@ -653,7 +653,7 @@ public class idriController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class getHPLCResourceAction extends ApiAction<HPLCResourceForm>
     {
         @Override
