@@ -21,7 +21,7 @@
         <tables xmlns="http://labkey.org/data/xml">
             <table tableName="Runs" tableDbType="TABLE">
                 <buttonBarOptions position="both" includeStandardButtons="true">
-                    <includeScript>/hplc/hplc.js</includeScript>
+                    <includeScript>/idri/hplc.js</includeScript>
                     <item insertPosition="end" text="QC Selected Run" requiresSelection="true">
                         <onClick>LABKEY.idri.hplcSelection(dataRegion, dataRegionName)</onClick>
                     </item>
