@@ -17,8 +17,8 @@
 #Quinton Dowling | IDRI
 #10 October 2012
 
-#Description: This script will detect delimeter based on filename, and if
-#that fails it will try to detect the delimeter automatically from the
+#Description: This script will detect delimiter based on filename, and if
+#that fails it will try to detect the delimiter automatically from the
 #data.
 #-----------------------------INITIATE-----------------------------------#
 #libraries
@@ -77,7 +77,7 @@ if(error==FALSE){
 	png(filename="${imgout:peaks_png}", width=800, height=400)
 		plot(spec, type = "l", xlab = "Time (Minutes)", ylab = "RIU", col="red")
 	dev.off()
-}else{print("Error generating view, could not understand the delimeter of data format.\nPlease reupload the data.")}
+}else{print("Error generating view, could not understand the delimiter of data format.\nPlease reupload the data.")}
 
 
 #END
