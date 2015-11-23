@@ -155,8 +155,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                     items : tempItems,
                     name : 'temp'
                 }, {
-                    width   : 250,
-                    columns : [100, 100],
+                    width   : 350,
+                    columns : [100, 100, 100],
                     xtype : 'radiogroup',
                     fieldLabel: 'Particle Size',
                     allowBlank : false,
@@ -170,6 +170,10 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                         boxLabel: 'APS',
                         name: 'pSizeChoice',
                         inputValue: 'aps'
+                    }, {
+                        boxLabel: 'None',
+                        name: 'pSizeChoice',
+                        inputValue: 'none'
                     }],
                     name : 'pSize',
                     id: 'pSize'
@@ -324,7 +328,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
 
                     var pSize = Ext4.getCmp('pSize');
 
-                    if (tempTime >= currentDate)
+                    if (tempTime >= currentDate && pSize.getValue().pSizeChoice != "none")
                     {
                         stores.taskListStore.add({
                             lotNum: this.rowId,
