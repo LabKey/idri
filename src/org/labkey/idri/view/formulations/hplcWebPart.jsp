@@ -253,7 +253,7 @@
             },
             listeners: {
                 render: function(qwp) {
-                    var links = Ext4.DomQuery.select('a.labkey-text-link', 'dataregion_' + qwp.dataRegionName);
+                    var links = Ext4.DomQuery.select('a.labkey-text-link', qwp.getDataRegion().domId);
                     if (!Ext4.isEmpty(links)) {
                         Ext4.each(links, function(linkEl) {
                             var link = Ext4.get(linkEl);
