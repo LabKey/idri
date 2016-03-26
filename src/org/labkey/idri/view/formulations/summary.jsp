@@ -21,21 +21,18 @@
 <%@ page import="org.labkey.api.exp.api.ExperimentUrls" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.idri.idriController" %>
 <%@ page import="org.labkey.idri.idriManager" %>
 <%@ page import="org.labkey.idri.model.Formulation" %>
-<%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
-    public LinkedHashSet<ClientDependency> getClientDependencies()
+    public void addClientDependencies(ClientDependencies dependencies)
     {
-        LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
-        resources.add(ClientDependency.fromPath("formulations/formulation.css"));
-        resources.add(ClientDependency.fromPath("clientapi/ext3"));
-        resources.add(ClientDependency.fromPath("Ext4"));
-        resources.add(ClientDependency.fromPath("formulations/SearchFormulation.js")); // buildPSReports
-        return resources;
+        dependencies.add("formulations/formulation.css");
+        dependencies.add("clientapi/ext3");
+        dependencies.add("Ext4");
+        dependencies.add("formulations/SearchFormulation.js"); // buildPSReports
     }
 %>
 <%

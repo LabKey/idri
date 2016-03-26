@@ -17,24 +17,21 @@
 %>
 <%@ page import="org.labkey.api.data.Container"%>
 <%@ page import="org.labkey.api.util.PageFlowUtil"%>
-<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.idri.idriManager" %>
 <%@ page import="org.labkey.idri.model.Formulation" %>
 <%@ page import="org.labkey.idri.model.Material" %>
-<%@ page import="java.util.LinkedHashSet" %>
 <%@ page import="java.util.List" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
-  public LinkedHashSet<ClientDependency> getClientDependencies()
-  {
-      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
-      resources.add(ClientDependency.fromPath("clientapi/ext3"));
-      resources.add(ClientDependency.fromPath("clientapi/ext4"));
-      resources.add(ClientDependency.fromPath("FileUploadField.js"));
-      resources.add(ClientDependency.fromPath("formulations/FormulationForm.js"));
-      resources.add(ClientDependency.fromPath("formulations/TaskForm.js"));
-      return resources;
-  }
+    public void addClientDependencies(ClientDependencies dependencies)
+    {
+        dependencies.add("clientapi/ext3");
+        dependencies.add("clientapi/ext4");
+        dependencies.add("FileUploadField.js");
+        dependencies.add("formulations/FormulationForm.js");
+        dependencies.add("formulations/TaskForm.js");
+    }
 %>
 <%
     Container container = getContainer();

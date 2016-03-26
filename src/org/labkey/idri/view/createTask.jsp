@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.view.template.ClientDependency"%>
-<%@ page import="java.util.LinkedHashSet"%>
+<%@ page import="org.labkey.api.view.template.ClientDependencies"%>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
-  public LinkedHashSet<ClientDependency> getClientDependencies()
-  {
-      LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
-      resources.add(ClientDependency.fromPath("Ext4"));
-      resources.add(ClientDependency.fromPath("formulations/TaskForm.js"));
-      return resources;
-  }
+    public void addClientDependencies(ClientDependencies dependencies)
+    {
+        dependencies.add("Ext4");
+        dependencies.add("formulations/TaskForm.js");
+    }
 %>
 
 <style type="text/css">
