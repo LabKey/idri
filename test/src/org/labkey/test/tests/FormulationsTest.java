@@ -227,7 +227,7 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Inserting a Formulation");
         clickAndWait(Locator.linkWithText("Sample Sets"));
         clickAndWait(Locator.linkWithText(FORMULATIONS_NAME));
-        clickButton("New Formulation");
+        DataRegionTable.findDataRegion(this, 1).clickHeaderButton("Insert", "Insert New");
 
         assertTextPresent(
                 "Formulation Type*",
