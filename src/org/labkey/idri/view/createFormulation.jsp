@@ -33,12 +33,6 @@
         dependencies.add("formulations/TaskForm.js");
     }
 %>
-<%
-    Container container = getContainer();
-    
-    List<Material> materials = idriManager.getMaterials(container);
-    List<Formulation> formulations = idriManager.getFormulations(container);
-%>
 <style type="text/css">
     .x-panel-noborder .x-panel-body-noborder {
         background: transparent;
@@ -50,31 +44,15 @@
     }
 
 </style>
-<div id ="formulation-upload"></div>
 <div id="formulation-panel"></div>
-<div id="form-example"></div>
-<div id="ext-taskList-panel"></div>
 <script type="text/javascript">
 
     Ext.onReady(function(){
 
         Ext.QuickTips.init();
 
-        var _materials = [];
-        var _formulations = [];
-
-    <%  for (Material material : materials) { %>
-        _materials.push([<%=PageFlowUtil.jsString(material.getMaterialName())%>]);
-    <%  }
-        for (Formulation formulation : formulations) { %>
-        _formulations.push(<%=formulation.toJSON()%>);
-    <%  } %>
-
         var panel = new LABKEY.idri.FormulationPanel({
-            id : 'ext-formulation-panel',
-            materials : _materials,
-            formulations : _formulations,
-            renderTo  : 'formulation-panel'            
+            renderTo: 'formulation-panel'
         });
     });
 

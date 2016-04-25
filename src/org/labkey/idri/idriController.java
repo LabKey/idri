@@ -253,7 +253,7 @@ public class idriController extends SpringActionController
             Set<Material> setMaterial = new HashSet<>(materials);
             if (setMaterial.size() < materials.size())
                 errors.reject(ERROR_MSG, "Duplicate source materials are not allowed. Please check your source materials.");
-            
+
             return false;
         }
         

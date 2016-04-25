@@ -17,9 +17,7 @@ package org.labkey.idri.model;
 
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.exp.api.ExpMaterial;
-import org.labkey.idri.idriManager;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**

@@ -132,60 +132,6 @@ public class idriManager
 
     /**
      *
-     * @param container
-     * @return
-     */
-    public static List<Material> getMaterials(Container container)
-    {
-        return getMaterials(container, null);
-    }
-
-    /**
-     *
-     * @param container
-     * @param materialType
-     * @return
-     */
-    public static List<Material> getMaterials(Container container, String materialType)
-    {
-        List<String> sources = new ArrayList<>();
-        List<Material> materials = new ArrayList<>();
-
-        /* populate the known sources of materials */
-        if (materialType != null)
-            sources.add(materialType);
-        else
-        {
-            sources.add(idriSchema.TABLE_RAW_MATERIALS);
-            sources.add(idriSchema.TABLE_FORMULATIONS);
-        }
-        
-        ExperimentService.Interface service = ExperimentService.get();
-        ExpSampleSet ss;
-        
-        for (String source : sources)
-        {
-            ss = service.getSampleSet(container, source);
-            List<? extends ExpMaterial> expMaterials;
-            
-            if (ss != null)
-            {
-                expMaterials = ss.getSamples();
-                for (ExpMaterial expMat : expMaterials)
-                {
-                    Material mat = Material.fromExpMaterial(expMat);
-                    materials.add(mat);
-                }
-            }
-            else
-                throw new RuntimeException("An expected source was not found for formulation material sources. " + source);
-        }
-        
-        return materials;
-    }
-
-    /**
-     *
      * @param materialName
      * @return
      */
@@ -276,7 +222,7 @@ public class idriManager
         ExpSampleSet ss = getFormulationSampleSet(container);
         if (ss != null && ss.canImportMoreSamples())
         {
-            ExpMaterial exists = ss.getSample(formulation.getBatch());
+            ExpMaterial exists = ss.getSample(container, formulation.getBatch());
 
             SamplesSchema sampleSchema = new SamplesSchema(user, container);
             TableInfo tableInfo = sampleSchema.getSchema("Samples").getTable(idriSchema.TABLE_FORMULATIONS);
@@ -422,34 +368,15 @@ public class idriManager
     public static Formulation getFormulation(int RowId)
     {
         ExperimentService.Interface service = ExperimentService.get();
-        Formulation formulaton = null;
+        Formulation formulation = null;
 
         ExpMaterial mat = service.getExpMaterial(RowId);
         if (mat != null)
         {
-            formulaton = getFormulation(mat.getName());
+            formulation = getFormulation(mat.getName());
         }
 
-        return formulaton;
-    }
-
-    /**
-     *
-     * @param container
-     * @return
-     */
-    public static List<Formulation> getFormulations(Container container)
-    {
-        List<Formulation> formulations = new ArrayList<>();
-
-        ExpSampleSet ss = getFormulationSampleSet(container);
-        if (ss != null)
-        {
-            for (ExpMaterial mat : ss.getSamples())
-                formulations.add(Formulation.fromSample(mat, false));
-        }
-
-        return formulations;
+        return formulation;
     }
 
     /**

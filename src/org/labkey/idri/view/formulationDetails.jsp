@@ -48,19 +48,6 @@
     Formulation formulation = idriManager.getFormulation(form.getRowId());
     ExpSampleSet ss = ExperimentService.get().getSampleSet(c, "Formulations");
 %>
-<style type="text/css">
-    table.stabilitytable,
-    table.stabilitytable th,
-    table.stabilitytable td
-    {
-        border: 1px solid #a9a9a9;
-        border-collapse: collapse;
-        background-color: #ffffff;
-        padding: 5px;
-        white-space: nowrap;
-    }
-
-</style>
 <div style="padding: 20px 0 0 20px;">
     <%=textLink("Home Page", PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(c))%>
     <%=textLink("Edit " + formulation.getBatch(), new ActionURL(idriController.CreateFormulationAction.class, c).addParameter("RowId", formulation.getRowID()))%>

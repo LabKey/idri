@@ -52,6 +52,9 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String TYPES_LIST = "FormulationTypes";
     private static final String MATERIAL_TYPES_LIST = "MaterialTypes";
 
+    // Name must be same as what is used as target stability group
+    private static final String STABILITY_GROUP = "Stability";
+
     private static final String COMPOUNDS_HEADER = "Compound Name\tFull Name\tCAS Number\tDensity\tMolecular Weight\n";
     private static final String COMPOUNDS_DATA_1 = "Alum\tAluminum Hydroxide\t21645-51-2\t\t78.0\n";  // adjuvant
     private static final String COMPOUNDS_DATA_2 = "Squawk\tBean Oil\t21235-51-3\t\t7.0\n";           // oil
@@ -150,6 +153,11 @@ public class FormulationsTest extends BaseWebDriverTest
 
         goToProjectHome();
 
+        // Create 'Stability' Group
+        _permissionsHelper.createPermissionsGroup(STABILITY_GROUP, getCurrentUser());
+
+        goToProjectHome();
+
         // Sample Sets should already exist
         assertElementPresent(Locator.linkWithText(COMPOUNDS_NAME));
         assertElementPresent(Locator.linkWithText(RAW_MATERIALS_NAME));
@@ -235,11 +243,11 @@ public class FormulationsTest extends BaseWebDriverTest
                 "Notebook Page*");
 
         // Describe Formulation
-        setFormElement(Locator.name("batch"), FORMULATION);
-        _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='type']/.."), "Alum");
-        setFormElement(Locator.name("dm"), "8/8/2008");
+        setFormElement(Locator.name("Batch"), FORMULATION);
+        _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='Type']/.."), "Alum");
+        setFormElement(Locator.name("DM"), "8/8/2008");
         setFormElement(Locator.name("batchsize"), "100");
-        setFormElement(Locator.name("comments"), "This might fail.");
+        setFormElement(Locator.name("Comments"), "This might fail.");
         setFormElement(Locator.name("nbpg"), "549-87");
 
         clickButton(addButton, 0);
@@ -280,10 +288,18 @@ public class FormulationsTest extends BaseWebDriverTest
         _extHelper.selectComboBoxItem(getRawMaterialLocator(3), RAW_MATERIAL_4);
         waitForText(WAIT_FOR_JAVASCRIPT, "mM");
 
+        // Place on stability watch
+        checkCheckbox(Locator.id("stability-check"));
+
         // Create        
         setFormElements("input", "concentration", new String[]{"25.4", "66.2", "12.91"});
         clickButton("Create", 0);
         waitForText(WAIT_FOR_JAVASCRIPT, "has been created.");
+
+        // Confirm stability email
+        goToModule("Dumbster");
+        click(Locator.linkWithText("Formulation added on LabKey"));
+        assertElementPresent(Locator.linkWithText(FORMULATION));
     }
 
     private Locator.XPathLocator getRawMaterialLocator(int index)

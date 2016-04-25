@@ -91,7 +91,7 @@
                                     else if (compare > data) {
                                         style += 'background-color: green;';
                                     }
-                                    else if (compare < data) {
+                                    else {
                                         style += 'background-color: red;';
                                     }
                                     style += '"';
