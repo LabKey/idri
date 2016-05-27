@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.test.tests;
+package org.labkey.test.tests.idri;
 
 import com.google.common.base.Function;
 import org.junit.Test;
@@ -24,7 +24,6 @@ import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.Assays;
 import org.labkey.test.categories.CustomModules;
-import org.labkey.test.categories.IDRI;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LabKeyExpectedConditions;
@@ -39,7 +38,7 @@ import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.List;
 
-@Category({CustomModules.class, Assays.class, IDRI.class})
+@Category({CustomModules.class, Assays.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
     private static final String COMPOUNDS_NAME = "Compounds";
