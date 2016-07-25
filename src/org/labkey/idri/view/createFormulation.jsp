@@ -15,15 +15,10 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.data.Container"%>
-<%@ page import="org.labkey.api.util.PageFlowUtil"%>
-<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
-<%@ page import="org.labkey.idri.idriManager" %>
-<%@ page import="org.labkey.idri.model.Formulation" %>
-<%@ page import="org.labkey.idri.model.Material" %>
-<%@ page import="java.util.List" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies"%>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
+    @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
         dependencies.add("clientapi/ext3");

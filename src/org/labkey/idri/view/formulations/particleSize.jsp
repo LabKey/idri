@@ -21,6 +21,7 @@
 <%@ page import="org.labkey.idri.model.Formulation" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
+    @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
         dependencies.add("formulations/formulation.css");
