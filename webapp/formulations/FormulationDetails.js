@@ -264,13 +264,13 @@ function initFormulationDetails(assayId)
                                     //
                                     // load the appropriate content for each selected sample
                                     //
-                                    var recieved = 0, expected = provisionalRuns.length, allContent = [], contentMap = {};
+                                    var received = 0, expected = provisionalRuns.length, allContent = [], contentMap = {};
 
                                     var done = function(content) {
-                                        recieved++;
+                                        received++;
                                         allContent.push(content);
                                         contentMap[content.fileName] = content;
-                                        if (recieved == expected) {
+                                        if (received == expected) {
                                             g.allContent = allContent;
                                             g.contentMap = contentMap;
                                             renderPlot(allContent);

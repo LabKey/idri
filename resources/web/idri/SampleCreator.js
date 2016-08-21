@@ -464,14 +464,14 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 //
                 // load the appropriate content for each selected sample
                 //
-                var recieved = 0, expected = provisionalRuns.length, allContent = [],
+                var received = 0, expected = provisionalRuns.length, allContent = [],
                         contentMap = {};
 
                 var done = function(content) {
-                    recieved++;
+                    received++;
                     allContent.push(content);
                     contentMap[content.fileName] = content;
-                    if (recieved == expected) {
+                    if (received == expected) {
                         this.allContent = allContent;
                         this.contentMap = contentMap;
                         this.renderPlot(allContent);
