@@ -21,9 +21,9 @@ import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
-import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.Assays;
 import org.labkey.test.categories.CustomModules;
+import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LabKeyExpectedConditions;
@@ -41,6 +41,8 @@ import java.util.List;
 @Category({CustomModules.class, Assays.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
+    private ApiPermissionsHelper _permissionsHelper = new ApiPermissionsHelper(this);
+
     private static final String COMPOUNDS_NAME = "Compounds";
     private static final String RAW_MATERIALS_NAME = "Raw Materials";
     private static final String FORMULATIONS_NAME = "Formulations";
@@ -113,12 +115,6 @@ public class FormulationsTest extends BaseWebDriverTest
     public BrowserType bestBrowser()
     {
         return BrowserType.CHROME;
-    }
-
-    @Override
-    protected void doCleanup(boolean afterTest) throws TestTimeoutException
-    {
-        deleteProject(getProjectName(), afterTest);
     }
 
     @Test
