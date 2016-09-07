@@ -219,7 +219,7 @@ Ext4.define('LABKEY.hplc.DataService', {
         //
         // Get the associated Assay information
         //
-        this.getAssayDefinition('signalData', function(def) {
+        this.getAssayDefinition('Provisional HPLC', function(def) {
             context.AssayDefinition = def; loader();
         }, this);
 
