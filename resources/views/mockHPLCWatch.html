@@ -66,7 +66,7 @@
             Ext4.each(fileSet, function(file) {
                 dr = {
                     Name: file.text,
-                    DataFile: file.text,
+                    DataFile: decodeURI(file.dataFileURL.replace('file:','')),
                     TestType: 'SMP'
                 };
                 di = {
@@ -106,8 +106,9 @@
         function resolveAssay(callback, scope)
         {
             if (Ext4.isFunction(callback)) {
-                LABKEY.Assay.getByType({
-                    type: 'Provisional HPLC',
+                LABKEY.Assay.getByName({
+                    type: 'Signal Data',
+                    name: 'pHPLC',
                     success: function(definitions) {
                         if (Ext4.isArray(definitions)) {
                             if (definitions.length == 1) {
@@ -130,7 +131,7 @@
         {
             if (Ext4.isFunction(callback)) {
                 LABKEY.Ajax.request({
-                    url: LABKEY.ActionURL.buildURL('idri', 'getHPLCPipelineContainer.api'),
+                    url: LABKEY.ActionURL.buildURL('signaldata', 'getSignalDataPipelineContainer.api'),
                     method: 'GET',
                     success: function(response) {
                         var context = Ext4.decode(response.responseText);
@@ -219,7 +220,7 @@
 
                 Ext4.each(files, function(file) {
                     LABKEY.Ajax.request({
-                        url: LABKEY.ActionURL.buildURL('idri', 'getHPLCResource.api'),
+                        url: LABKEY.ActionURL.buildURL('signaldata', 'getSignalDataResource.api'),
                         method: 'GET',
                         params: { path: file.id, test: true },
                         success: function(response) {

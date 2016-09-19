@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
-Ext4.define('LABKEY.hplc.StandardCreator', {
+Ext4.define('LABKEY.SignalData.StandardCreator', {
 
     extend: 'Ext.panel.Panel',
 
@@ -16,18 +16,18 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
     statics: {
         standardsStore : undefined,
         getStandardsStore : function(context) {
-            if (!LABKEY.hplc.StandardCreator.standardsStore) {
-                LABKEY.hplc.StandardCreator.standardsStore = Ext4.create('LABKEY.ext4.data.Store', {
-//                   model: 'LABKEY.hplc.Standard',
+            if (!LABKEY.SignalData.StandardCreator.standardsStore) {
+                LABKEY.SignalData.StandardCreator.standardsStore = Ext4.create('LABKEY.ext4.data.Store', {
+//                   model: 'LABKEY.SignalData.Standard',
                     schemaName: 'lists',
                     queryName: 'HPLCStandard',
                     filterArray: [
                         LABKEY.Filter.create('provisionalRun', context.RunId)
                     ]
                 });
-                LABKEY.hplc.StandardCreator.standardsStore.load();
+                LABKEY.SignalData.StandardCreator.standardsStore.load();
             }
-            return LABKEY.hplc.StandardCreator.standardsStore;
+            return LABKEY.SignalData.StandardCreator.standardsStore;
         },
         getSourcesStore : function(doFilter, standardKey) {
 
@@ -37,19 +37,19 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
 
             var filters = [ LABKEY.Filter.create('standard/Key', standardKey) ];
 
-            if (!LABKEY.hplc.StandardCreator.sourcesStore) {
-                LABKEY.hplc.StandardCreator.sourcesStore = Ext4.create('LABKEY.ext4.data.Store', {
-//                   model: 'LABKEY.hplc.StandardSource',
+            if (!LABKEY.SignalData.StandardCreator.sourcesStore) {
+                LABKEY.SignalData.StandardCreator.sourcesStore = Ext4.create('LABKEY.ext4.data.Store', {
+//                   model: 'LABKEY.SignalData.StandardSource',
                     schemaName: 'lists',
                     queryName: 'HPLCStandardSource'
                 });
             }
 
             if (doFilter) {
-                LABKEY.hplc.StandardCreator.sourcesStore.filterArray = filters;
-                LABKEY.hplc.StandardCreator.sourcesStore.load();
+                LABKEY.SignalData.StandardCreator.sourcesStore.filterArray = filters;
+                LABKEY.SignalData.StandardCreator.sourcesStore.load();
             }
-            return LABKEY.hplc.StandardCreator.sourcesStore;
+            return LABKEY.SignalData.StandardCreator.sourcesStore;
         }
     },
 
@@ -101,7 +101,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 height: 400,
                 store: {
                     xtype: 'store',
-                    model: 'LABKEY.hplc.StandardSource',
+                    model: 'LABKEY.SignalData.StandardSource',
                     data: this.rawInputs
                 },
                 selModel: {
@@ -151,7 +151,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 xtype: 'grid',
                 itemId: 'standardsgrid',
                 height: 200,
-                store: LABKEY.hplc.StandardCreator.getStandardsStore(this.context),
+                store: LABKEY.SignalData.StandardCreator.getStandardsStore(this.context),
                 columns: [
                     {text: 'Inputs', dataIndex: 'Name', flex: 3}
                 ],
@@ -205,7 +205,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
 
             this.getStandardsDisplay().getEl().mask('Loading Definitions...');
 
-            var store = LABKEY.hplc.StandardCreator.getSourcesStore(true, standard.get('Key'));
+            var store = LABKEY.SignalData.StandardCreator.getSourcesStore(true, standard.get('Key'));
             store.on('load', function(s) {
                 // merge the 'sources' data to the inputs data
                 var inputsStore = sourcesGrid.getStore();
@@ -291,14 +291,14 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
      * Fired when a user saves a standard
      */
     onStandardSave : function() {
-        LABKEY.hplc.StandardCreator.getStandardsStore(this.context).load();
+        LABKEY.SignalData.StandardCreator.getStandardsStore(this.context).load();
     },
 
     getDefinitionForm : function() {
 
         var view = Ext4.create('Ext.view.View', {
             id: 'definitionformview',
-            store: LABKEY.hplc.StandardCreator.getSourcesStore(),
+            store: LABKEY.SignalData.StandardCreator.getSourcesStore(),
             itemSelector: 'tr.item',
             autoScroll: true,
             height: 305,
@@ -334,7 +334,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                             fn: function(b) {
                                 if (b === 'yes') {
                                     this.commitSources();
-                                    var store = LABKEY.hplc.StandardCreator.getSourcesStore();
+                                    var store = LABKEY.SignalData.StandardCreator.getSourcesStore();
 
                                     var models = store.getRange(),
                                             n = model.get('name'),
@@ -540,7 +540,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
             buttons: Ext4.Msg.OKCANCEL,
             fn : function(btn) {
                 if (btn === "ok") {
-                    var store = LABKEY.hplc.StandardCreator.getStandardsStore();
+                    var store = LABKEY.SignalData.StandardCreator.getStandardsStore();
                     var realName = Ext4.getCmp('isupdate').getValue();
 
                     if (realName.length > 0) {
@@ -703,7 +703,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
     requestContent : function(def, callback, scope) {
         var sd = def.get('expDataRun');
         if (sd) {
-            HPLCService.FileContentCache(sd, callback, scope);
+            SignalDataService.FileContentCache(sd, callback, scope);
         }
         else {
             console.error('failed to load expDataRun from definition.');
@@ -754,7 +754,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                         //
                         isHighlight = (this.highlighted === filename);
                         var pointLayer = new LABKEY.vis.Layer({
-                            data: HPLCService.getData(contentMap[filename], xleft, xright, 3),
+                            data: SignalDataService.getData(contentMap[filename], xleft, xright, 3),
                             aes: {
                                 x: function(r) { return r[0]; },
                                 y: function(r) { return r[1]; }
@@ -869,8 +869,8 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 for (n=0; n < count; n++) {
                     m = store.getAt(n);
                     fname = m.get('expDataRun').name;
-                    data = HPLCService.getData(this.curveConfig.contentMap[fname], m.get('xleft'), m.get('xright'));
-                    var aucPeak = LABKEY.hplc.Stats.getAUC(data, m.get('base'));
+                    data = SignalDataService.getData(this.curveConfig.contentMap[fname], m.get('xleft'), m.get('xright'));
+                    var aucPeak = LABKEY.SignalData.Stats.getAUC(data, m.get('base'));
                     m.set('auc', aucPeak.auc);
                     m.set('peakMax', aucPeak.peakMax);
                 }
@@ -891,7 +891,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
     },
 
     renderCalibrationCurve : function(data) {
-        var R = LABKEY.hplc.Stats.getPolynomialRegression(data);
+        var R = LABKEY.SignalData.Stats.getPolynomialRegression(data);
         var eq = R.equation;
         R.reverseString = 'y = ' + eq[0].toFixed(2) + ' + ' + eq[1].toFixed(2) + 'x ';
         R.reverseString += (eq[2] < 0 ? '- ' : '+ ');

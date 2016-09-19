@@ -39,18 +39,22 @@ from datetime import datetime
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
-server       = '' # required, leave off any http(s):// and include any ports (e.g. :8000)
-target_dir   = '' # required
-user         = '' # required
-password     = '' # required
+server       = ''  # required, leave off any http(s):// and include any ports (e.g. :8000)
+target_dir   = ''  # required
+user         = ''  # required
+password     = ''  # required
 use_ssl      = True
-context_path = '' # optional, in development environments. Production environments tend not to use a context path.
+context_path = ''  # optional, in development environments. Production environments tend not to use a context path.
 
 filepatterns = ["*.txt", "*.csv", "*.tsv", "*.SEQ"]
-sleep_interval = 60
-success_interval = 60
+sleep_interval = 60  # Polling wait time (Seconds)
+success_interval = 60  # Time (Seconds) to wait after last successful datafile before closing run
 machine_name = ''
 END_RUN_PREFIX = 'POST'
+
+# Name of the assay to import data to
+assay_name = ''  # required
+
 
 class SafeTLSAdapter(HTTPAdapter):
     def init_poolmanager(self, connections, maxsize, block=False):
@@ -65,6 +69,7 @@ class SafeTLSAdapter(HTTPAdapter):
 session = requests.Session()
 session.mount('https://', SafeTLSAdapter())
 
+
 class HPLCHandler(PatternMatchingEventHandler):
 
     def __init__(self, patterns=filepatterns):
@@ -76,11 +81,11 @@ class HPLCHandler(PatternMatchingEventHandler):
         except requests.exceptions.SSLError:
             logging.exception("The current SSL mode: \'" + str(use_ssl) + "\' does not match the server configuration.")
             raise Exception("Failed to configure SSL properly. See watch.log")
-        except Exception, e:
+        except Exception as e:
             logging.exception("Failed configuration.")
             raise Exception(str(e))
 
-        self.successTimerDelay = success_interval # time in seconds
+        self.successTimerDelay = success_interval  # time in seconds
         self.runFiles = []
         self.runFilesMap = {}
         self.folder = ""
@@ -94,30 +99,27 @@ class HPLCHandler(PatternMatchingEventHandler):
         super(HPLCHandler, self).on_any_event(event)
         self.handleFileEvent(event)
 
-    # def on_modified(self, event):
-    #     super(HPLCHandler, self).on_created(event)
-
     def on_deleted(self, event):
         super(HPLCHandler, self).on_deleted(event)
         self.handleFileEvent(event, True)
 
     def handleFileEvent(self, event, is_delete=False):
         if event.is_directory == False and len(event.src_path) > 0:
-            split_path = event.src_path.split("\\") # should check / or \
+            split_path = event.src_path.split(os.path.sep)
             if (len(split_path) > 0):
-                name = str(split_path[len(split_path)-1])
+                name = str(split_path[len(split_path) - 1])
                 if name.find('~') == -1:
                     if is_delete:
                         self.removeRunFile(name)
                     else:
                         logging.info(" Adding file to run: " + name)
-                        files = {'file' : name} # (name, open(name, 'rb'))}
+                        files = {'file': name}  # (name, open(name, 'rb'))}
                         self.addRunFile(name, files)
 
     def upload(self, fileJSON, folder):
         logging.info(" Preparing to send...")
 
-        url = self.getScheme() + '://' + server + self.pipelinePath + '/' + folder + '/' #self.buildURL(server, context_path, target_dir)
+        url = self.getScheme() + '://' + server + self.pipelinePath + '/' + folder + '/'
         name = fileJSON['file']
 
         #
@@ -131,20 +133,20 @@ class HPLCHandler(PatternMatchingEventHandler):
             s = r.status_code
             if s == 207 or s == 200:
                 logging.info(" " + str(s) + " Uploaded Successfully: " + name)
-                print s, "Uploaded Successfully:", name
+                print (s, "Uploaded Successfully:", name)
             elif s == 401:
                 logging.error(" " + str(s) + " Authentication failed. Check user and password.")
-                print s, "Authentication failed. Check user and password."
+                print (s, "Authentication failed. Check user and password.")
             elif s == 404:
                 logging.error(" " + str(s) + " Location not found. URL: " + url)
-                print s, "Location not found. URL:", url
+                print (s, "Location not found. URL:", url)
             else:
                 logging.error(" " + str(s) + " Failed: " + name)
-                print s, "Failed:", name
+                print (s, "Failed:", name)
         except requests.exceptions.SSLError as e:
             logging.exception("The current SSL mode: \'" + str(use_ssl) + "\' does not match the server configuration.")
             raise Exception("Failed to match server SSL configration. Upload Failed. See watch.log")
-        except Exception, e:
+        except Exception as e:
             logging.exception("Failed upload. See watch.log")
             raise Exception(str(e))
 
@@ -167,7 +169,7 @@ class HPLCHandler(PatternMatchingEventHandler):
 
         davPath = subPipelinePath + '/' + folder + '/' + file_name
 
-        url = self.buildActionURL('idri', 'getHPLCResource')
+        url = self.buildActionURL('signaldata', 'getSignalDataResource')
         url += '?path=' + davPath
 
         r = session.get(url, auth=(user, password))
@@ -185,21 +187,19 @@ class HPLCHandler(PatternMatchingEventHandler):
         return scheme
 
     def getBaseURL(self, context):
-        ctx = '/' + context + '/' if len(context) > 0 else ''
+        ctx = context + '/' if len(context) > 0 else ''
         return self.getScheme() + '://' + server + '/' + ctx
 
-    def buildURL(self, server, context, target):
-        return self.getBaseURL(context) + '/' + target + '/'
-
     def buildActionURL(self, controller, action):
-        return self.getBaseURL(context_path) + '/' + controller + '/' + target_dir + '/' + action + '.api'
+        return self.getBaseURL(context_path) + controller + '/' + target_dir + '/' + action + '.api'
 
     def requestAssay(self):
         assayURL = self.buildActionURL('assay', 'assayList')
         logging.info("...Requesting Assay Metadata")
 
         payload = {}
-        payload['type'] = "Provisional HPLC"
+        payload['type'] = "Signal Data"
+        payload['name'] = assay_name
 
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         r = session.post(assayURL, data=json.dumps(payload), headers=headers, auth=(user, password))
@@ -226,7 +226,7 @@ class HPLCHandler(PatternMatchingEventHandler):
             raise Exception(msg)
 
     def requestPipeline(self):
-        actionURL = self.buildActionURL('idri', 'getHPLCPipelineContainer')
+        actionURL = self.buildActionURL('signaldata', 'getSignalDataPipelineContainer')
         logging.info("...Requesting Pipeline Configuration")
 
         r = session.get(actionURL, auth=(user, password))
@@ -242,14 +242,14 @@ class HPLCHandler(PatternMatchingEventHandler):
             raise Exception(msg)
         else:
             msg = "\nUnable to process pipeline configuration.\n" + str(s) + ": " + actionURL
-            msg += "\nCheck that this URL resolves and/or the IDRI module is properly installed on the server."
+            msg += "\nCheck that this URL resolves and/or the HPLC module is properly installed on the server."
 
             logging.error(msg)
             raise Exception(msg)
 
     def addRunFile(self, file_name, file_json):
         if len(self.runFiles) == 0:
-            print "Starting new run"
+            print ("Starting new run")
 
         self.runFiles.append(file_json)
         self.runFilesMap[file_name] = len(self.runFiles) - 1
@@ -277,7 +277,6 @@ class HPLCHandler(PatternMatchingEventHandler):
             # else:
             #     logging.info(" File not tracked at time of remove request: " + file_name)
 
-
     def isEndRun(self, file_name):
         return file_name.find(END_RUN_PREFIX) == 0
 
@@ -304,7 +303,7 @@ class HPLCHandler(PatternMatchingEventHandler):
 
         if s == 201:
             logging.info(" Created folder (" + self.folder + ")")
-            print "Folder Created:", self.folder
+            print ("Folder Created:", self.folder)
 
             #
             # Iterate over each file in the current run and upload to server
@@ -326,19 +325,19 @@ class HPLCHandler(PatternMatchingEventHandler):
                 delimiter = "\\"
 
             destPath = cwd + delimiter + self.folder + delimiter
-            print "Destination:", destPath
+            print ("Destination:", destPath)
 
             for f in self.runFiles:
                 fileName = f['file']
                 dest = destPath + fileName
                 source = cwd + delimiter + fileName
-                print "Source:", source
+                print ("Source:", source)
                 shutil.move(source, dest)
 
             #
             # Now iterate over each file and determine the dataFileURL
             #
-            runFiles = [] # deep copy
+            runFiles = []  # deep copy
             for i in range(len(self.runFiles)):
                 runFiles.append(self.runFiles[i])
 
@@ -346,7 +345,7 @@ class HPLCHandler(PatternMatchingEventHandler):
                 rf['DataFileUrl'] = self.getDataFileURL(rf, self.folder)
 
             self.runFiles = runFiles
-            print "Found Data File URLs..."
+            print ("Found Data File URLs...")
 
             #
             # Files are fully processed, now update run information in Assay
@@ -360,24 +359,20 @@ class HPLCHandler(PatternMatchingEventHandler):
             logging.info("...done")
         else:
             logging.error(" Failed to created folder (" + self.folder + ") in " + folderURL)
-            print "Failed to create folder:", self.folder
+            print ("Failed to create folder:", self.folder)
 
         self.runFiles = []
         self.runFilesMap = {}
         self.checkTask = 0
         self.folder = ""
 
-        print "Preparation for next run complete."
+        print ("Preparation for next run complete.")
 
     def generateFolderName(self):
         lt = time.localtime()
-        name = ""
-        sep = ""
-        for tm in lt[0:6]: # from year to second
-            name += sep + str(tm)
-            sep = "_"
+        name = '_'.join(map(str, lt[0:6]))
 
-        print name
+        print (name)
         return name
 
     def createHPLCRun(self):
@@ -396,10 +391,10 @@ class HPLCHandler(PatternMatchingEventHandler):
         dataInputs = []
         for runFile in self.runFiles:
             fName = runFile['file']
-            data = {"Name": fName, "DataFile": fName, "TestType": "SMP"}
+            f = runFile['DataFileUrl']
+            data = {"Name": fName, "DataFile": f[len('file:'):], "TestType": "SMP"}
             dataRows.append(data)
 
-            f = runFile['DataFileUrl']
             data = {"dataFileURL": f, "name": fName}
             dataInputs.append(data)
 
@@ -407,6 +402,7 @@ class HPLCHandler(PatternMatchingEventHandler):
         hplcRun.setDataInputs(dataInputs)
 
         return hplcRun
+
 
 # TODO: Information to pull from file:
 #   - Result name
@@ -438,7 +434,7 @@ class HPLCRun():
         self.rowId = None
 
     def save(self, saveURL):
-        print "Saving HPLC Run...", saveURL
+        print ("Saving HPLC Run...", saveURL)
 
         #
         # This is the only run in this batch
@@ -454,29 +450,27 @@ class HPLCRun():
         payload = {'assayId': self.assayId, 'batch': batch}
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
-        # print "****** PAYLOAD ********"
-        # print json.dumps(payload)
+        # print ("****** PAYLOAD ********")
+        # print (json.dumps(payload))
 
         r = session.post(saveURL, data=json.dumps(payload), headers=headers, auth=(user, password))
         s = r.status_code
 
         if s == 400:
-            print r.status_code, "Bad Request"
-            print r.text
-            print r.json
+            print (r.status_code, "Bad Request")
+            print (r.text)
+            print (r.json)
         elif s == 500:
-            print r.status_code, "Server Error"
-            print r.text
-            print r.json
+            print (r.status_code, "Server Error")
+            print (r.text)
+            print (r.json)
             logging.error(r.status_code)
             logging.error(r.text)
             logging.error(r.json)
             logging.error("Failed to create Assay Run due to server error")
         else:
             logging.info("Run saved successfully.")
-            print "Run saved Successfully."
-
-
+            print ("Run saved Successfully.")
 
     def addResult(self, resultRow):
         self.dataRows.append(resultRow)
@@ -494,8 +488,8 @@ class HPLCRun():
     def setDataInputs(self, dataInputs):
         self.dataInputs = dataInputs
 
-class HPLCAssay():
 
+class HPLCAssay():
     def __init__(self):
         self.containerPath = None
         self.description = None
@@ -507,6 +501,7 @@ class HPLCAssay():
         self.projectLevel = True
         self.protocolSchemaName = None
         self.type = None
+
 
 if __name__ == "__main__":
 
@@ -544,7 +539,7 @@ if __name__ == "__main__":
     #
     # Let the command line user know it is responding
     #
-    print "Configuration complete. Listening in", path
+    print ("Configuration complete. Listening in", path)
 
     try:
         while True:
