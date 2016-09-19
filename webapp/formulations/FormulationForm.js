@@ -72,10 +72,14 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
     },
 
     _loadStores : function(callback, scope) {
-        var loadCount = 0;
+        var loadCount = 0,
+            me = this;
+
+        me.getEl().mask('Loading...');
         function handleLoad() {
             loadCount++;
-            if (loadCount == 4) {
+            if (loadCount == 3) {
+                me.getEl().unmask();
                 if (Ext.isFunction(callback)) {
                     callback.call(scope || this);
                 }
@@ -87,7 +91,6 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
         /* NOTE: These are ExtJS 4.x stores */
         this.getStabilityStore().load(handleLoad);
-        this.getTaskListStore().load(handleLoad);
     },
 
     getFormulationsStore : function() {
@@ -123,17 +126,6 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         return this.stabilityStore;
     },
 
-    getTaskListStore : function() {
-        if (!this.taskListStore) {
-            this.taskListStore = new LABKEY.ext4.Store({
-                schemaName: 'lists',
-                queryName: 'TaskList'
-            });
-        }
-
-        return this.taskListStore;
-    },
-
     loadFormulation : function(formulation) {
         this.getEl().mask('Loading Formulation...');
 
@@ -146,7 +138,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         this.isUpdate = true;
         this.getSubmitBtn().setText('Save Changes');
 
-        if (this.getStabilityStore().findExact('lotNum', rowId)) {
+        if (this.getStabilityStore().findExact('lotNum', rowId) > -1) {
             this.setStabilityWatch(true);
             this.hasStabilityProfile = true;
         }
@@ -478,49 +470,58 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
         if (formulation) {
 
-            this.getEl().mask('Saving Formulation...');
-
-            Ext.Ajax.request({
-                url: LABKEY.ActionURL.buildURL('idri', 'saveFormulation.api'),
-                method: 'POST',
-                jsonData: formulation,
-                success: this.onSaveFormulation,
-                failure: function(response) {
-                    this.getEl().unmask();
-                    if (response && response.responseText) {
-                        var decode = Ext.decode(response.responseText);
-                        if (decode) {
-                            if (decode.errors) {
-                                this.showMsg(decode.errors[0].message, true);
-                                return;
-                            }
-                            else if (decode.exception) {
-                                this.showMsg(decode.exception, true);
-                                return;
-                            }
+            /* See if the user purposefully took the lot off stability watch */
+            if (this.isUpdate && this.hasStabilityProfile && !this.onStabilityWatch()) {
+                Ext.Msg.show({
+                    title: 'Take ' + formulation.batch + ' off stability watch',
+                    msg: 'Are you sure ' + formulation.batch + ' should be taken off stability watch at this time?',
+                    buttons: Ext.Msg.YESNO,
+                    icon: Ext.MessageBox.QUESTION,
+                    fn: function(id) {
+                        if (id == 'yes') {
+                            this.removeStabilityWatch(formulation, this.saveFormulation, this);
                         }
-                    }
-                    this.showMsg('Failed to Save.', true);
-                },
-                scope: this
-            });
+                    },
+                    scope: this
+                });
+            }
+            else {
+                this.saveFormulation(formulation);
+            }
         }
     },
 
+    saveFormulation : function(formulation) {
 
-    //
-    // Expects response of idri/saveFormulation action
-    //
-    onSaveFormulation : function(response) {
+        this.getEl().mask('Saving Formulation...');
 
-        this.getEl().unmask();
-        var obj = Ext.decode(response.responseText);
-        if (obj.errors) {
-            onFailure(response);
-            return;
-        }
+        Ext.Ajax.request({
+            url: LABKEY.ActionURL.buildURL('idri', 'saveFormulation.api'),
+            method: 'POST',
+            jsonData: formulation,
+            success: function(response) {
+                this.getEl().unmask();
 
-        var savedRowId = obj.formulation.rowID;
+                var json = Ext.decode(response.responseText);
+                if (json.errors) {
+                    this.onSaveFormulationFailure(response);
+                }
+                else {
+                    this.onSaveFormulation(json.formulation);
+                }
+            },
+            failure: function(response) {
+                this.getEl().unmask();
+
+                this.onSaveFormulationFailure(response);
+            },
+            scope: this
+        });
+    },
+
+    onSaveFormulation : function(formulation) {
+
+        var savedRowId = formulation.rowID;
         var onStability = this.onStabilityWatch();
         var hasProfile = this.hasStabilityProfile;
 
@@ -529,7 +530,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             rowId: savedRowId,
             pageId: 'idri.LOT_SUMMARY'
         });
-        this.showMsg("Formulation : <a href='" + localHref + "'>" + Ext4.htmlEncode(obj.formulation.batch) + "</a> has been " + (this.isUpdate ? "updated." : "created."), false);
+        this.showMsg("Formulation : <a href='" + localHref + "'>" + Ext4.htmlEncode(formulation.batch) + "</a> has been " + (this.isUpdate ? "updated." : "created."), false);
 
         /* reset back to the initial state */
         this.getSubmitBtn().setText('Create');
@@ -537,75 +538,48 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         this.hasStabilityProfile = false;
         this.getForm().getForm().reset();
         this.resetMaterials();
+        this._loadStores();
+        this.getEl().unmask();
 
-        /* reload the stores to pickup latest formulation information */
-        this._loadStores(function() {
-
-            if (onStability) {
-                if (hasProfile) {
-                    Ext.Msg.show({
-                        title: 'Stability Profile',
-                        msg: 'Would you like to change the Stability Profile?<br/>Note, changing the Stability Profile will delete all tasks and create new ones.',
-                        buttons: Ext.Msg.YESNO,
-                        fn: function(id) {
-                            if (id == 'yes') {
-                                this.showTaskWindow(obj.formulation);
-                            }
-                        },
-                        icon: Ext.MessageBox.QUESTION,
-                        scope: this
-                    });
-                }
-                else {
-                    this.informStabilityGroup(obj, localHref);
-                    this.showTaskWindow(obj.formulation);
-                }
-            }
-            else if (hasProfile) {
+        if (onStability) {
+            if (hasProfile) {
                 Ext.Msg.show({
-                    title: 'Removed From Stability Watch',
-                    msg: 'This formulation was taken off stability watch. Would you like to remove related tasks?',
+                    title: 'Stability Profile',
+                    msg: 'Would you like to change the Stability Profile?<br/>Note, changing the Stability Profile will delete all tasks and create new ones.',
                     buttons: Ext.Msg.YESNO,
-                    fn: function (id) {
+                    fn: function(id) {
                         if (id == 'yes') {
-                            var stabilityStore = this.getStabilityStore();
-                            var taskListStore = this.getTaskListStore();
-
-                            var removeTasks = function() {
-                                var removed = [];
-
-                                Ext.each(taskListStore.getRange(), function(task) {
-                                    if (task.get('lotNum') === savedRowId) {
-                                        removed.push(task);
-                                    }
-                                });
-
-                                if (removed.length) {
-                                    taskListStore.remove(removed);
-                                    taskListStore.sync();
-                                }
-                            };
-
-                            var stabilityProfile = stabilityStore.findRecord('lotNum', savedRowId);
-                            if (stabilityProfile) {
-                                stabilityStore.remove(stabilityProfile);
-                                stabilityStore.sync({
-                                    success: function() {
-                                        removeTasks.call(this);
-                                    },
-                                    scope: this
-                                });
-                            }
-                            else {
-                                removeTasks.call(this);
-                            }
+                            this.showTaskWindow(formulation);
                         }
                     },
                     icon: Ext.MessageBox.QUESTION,
                     scope: this
                 });
             }
-        }, this);
+            else {
+                this.showTaskWindow(formulation);
+                this.informStabilityGroup(formulation, localHref);
+            }
+        }
+    },
+
+    onSaveFormulationFailure : function(response) {
+
+        if (response && response.responseText) {
+            var decode = Ext.decode(response.responseText);
+            if (decode) {
+                if (decode.errors) {
+                    this.showMsg(decode.errors[0].message, true);
+                    return;
+                }
+                else if (decode.exception) {
+                    this.showMsg(decode.exception, true);
+                    return;
+                }
+            }
+        }
+
+        this.showMsg('Failed to Save.', true);
     },
 
     showTaskWindow : function(formulation) {
@@ -628,6 +602,55 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                 }],
                 autoShow: true
             });
+        });
+    },
+
+    removeStabilityWatch : function(formulation, callback, scope) {
+
+        /* Get all associated tasks */
+        LABKEY.Query.selectRows({
+            schemaName: 'lists',
+            queryName: 'TaskList',
+            filterArray: [
+                LABKEY.Filter.create('lotNum', formulation.rowID)
+            ],
+            success: function(data) {
+
+                /* Clear stability profile */
+                var stabilityStore = this.getStabilityStore();
+                var stabilityProfile = stabilityStore.findRecord('lotNum', formulation.rowID);
+                if (stabilityProfile) {
+                    stabilityStore.remove(stabilityProfile);
+                    stabilityStore.sync();
+                }
+
+                /* Delete associated tasks */
+                if (data && data.rows.length > 0) {
+                    LABKEY.Query.deleteRows({
+                        schemaName: 'lists',
+                        queryName: 'TaskList',
+                        rows: data.rows,
+                        success: function() {
+                            if (Ext.isFunction(callback)) {
+                                callback.call(scope || this, formulation);
+                            }
+                        },
+                        failure: function() {
+                            this.showMsg('Failed to delete from lists.TaskList. Unable to delete stability profile.', true);
+                        },
+                        scope: this
+                    });
+                }
+                else {
+                    if (Ext.isFunction(callback)) {
+                        callback.call(scope || this, formulation);
+                    }
+                }
+            },
+            failure: function() {
+                this.showMsg('Failed to query lists.TaskList. Unable to delete stability profile.', true);
+            },
+            scope: this
         });
     },
 
@@ -684,7 +707,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         }, this);
     },
 
-    informStabilityGroup : function(obj, localHref) {
+    informStabilityGroup : function(formulation, localHref) {
         this.resolveStabilityUsers(function(emails) {
 
             if (Ext.isArray(emails) && emails.length) {
@@ -696,7 +719,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
                 var emailContent = [
                     '<h4>Stability Review Requested</h4>',
-                    'Formulation : <a href=\"' + link + '\">' + Ext4.htmlEncode(obj.formulation.batch) + '</a> has been processed.',
+                    'Formulation : <a href=\"' + link + '\">' + Ext4.htmlEncode(formulation.batch) + '</a> has been processed.',
                     '<br/><br/>IDRI LabKey Administration Team'
                 ].join('');
 
@@ -836,6 +859,10 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         else {
             this.showMsg("> Please correct the following errors.", true);
             return false;
+        }
+
+        if (this.isUpdate) {
+            insertFormulation['rowID'] = this.lastChecked;
         }
 
         /* remap known fields */

@@ -8,17 +8,14 @@ var _searchStatus = 'SearchStatusDiv';
 
 function resolveView(queryString)
 {
-    if(queryString.length > 0)
-    {
-        if(/^IRM\-?\s*\d{1,4}\s*$/.test(queryString))
-        {
+    if (queryString.length > 0) {
+        if (/^IRM\-?\s*\d{1,4}\s*$/.test(queryString)) {
             return "RM";
         }
-        else if(/(TD|QF|QD|QG)\d{1,3}\s*$/.test(queryString))
-        {
+        else if (/(TD|QF|QD|QG|QH)\d{1,3}\s*$/.test(queryString)) {
             return "FORMULATION";
         }
-        else{
+        else {
             return "COMPOUND";
         }
     }

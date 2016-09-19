@@ -26,28 +26,17 @@ import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerFilter;
-import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
-import org.labkey.api.exp.api.ExpMaterial;
-import org.labkey.api.exp.api.ExpRun;
-import org.labkey.api.exp.api.ExpSampleSet;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpDataTable;
-import org.labkey.api.exp.query.ExpMaterialTable;
 import org.labkey.api.exp.query.ExpSchema;
-import org.labkey.api.exp.query.SamplesSchema;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineService;
-import org.labkey.api.query.FieldKey;
-import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.query.QueryView;
-import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
@@ -72,11 +61,9 @@ import org.springframework.web.servlet.ModelAndView;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -161,7 +148,7 @@ public class idriController extends SpringActionController
                 {
                     String legalName = m.getMaterialName().replace("-","");
 
-                    // recurisely build other formulations
+                    // recursively build other formulations
                     if (idriManager.getMaterialType(m.getMaterialName()).equals("aggregate"))
                         getFormulationGraph(m.getMaterialName());
 
@@ -236,9 +223,9 @@ public class idriController extends SpringActionController
                 errors.reject(ERROR_MSG, "Formulation Provided does not have a lot name.");
 
             String batch = _formulation.getBatch();
-            if (!batch.startsWith("QD") && !batch.startsWith("QF") && !batch.startsWith("QG") && !batch.startsWith("TD"))
+            if (!batch.startsWith("QD") && !batch.startsWith("QF") && !batch.startsWith("QG") && !batch.startsWith("QH") && !batch.startsWith("TD"))
             {
-                errors.reject(ERROR_MSG, "Formulations must start TD, QD, QF, or QG.");
+                errors.reject(ERROR_MSG, "Formulations must start TD, QD, QF, QG, or QH.");
             }
 
             validateSourceMaterials(errors);
@@ -319,12 +306,15 @@ public class idriController extends SpringActionController
         public ApiResponse execute(MaterialTypeForm form, BindException errors) throws Exception
         {
             ApiSimpleResponse resp = new ApiSimpleResponse();
-            String formulationName = form.getMaterialName();
 
-            JSONObject formulation = idriManager.getFormulation(formulationName).toJSON();
+            Formulation formulation = idriManager.getFormulation(form.getMaterialName());
 
-            resp.put("formulation", formulation);
-            resp.put("success", true);
+            if (formulation != null)
+            {
+                resp.put("formulation", formulation.toJSON());
+            }
+
+            resp.put("success", formulation != null);
             return resp;
         }
     }
@@ -401,7 +391,7 @@ public class idriController extends SpringActionController
 
             _formulation = idriManager.getFormulation(form.getRowId());
 
-            JspView view = new JspView("/org/labkey/idri/view/formulationDetails.jsp", form);
+            JspView view = new JspView<>("/org/labkey/idri/view/formulationDetails.jsp", form);
             view.setFrame(WebPartView.FrameType.NONE);
             vbox.addView(view);
 
@@ -413,189 +403,6 @@ public class idriController extends SpringActionController
         {
             return root.addChild("Formulation " + _formulation.getBatch());
         }
-    }
-
-    /* Copied from ExperimentController */
-    private boolean isUnknownMaterial(ExpMaterial material)
-    {
-        return "Unknown".equals(material.getName());
-    }
-
-    private List<ExpMaterial> removeUnknownMaterials(Iterable<ExpMaterial> materials)
-    {
-        // Filter out the generic unknown material, which is just a placeholder and doesn't represent a real
-        // parent
-        ArrayList<ExpMaterial> result = new ArrayList<>();
-        for (ExpMaterial material : materials)
-        {
-            if (!isUnknownMaterial(material))
-            {
-                result.add(material);
-            }
-        }
-        return result;
-    }
-
-    private Set<ExpMaterial> getParentMaterials(ExpMaterial _material)
-    {
-        if (isUnknownMaterial(_material))
-        {
-            return Collections.emptySet();
-        }
-        List<ExpRun> runsToInvestigate = new ArrayList<>();
-        ExpRun parentRun = _material.getRun();
-        if (parentRun != null)
-        {
-            runsToInvestigate.add(parentRun);
-        }
-        Set<ExpRun> investigatedRuns = new HashSet<>();
-        final Set<ExpMaterial> parentMaterials = new HashSet<>();
-        while (!runsToInvestigate.isEmpty())
-        {
-            ExpRun predecessorRun = runsToInvestigate.remove(0);
-            investigatedRuns.add(predecessorRun);
-
-            for (ExpData d : predecessorRun.getDataInputs().keySet())
-            {
-                ExpRun dRun = d.getRun();
-                if (dRun != null && !investigatedRuns.contains(dRun))
-                {
-                    runsToInvestigate.add(dRun);
-                }
-            }
-            for (ExpMaterial m : removeUnknownMaterials(predecessorRun.getMaterialInputs().keySet()))
-            {
-                ExpRun mRun = m.getRun();
-                if (mRun != null)
-                {
-                    if (!investigatedRuns.contains(mRun))
-                    {
-                        runsToInvestigate.add(mRun);
-                    }
-                }
-                parentMaterials.add(m);
-            }
-        }
-        return parentMaterials;
-    }
-
-    private Set<ExpMaterial> getChildMaterials(ExpMaterial _material) throws SQLException
-    {
-        if (isUnknownMaterial(_material))
-        {
-            return Collections.emptySet();
-        }
-        List<ExpRun> runsToInvestigate = new ArrayList<>();
-        runsToInvestigate.addAll(ExperimentService.get().getRunsUsingMaterials(_material.getRowId()));
-        runsToInvestigate.remove(_material.getRun());
-        Set<ExpMaterial> result = new HashSet<>();
-        Set<ExpRun> investigatedRuns = new HashSet<>();
-
-        while (!runsToInvestigate.isEmpty())
-        {
-            ExpRun childRun = runsToInvestigate.remove(0);
-            if (!investigatedRuns.contains(childRun))
-            {
-                investigatedRuns.add(childRun);
-
-                List<ExpMaterial> materialOutputs = removeUnknownMaterials(childRun.getMaterialOutputs());
-                result.addAll(materialOutputs);
-
-                for (ExpMaterial materialOutput : materialOutputs)
-                {
-                    runsToInvestigate.addAll(ExperimentService.get().getRunsUsingMaterials(materialOutput.getRowId()));
-                }
-
-                runsToInvestigate.addAll(ExperimentService.get().getRunsUsingDatas(childRun.getDataOutputs()));
-            }
-        }
-        result.remove(_material);
-        return result;
-    }
-
-    private QueryView createMaterialsView(final Set<ExpMaterial> materials, String dataRegionName, String title)
-    {
-        // Strip out materials in folders that the user can't see - this lets us avoid a container filter that
-        // enforces the permissions when we do the query
-        String typeName = null;
-        boolean sameType = true;
-        for (Iterator<ExpMaterial> iter = materials.iterator(); iter.hasNext(); )
-        {
-            ExpMaterial material = iter.next();
-            if (!material.getContainer().hasPermission(getUser(), ReadPermission.class))
-            {
-                iter.remove();
-            }
-
-            String type = material.getCpasType();
-            if (sameType)
-            {
-                if (typeName == null)
-                    typeName = type;
-                else if (!typeName.equals(type))
-                {
-                    typeName = null;
-                    sameType = false;
-                }
-            }
-        }
-        final ExpSampleSet ss;
-        if (sameType && typeName != null && !"Material".equals(typeName) && !"Sample".equals(typeName))
-            ss = ExperimentService.get().getSampleSet(typeName);
-        else
-            ss = null;
-
-        QuerySettings settings = new QuerySettings(getViewContext(), dataRegionName);
-        UserSchema schema;
-        if (ss == null)
-        {
-            schema = new ExpSchema(getUser(), getContainer());
-            settings.setQueryName(ExpSchema.TableType.Materials.toString());
-        }
-        else
-        {
-            schema = new SamplesSchema(getUser(), getContainer());
-            settings.setQueryName(ss.getName());
-        }
-        settings.setSchemaName(schema.getSchemaName());
-        QueryView materialsView = new QueryView(schema, settings, null)
-        {
-            protected TableInfo createTable()
-            {
-                ExpMaterialTable table = ExperimentService.get().createMaterialTable(ExpSchema.TableType.Materials.toString(), getSchema());
-                table.setMaterials(materials);
-                table.populate(ss, false);
-                // We've already set an IN clause that restricts us to showing just data that we have permission
-                // to view
-                table.setContainerFilter(ContainerFilter.EVERYTHING);
-
-                List<FieldKey> defaultVisibleColumns = new ArrayList<>();
-                if (ss == null)
-                {
-                    // The table columns without any of the active SampleSet property columns
-                    defaultVisibleColumns.add(FieldKey.fromParts(ExpMaterialTable.Column.Name));
-                    defaultVisibleColumns.add(FieldKey.fromParts(ExpMaterialTable.Column.SampleSet));
-                    defaultVisibleColumns.add(FieldKey.fromParts(ExpMaterialTable.Column.Flag));
-                }
-                else
-                {
-                    defaultVisibleColumns.addAll(table.getDefaultVisibleColumns());
-                }
-                defaultVisibleColumns.add(FieldKey.fromParts(ExpMaterialTable.Column.Created));
-                defaultVisibleColumns.add(FieldKey.fromParts(ExpMaterialTable.Column.CreatedBy));
-                defaultVisibleColumns.add(FieldKey.fromParts(ExpMaterialTable.Column.Run));
-                table.setDefaultVisibleColumns(defaultVisibleColumns);
-                return table;
-            }
-        };
-        materialsView.disableContainerFilterSelection();
-        materialsView.setShowBorders(true);
-        materialsView.setShowDetailsColumn(false);
-        materialsView.setShowExportButtons(false);
-        materialsView.setShadeAlternatingRows(true);
-        materialsView.setButtonBarPosition(DataRegion.ButtonBarPosition.BOTTOM);
-        materialsView.setTitle(title);
-        return materialsView;
     }
 
     /**
@@ -736,9 +543,7 @@ public class idriController extends SpringActionController
                 }
             }
 
-            ApiSimpleResponse resp = new ApiSimpleResponse(props);
-
-            return resp;
+            return new ApiSimpleResponse(props);
         }
     }
 }

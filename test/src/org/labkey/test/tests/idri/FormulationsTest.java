@@ -232,6 +232,8 @@ public class FormulationsTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText(FORMULATIONS_NAME));
         clickButton("New Formulation");
 
+        _ext4Helper.waitForMaskToDisappear();
+
         assertTextPresent(
                 "Formulation Type*",
                 "Stability Watch",
@@ -292,6 +294,7 @@ public class FormulationsTest extends BaseWebDriverTest
         waitForText(WAIT_FOR_JAVASCRIPT, "has been created.");
 
         // Confirm stability email
+        _ext4Helper.waitForMaskToDisappear();
         goToModule("Dumbster");
         click(Locator.linkWithText("Formulation added on LabKey"));
         assertElementPresent(Locator.linkWithText(FORMULATION));

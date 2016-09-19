@@ -187,7 +187,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
         if (!this.northpanel) {
             this.northpanel = Ext4.create('Ext.panel.Panel', {
                 region: 'north',
-                height: 240,
+                height: 285,
                 items: [{
                     xtype: 'panel',
                     columnWidth: 0.5,
@@ -277,6 +277,15 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                                 allowBlank: false,
                                 width: 120
                             }]
+                        },{
+                            id: 'dilfactorfield',
+                            xtype: 'numberfield',
+                            allowBlank: false,
+                            fieldLabel: 'Dilution Factor',
+                            hideTrigger: true,
+                            name: 'dilution',
+                            validateOnBlur: false,
+                            value: 20
                         },{
                             id: 'avgconcfield',
                             xtype: 'numberfield',
@@ -519,9 +528,8 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
 
                 var formStore = LABKEY.hplc.SampleCreator.getFormulationStore();
                 var formIdx = formStore.findExact('RowId', parseInt(values['formulationrowid']));
-                var formulationName = formStore.getAt(formIdx).get('Name');
 
-                run.name = formulationName;
+                run.name = formStore.getAt(formIdx).get('Name');
 
                 //
                 // Set the run properties
@@ -547,14 +555,13 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 //
                 // Set the run.dataRows
                 //
-                var samples = this.qcresultview.getStore().getRange();
                 var dataRows = [];
 
-                Ext4.each(samples, function(sample) {
+                Ext4.each(this.qcresultview.getStore().getRange(), function(sample) {
                     if (sample.get('include')) {
                         dataRows.push({
                             Name: sample.get('name'),
-                            Dilution: 20,
+                            Dilution: values['dilution'], // dilution factor is shared
                             Concentration: sample.get('concentration'),
                             Xleft: sample.get('xleft'),
                             XRight: sample.get('xright'),
@@ -772,6 +779,13 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
             if (Ext4.isNumber(standardRowId)) {
                 var idx = standardStore.findExact('Key', standardRowId);
 
+                var dilutionFactor = Ext4.getCmp('dilfactorfield').getValue();
+
+                if (!dilutionFactor) {
+                    Ext4.Msg.alert('Dilution Factor', 'Please set a dilution factor.');
+                    return;
+                }
+
                 var standardModel = standardStore.getAt(idx);
                 var a = standardModel.get('b2');
                 var b = standardModel.get('b1');
@@ -793,7 +807,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                         var _c = c - response;
 
                         var x = LABKEY.hplc.Stats.getQuadratic(a, b, _c);
-                        var nonDiluted = x[0] * 20; // account for dilution ratio
+                        var nonDiluted = x[0] * dilutionFactor; // account for dilution ratio
                         result.set('concentration', nonDiluted);
                         concs.push(nonDiluted);
                     }
@@ -811,7 +825,7 @@ Ext4.define('LABKEY.hplc.SampleCreator', {
                 Ext4.getCmp('submitactionbtn').setDisabled(false);
             }
             else {
-                alert('Please select a standard to base these samples on.');
+                Ext4.Msg.alert('Choose a standard', 'Please select a standard to base these samples on. If you have not yet defined any standards click "Define Standards".');
             }
         }, this);
     },

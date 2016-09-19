@@ -55,7 +55,6 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
 
     initComponent : function() {
 
-        SC = this;
         this.loadContext(this.context);
 
         this.items = [
@@ -134,6 +133,10 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                         },{
                             filterFn: function(item) {
                                 return item.get('name').indexOf('QG') == -1;
+                            }
+                        },{
+                            filterFn: function(item) {
+                                return item.get('name').indexOf('QH') == -1;
                             }
                         }]);
                     },
@@ -943,8 +946,7 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
     },
 
     clearCalibrationCurve : function() {
-        var el = Ext4.get('stdcurveplot');
-        el.update('');
+        Ext4.get('stdcurveplot').update('');
     },
 
     clearStandardViewer : function() {

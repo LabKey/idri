@@ -41,6 +41,12 @@
             filename = filename.substring(2, filename.length);
             filename = '3' + filename;
         }
+        else if (/^QH/.test(filename))
+        {
+            // QH is used as 4000-4999 test runs.
+            filename = filename.substring(2, filename.length);
+            filename = '4' + filename;
+        }
 
         return filename;
     };
