@@ -20,8 +20,7 @@ import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
-import org.labkey.test.categories.Assays;
-import org.labkey.test.categories.CustomModules;
+import org.labkey.test.categories.Git;
 import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LabKeyExpectedConditions;
@@ -33,7 +32,7 @@ import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.List;
 
-@Category({CustomModules.class, Assays.class})
+@Category({Git.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
     private ApiPermissionsHelper _permissionsHelper = new ApiPermissionsHelper(this);
