@@ -3,11 +3,10 @@
     </library>
     <dependencies>
         <dependency path="vis/vis" />
-        <dependency path="signaldata/regression.js"/>
-        <dependency path="signaldata/Stats.js"/>
-        <dependency path="signaldata/DataService.js"/>
-        <dependency path="signaldata/ProvisionalRun.js"/>
-        <dependency path="signaldata/SpectrumPlot.js"/>
-
+        <dependency path="signaldata/QCView/regression.js"/>
+        <dependency path="signaldata/QCView/Stats.js"/>
+        <dependency path="signaldata/QCView/DataService.js"/>
+        <dependency path="signaldata/QCView/ProvisionalRun.js"/>
+        <dependency path="signaldata/QCView/SpectrumPlot.js"/>
     </dependencies>
 </libraries>
