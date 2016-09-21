@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
+import org.labkey.test.ModulePropertyValue;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.Git;
 import org.labkey.test.categories.SignalData;
@@ -814,5 +815,7 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Save", 0);
         waitForText(10000, "Save successful.");
         clickButton("Save & Close");
+
+        setModuleProperties(Collections.singletonList(new ModulePropertyValue("SignalData", "/" + getProjectName(), "QCViewProviderModule", "idri")));
     }
 }
