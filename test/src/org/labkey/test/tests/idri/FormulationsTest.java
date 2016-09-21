@@ -13,27 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.test.tests.idri;
+        package org.labkey.test.tests.idri;
 
+        import com.google.common.base.Function;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
-import org.labkey.test.categories.Assays;
-import org.labkey.test.categories.CustomModules;
+import org.labkey.test.categories.Git;
+import org.labkey.test.categories.SignalData;
+import org.labkey.test.components.PropertiesEditor;
+import org.labkey.test.pages.AssayDesignerPage;
+import org.labkey.test.params.FieldDefinition;
 import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
+import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LabKeyExpectedConditions;
 import org.labkey.test.util.LogMethod;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.List;
 
-@Category({CustomModules.class, Assays.class})
+@Category({SignalData.class, Git.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
     private ApiPermissionsHelper _permissionsHelper = new ApiPermissionsHelper(this);
@@ -87,6 +95,13 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String VIS_ASSAY      = "Visual";
     private static final String VIS_ASSAY_DESC = "IDRI Visual Data.";
 
+    private static final String HPLC_ASSAY = "HPLC";
+    private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
+    private static final String PROVISIONAL_HPLC_RUN = "2014_9_19_15_53_20";
+    private static final String HPLC_PIPELINE_PATH = TestFileUtils.getLabKeyRoot() + "/server/customModules/idri/test/sampledata/pHPLC";
+    private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
+    private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
+
     @Override
     public List<String> getAssociatedModules()
     {
@@ -105,21 +120,45 @@ public class FormulationsTest extends BaseWebDriverTest
         return BrowserType.CHROME;
     }
 
-    @Test
-    public void testSteps()
+    @BeforeClass
+    public static void initTest()
+    {
+        FormulationsTest init = (FormulationsTest)getCurrentTest();
+        init.doSetup();
+    }
+
+    private void doSetup()
     {
         setupFormulationsProject();
         setupLists();
         setupCompounds();
         setupRawMaterials();
-
         insertFormulation();
+    }
+
+    @Test
+    public void testParticleSize()
+    {
         defineParticleSizeAssay();
         uploadParticleSizeData();
+    }
 
+    @Test
+    public void testVisualAssay()
+    {
         defineVisualAssay();
         uploadVisualAssayData();
         validateVisualAssayData();
+    }
+
+    @Test
+    public void testProvisionalHPLC()
+    {
+        defineProvisionalHPLCAssay();
+        defineHPLCAssay();
+
+        uploadProvisionalHPLCData();
+        qualityControlHPLCData();
     }
 
     @LogMethod
@@ -182,7 +221,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
     private void setCompoundMaterial(String materialName, int rowIdx)
     {
-        DataRegionTable table = new DataRegionTable("Material", this);
+        DataRegionTable table = new DataRegionTable("Material", this.getDriver());
 
         clickAndWait(table.link(rowIdx, 0));
         selectOptionByText(Locator.tagWithName("select", "quf_CompoundLookup"), materialName);
@@ -332,14 +371,9 @@ public class FormulationsTest extends BaseWebDriverTest
         assertTextPresent("Must have working sets of size");
 
         File dataRoot = TestFileUtils.getSampleData("particleSize");
-        File[] allFiles = dataRoot.listFiles(new FilenameFilter()
-        {
-            public boolean accept(File dir, String name)
-            {
-                return name.matches("^TD789.xls");
-            }
-        });
+        File[] allFiles = dataRoot.listFiles((dir, name) -> name.matches("^TD789.xls"));
 
+        assert allFiles != null;  //Verify files found
         for (File file : allFiles)
         {
             log("uploading " + file.getName());
@@ -449,5 +483,269 @@ public class FormulationsTest extends BaseWebDriverTest
                 "Color changed.",
                 TRICKY_CHARACTERS,
                 "This is a passing comment.");
+    }
+
+    @LogMethod
+    protected void defineProvisionalHPLCAssay()
+    {
+        goToProjectHome();
+
+        log("Defining Provisional HPLC Assay");
+        clickAndWait(Locator.linkWithText("Manage Assays"));
+        clickButton("New Assay Design");
+
+        assertTextPresent("High performance liquid chromatography assay");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Signal Data"));
+        clickButton("Next");
+
+        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
+        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), PROVISIONAL_HPLC_ASSAY);
+        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), PROVISIONAL_HPLC_ASSAY_DESC);
+        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+
+        //Add assay field
+        AssayDesignerPage page = new AssayDesignerPage(this.getDriver());
+        addProvisionalHPLCDataFields(page);
+        addProvisionalHPLCRunFields(page);
+
+        //Verify pre-configured fields are present
+        assertTextPresent(
+                // Run Properties
+                "RunIdentifier",
+                // Result Properties
+                "DataFile");
+
+        // Make Runs/Results editable
+        checkCheckbox(Locator.checkboxByName("editableRunProperties"));
+        checkCheckbox(Locator.checkboxByName("editableResultProperties"));
+
+        clickButton("Save", 0);
+        waitForText(10000, "Save successful.");
+        clickButton("Save & Close");
+
+        // Set pipeline path
+        setPipelineRoot(HPLC_PIPELINE_PATH);
+    }
+
+    private void addProvisionalHPLCDataFields(AssayDesignerPage page)
+    {
+        PropertiesEditor resultFields = page.fields("Result Fields");
+
+        resultFields.addField(
+                new FieldDefinition("Sample")
+                        .setLabel("Related Sample")
+                        .setRequired(false)
+                        .setType(FieldDefinition.ColumnType.String)
+        );
+
+        resultFields.addField(
+                new FieldDefinition("Dilution")
+                        .setLabel("Dilution Factor")
+                        .setRequired(false)
+                        .setType(FieldDefinition.ColumnType.Integer)
+        );
+
+        resultFields.addField(
+                new FieldDefinition("Diluent")
+                        .setRequired(false)
+                        .setType(FieldDefinition.ColumnType.String)
+        );
+
+        resultFields.addField(
+                new FieldDefinition("TestType")
+                        .setLabel("Type")
+//                        .setRequired(true)
+//                        .setDescription("'SMP' for samples, 'STD' for standards")
+                        .setType(FieldDefinition.ColumnType.String)
+        );
+
+    }
+
+    private void addProvisionalHPLCRunFields(AssayDesignerPage page)
+    {
+        page.runFields().addField(
+                new FieldDefinition("Machine")
+                        .setLabel("Machine Name")
+                        .setRequired(false)
+                        .setType(FieldDefinition.ColumnType.String)
+        );
+
+        page.runFields().addField(
+                new FieldDefinition("Published")
+                        .setLabel("Published")
+                        .setRequired(false)
+                        .setType(FieldDefinition.ColumnType.Boolean)
+        );
+
+        page.runFields().addField(
+                new FieldDefinition("Method")
+                        .setRequired(false)
+                        .setType(FieldDefinition.ColumnType.File)
+        );
+    }
+
+    @LogMethod
+    protected void uploadProvisionalHPLCData()
+    {
+        beginAt("/" + getProjectName() + "/idri-mockHPLCWatch.view");
+        waitForText("Ready to Load");
+        click(Locator.tagWithClass("input", "idri-run-btn"));
+        waitForText("Test Run Upload Complete");
+        sleep(1500);
+    }
+
+    @LogMethod
+    protected void qualityControlHPLCData()
+    {
+        String standardName = "LGCTest";
+        String[] standards = {"LGC20371", "LGC40060", "LGC60342", "LGC80021", "LGC10030"};
+        String[] concs = {"20", "40", "60", "80", "100"};
+        String left = "12"; String right = "15"; String base = "40";
+
+        String[] samples = {"QD123-11", "QD123-24", "QD123-31"};
+        String sleft = "14.5"; String sright = "16"; String sbase = "45";
+
+        //
+        // Start QC Process
+        //
+        goToProjectHome();
+
+        click(Locator.linkWithText(PROVISIONAL_HPLC_ASSAY));
+
+        DataRegionTable runs = new DataRegionTable("aqwp101", this.getDriver());
+//        runs.checkCheckbox(0);
+        runs.checkAll();
+        clickButton("View Selected Runs");
+
+        log("Start the Qualitative Analysis");
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(samples[0]));
+        clickButton("Define Standards", 0);
+        sleep(1000);
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(standards[0]));
+
+        for (String std : standards)
+        {
+            // check in concentration order
+            _ext4Helper.checkGridRowCheckbox(std);
+        }
+
+        for (int i=0; i < standards.length; i++)
+        {
+            Locator.XPathLocator runRow = Locator.tagWithAttribute("tr", "modelname", standards[i]);
+            setFormElement(runRow.append(Locator.input("concentration")), concs[i]);
+            if (i == 0)
+            {
+                setFormElement(runRow.append(Locator.input("xleft")), left);
+                setFormElement(runRow.append(Locator.input("xright")), right);
+                setFormElement(runRow.append(Locator.input("base")), base);
+            }
+        }
+
+        click(Locator.button("C").index(0));
+        waitForText("to all other selections?");
+        clickButton("Yes", 0);
+
+        // ensure the copy gets all the way to the last row
+        waitForElement(Locator.tagWithAttribute("tr", "modelname", standards[standards.length-1]).append(Locator.input("base").withAttribute("value", base)));
+
+        setFormElement(Locator.input("standardname"), standardName);
+        clickButton("Calibration Curve", 0);
+        waitForElement(Locator.id("standardrsquared-inputEl").containing("0.99"));
+
+        clickButton("Save", 0);
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(standardName));
+
+        log("Quality Control Samples");
+        clickButton("Return to Samples", 0);
+        waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(samples[0]));
+
+        for (String samp : samples)
+        {
+            _ext4Helper.checkGridRowCheckbox(samp);
+        }
+
+        clickButton("Start QC", 0);
+        waitForElementToDisappear(Locator.id("sampleinputs").notHidden());
+
+        _ext4Helper.selectComboBoxItem(Locator.id("compoundlist"), "Squawk");
+        _ext4Helper.selectComboBoxItem(Locator.id("standardslist"), standardName);
+        _ext4Helper.selectComboBoxItem(Locator.id("formulationlist"), FORMULATION);
+        _ext4Helper.selectComboBoxItem(Locator.id("temperaturelist"), "5");
+        _ext4Helper.selectComboBoxItem(Locator.id("timelist"), "T=0");
+
+        Locator.XPathLocator firstSampleRow = Locator.tagWithAttribute("tr", "modelname", samples[0]);
+        setFormElement(firstSampleRow.append(Locator.input("xleft")), sleft);
+        setFormElement(firstSampleRow.append(Locator.input("xright")), sright);
+        setFormElement(firstSampleRow.append(Locator.input("base")), sbase);
+        click(Locator.button("C").index(0));
+        waitForText("to all other selections?");
+        clickButton("Yes", 0);
+
+        // ensure the copy gets all the way to the last row
+        waitForElement(Locator.tagWithAttribute("tr", "modelname", samples[samples.length-1]).append(Locator.input("base").withAttribute("value", sbase)));
+
+        clickButton("Calculate", 0);
+        shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("avgconc"), "-24.")); // -24.76
+        shortWait().until(ExpectedConditions.textToBePresentInElementValue(By.name("stddev"), "10.")); // 10.69
+
+        waitForSampleFormValidation();
+        waitAndClick(Ext4Helper.Locators.ext4Button("Submit Analysis").enabled());
+        waitForText("successfully");
+        waitForElementToDisappear(Ext4Helper.Locators.ext4Button("Submit Analysis").enabled());
+    }
+
+    private void waitForSampleFormValidation()
+    {
+        shortWait().until(new Function<WebDriver, Boolean>()
+        {
+            @Override
+            public Boolean apply(WebDriver webDriver)
+            {
+                return (Boolean)executeScript("return Ext4.getCmp('sampleform').isValid();");
+            }
+
+            @Override
+            public String toString()
+            {
+                return "sample form to be valid";
+            }
+        });
+    }
+
+    @LogMethod
+    protected void defineHPLCAssay()
+    {
+        goToProjectHome();
+
+        log("Defining HPLC Assay");
+        clickAndWait(Locator.linkWithText("Manage Assays"));
+        clickButton("New Assay Design");
+
+        assertTextPresent("High performance liquid chromatography assay");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "HPLC"));
+        clickButton("Next");
+
+        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
+        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), HPLC_ASSAY);
+        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), HPLC_ASSAY_DESC);
+        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+
+        assertTextPresent(
+                // Batch Properties
+                "No fields have been defined.",
+                // Run Properties
+                "LotNumber",
+                "CompoundNumber",
+                // Result Properties
+                "Dilution", "FilePath",
+                "Concentration");
+
+        // Make Runs/Results editable
+        checkCheckbox(Locator.checkboxByName("editableRunProperties"));
+        checkCheckbox(Locator.checkboxByName("editableResultProperties"));
+
+        clickButton("Save", 0);
+        waitForText(10000, "Save successful.");
+        clickButton("Save & Close");
     }
 }
