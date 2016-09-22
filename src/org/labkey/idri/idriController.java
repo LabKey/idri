@@ -46,6 +46,7 @@ import org.labkey.api.util.URLHelper;
 import org.labkey.api.util.UnexpectedException;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
@@ -385,11 +386,17 @@ public class idriController extends SpringActionController
         private Formulation _formulation;
 
         @Override
+        public void validate(ExpObjectForm form, BindException errors)
+        {
+            _formulation = idriManager.getFormulation(form.getRowId());
+            if (_formulation == null)
+                throw new NotFoundException("Formulation not found.");
+        }
+
+        @Override
         public ModelAndView getView(ExpObjectForm form, BindException errors) throws Exception
         {
             VBox vbox = new VBox();
-
-            _formulation = idriManager.getFormulation(form.getRowId());
 
             JspView view = new JspView<>("/org/labkey/idri/view/formulationDetails.jsp", form);
             view.setFrame(WebPartView.FrameType.NONE);
@@ -401,6 +408,9 @@ public class idriController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
+            if(_formulation != null)
+                return root;
+
             return root.addChild("Formulation " + _formulation.getBatch());
         }
     }
