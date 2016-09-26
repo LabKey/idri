@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-        package org.labkey.test.tests.idri;
+package org.labkey.test.tests.idri;
 
-        import com.google.common.base.Function;
+import com.google.common.base.Function;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
