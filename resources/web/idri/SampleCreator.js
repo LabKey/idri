@@ -33,11 +33,6 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                     queryName: 'Temperatures'
                 });
 
-                // doesn't currently work as the return value is of type string
-//                LABKEY.SignalData.SampleCreator.tempStore.on('load', function(s) {
-//                    s.sort('temperature', 'ASC');
-//                }, this, {single: true});
-
                 LABKEY.SignalData.SampleCreator.tempStore.load();
             }
             return LABKEY.SignalData.SampleCreator.tempStore;
@@ -640,6 +635,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                     scope: this
                 });
             },
+            failure: function() { alert('Failed to get batch and run data'); },
             scope: this
         });
     },
