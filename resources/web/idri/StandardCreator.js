@@ -578,11 +578,11 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
                                     schemaName: 'lists',
                                     queryName: 'HPLCStandardSource',
                                     rows: sd.rows,
-                                    success: function() { },
                                     failure: function() { alert('Failed to cleanup Lists.HPLCStandardSource'); }
                                 });
                             }
                         },
+                        failure: function() { alert('Failed to cleanup Lists.HPLCStandardSource'); },
                         scope: this
                     });
 
@@ -611,6 +611,9 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
                 else {
                     alert('Unable to find exact run.');
                 }
+            },
+            failure: function(){
+                alert('Failed to cleanup Lists.HPLCStandardSource');
             },
             scope: this
         });
