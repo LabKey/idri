@@ -87,7 +87,7 @@
         var assayId = <%=PageFlowUtil.jsString(formulation.getBatch())%>;
 
         function viewSpectrum(runId) {
-            HPLCService.getRun("assay.provisionalHPLC.pHPLC", runId, function(context) {
+            SignalDataService.getRun("assay.signalData.pHPLC", [runId], null, function(context) {
 
                 var _g;
                 var SHOW_ALL = false;
@@ -153,7 +153,7 @@
                                 xtype: 'grid',
                                 store: {
                                     xtype: 'store',
-                                    model: 'LABKEY.hplc.ProvisionalRun',
+                                    model: 'LABKEY.SignalData.ProvisionalRun',
                                     data: context.rawInputs
                                 },
                                 columns: [
@@ -189,7 +189,7 @@
                                         for (var d=0; d < provisionalRuns.length; d++) {
                                             var pr = provisionalRuns[d].get('expDataRun');
                                             if (pr) {
-                                                HPLCService.FileContentCache(pr, done, g);
+                                                SignalDataService.FileContentCache(pr, done, g);
                                             }
                                             else {
                                                 console.error('Failed to load expDataRun from provisional run.');

@@ -2,8 +2,6 @@
     <metadata>
         <tables xmlns="http://labkey.org/data/xml">
             <table tableName="pHPLCSummary" tableDbType="NOT_IN_DB">
-                <!--<insertUrl>/idri/createFormulation.view</insertUrl>-->
-                <!--<updateUrl>/idri/createFormulation.view?RowId=${RowId}</updateUrl>-->
                 <tableUrl>/idri/formulationDetails.view?pHPLCRun=${RowId}</tableUrl>
             </table>
         </tables>
