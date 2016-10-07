@@ -114,7 +114,7 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String VIS_OPTIONS_DATA = "White\tColor\ttrue\ttrue\nOpaque\tOpacity\ttrue\ttrue\nColorless\tColor\ttrue\ttrue\nGrowth/Contaminate\tPhase\tfalse\ttrue\n";
 
     private static final String HPLC_ASSAY = "HPLC";
-    private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
+    private static final String PROVISIONAL_HPLC_ASSAY = "provisionalHPLC";
     private static final String PROVISIONAL_HPLC_RUN = "2014_9_19_15_53_20";
     private static final String HPLC_PIPELINE_PATH = TestFileUtils.getLabKeyRoot() + "/server/optionalModules/idri/test/sampledata/pHPLC";
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
