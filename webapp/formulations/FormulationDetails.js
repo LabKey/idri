@@ -174,11 +174,13 @@ function initFormulationDetails(assayId)
     buildPSReports('5C', assayId, 'aps', 'aps-report');
     buildPSReports('5C', assayId, 'nano', 'nano-report');
 
+    var protocolName = 'provisionalHPLC';
+
     //
     // Provisional HPLC
     //
     function viewSpectrum(runId) {
-        SignalDataService.getRun("assay.signalData.pHPLC", [runId], null, function(context) {
+        SignalDataService.getRun("assay.signalData." + protocolName, [runId], null, function(context) {
 
             var _g;
             var SHOW_ALL = false;
@@ -330,8 +332,8 @@ function initFormulationDetails(assayId)
 
     new LABKEY.QueryWebPart({
         renderTo: 'phplc-grid',
-        schemaName: 'idri',
-        queryName: 'pHPLCSummary',
+        schemaName: 'assay.signalData.' + protocolName,
+        queryName: 'dataSummary',
         frame: 'none',
         buttonBarPosition: 'none',
         showPagination: false,
