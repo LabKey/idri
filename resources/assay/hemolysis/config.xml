@@ -1,4 +1,0 @@
-<ap:provider xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
-    <ap:name>Hemolysis</ap:name>
-    <ap:description>Hemolysis Donor Time-Point Data.</ap:description>
-</ap:provider>
