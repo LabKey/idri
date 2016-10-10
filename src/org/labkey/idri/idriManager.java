@@ -748,7 +748,7 @@ public class idriManager
             list = listService.getList(c, "Temperatures");
             if (null == list)
             {
-                list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Varchar);
+                list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Integer);
                 list.setKeyName("temperature");
                 list.save(user);
             }
@@ -808,7 +808,7 @@ public class idriManager
                     addDomainLookupProperty(listDomain, "temperature", "Temp", PropertyType.STRING, c, "lists", "Temperatures");
                     addDomainLookupProperty(listDomain, "timepoint", "Timepoint", PropertyType.STRING, c, "lists", "Timepoints");
                     addDomainProperty(listDomain, "type", "formulation", PropertyType.STRING, c);
-                    addDomainProperty(listDomain, "typeof", "type", PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "adjuvant", "Adjuvant", PropertyType.STRING, c);
                     addDomainProperty(listDomain, "date", "Date Due", PropertyType.DATE_TIME, c);
                     addDomainProperty(listDomain, "comment", "comment", PropertyType.STRING, c);
                     addDomainProperty(listDomain, "complete", "Complete", PropertyType.BOOLEAN, c);
@@ -886,6 +886,23 @@ public class idriManager
                     addDomainProperty(listDomain, "fileName", null, PropertyType.STRING, c);
                     addDomainProperty(listDomain, "fileExt", null, PropertyType.STRING, c);
                     addDomainLookupProperty(listDomain, "standard", null, PropertyType.INTEGER, c, "lists", "HPLCStandard");
+                }
+                list.save(user);
+            }
+
+            // Create 'VisualOptions' list
+            list = listService.getList(c, "VisualOptions");
+            if (null == list)
+            {
+                list = listService.createList(c, "VisualOptions", ListDefinition.KeyType.AutoIncrementInteger);
+                list.setKeyName("Key");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "item", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "category", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "pass", null, PropertyType.BOOLEAN, c);
+                    addDomainProperty(listDomain, "fail", null, PropertyType.BOOLEAN, c);
                 }
                 list.save(user);
             }

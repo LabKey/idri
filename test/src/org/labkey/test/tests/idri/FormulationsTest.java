@@ -46,6 +46,7 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String TIME_LIST = "Timepoints";
     private static final String TYPES_LIST = "FormulationTypes";
     private static final String MATERIAL_TYPES_LIST = "MaterialTypes";
+    private static final String VIS_OPTIONS_LIST = "VisualOptions";
 
     // Name must be same as what is used as target stability group
     private static final String STABILITY_GROUP = "Stability";
@@ -86,6 +87,12 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String VIS_ASSAY      = "Visual";
     private static final String VIS_ASSAY_DESC = "IDRI Visual Data.";
 
+    private static final String VIS_INSPEC_ASSAY = "VisualInspection";
+    private static final String VIS_INSPEC_ASSAY_DESC = "Improved IDRI Visual Data.";
+
+    private static final String VIS_OPTIONS_HEADER = "Item\tCategory\tPass\tFail\n";
+    private static final String VIS_OPTIONS_DATA = "White\tColor\ttrue\ttrue\nOpaque\tOpacity\ttrue\ttrue\nColorless\tColor\ttrue\ttrue\nGrowth/Contaminate\tPhase\tfalse\ttrue\n";
+
     @Override
     public List<String> getAssociatedModules()
     {
@@ -119,6 +126,9 @@ public class FormulationsTest extends BaseWebDriverTest
         defineVisualAssay();
         uploadVisualAssayData();
         validateVisualAssayData();
+
+        defineVisualInspectionAssay();
+        uploadVisualInspectionAssayData();
     }
 
     @LogMethod
@@ -149,6 +159,7 @@ public class FormulationsTest extends BaseWebDriverTest
         loadList(TIME_LIST, TIME_HEADER + TIME_DATA);
         loadList(TYPES_LIST, TYPES_HEADER + TYPES_DATA);
         loadList(MATERIAL_TYPES_LIST, MTYPES_HEADER + MTYPES_DATA);
+        loadList(VIS_OPTIONS_LIST, VIS_OPTIONS_HEADER + VIS_OPTIONS_DATA);
     }
 
     private void loadList(String name, String tsvData)
@@ -380,6 +391,38 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @LogMethod
+    protected void defineVisualInspectionAssay()
+    {
+        goToProjectHome();
+
+        log("Defining Visual Inspection Assay");
+        clickAndWait(Locator.linkWithText("Manage Assays"));
+        clickButton("New Assay Design");
+
+        assertTextPresent("Visual Formulation Time-Point Data");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Visual Inspection"));
+        clickButton("Next");
+
+        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
+        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), VIS_INSPEC_ASSAY);
+        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), VIS_INSPEC_ASSAY_DESC);
+        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+
+        assertTextPresent(
+                // Batch Properties
+                "No fields have been defined.",
+                // Run Properties
+                "LotNumber",
+                // Result Properties
+                "Pass",
+                "Color",
+                "Phase");
+
+        clickButton("Save", 0);
+        waitForText(10000, "Save successful.");
+    }
+
+    @LogMethod
     protected void uploadVisualAssayData()
     {
         goToProjectHome();
@@ -434,6 +477,16 @@ public class FormulationsTest extends BaseWebDriverTest
         waitAndClick(Locator.linkWithText("MORE VISUAL INSPECTION"));
         waitForText("Formulation Lot Information");
         waitAndClick(Locator.xpath("//div[@id='wizard-window']//div[contains(@class,'x-tool-close')]"));
+    }
+
+    @LogMethod
+    protected void uploadVisualInspectionAssayData()
+    {
+        goToProjectHome();
+
+        log("Uploading Visual Inspection Data");
+        clickAndWait(Locator.linkWithText(VIS_INSPEC_ASSAY));
+        clickButton("Import Data");
     }
 
     @LogMethod
