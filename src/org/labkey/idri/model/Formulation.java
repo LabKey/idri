@@ -18,15 +18,13 @@ package org.labkey.idri.model;
 import org.apache.commons.beanutils.BeanUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.labkey.api.data.Container;
 import org.labkey.api.exp.ObjectProperty;
-import org.labkey.api.exp.PropertyDescriptor;
 import org.labkey.api.exp.api.ExpMaterial;
 import org.labkey.api.view.HttpView;
 import org.labkey.idri.idriManager;
 
-import java.util.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +43,8 @@ public class Formulation
     private String _nbpg;
     private String _comments;
     private String _type;
+    private String _catalog;
+    private String _grant;
     private String _materialsString;
     private Map _map;
     
@@ -127,6 +127,28 @@ public class Formulation
         updateMap("Type", _type);
     }
 
+    public String getCatalog()
+    {
+        return _catalog;
+    }
+
+    public void setCatalog(String catalog)
+    {
+        _catalog = catalog;
+        updateMap("Catalog", _catalog);
+    }
+
+    public String getGrant()
+    {
+        return _grant;
+    }
+
+    public void setGrant(String grant)
+    {
+        _grant = grant;
+        updateMap("Grant", _grant);
+    }
+
     public List<Material> getMaterials()
     {
         return _materials;
@@ -167,7 +189,7 @@ public class Formulation
         updateMap("Raw Materials", materialString);
     }
 
-    /* Similiar to BeanUtils.describe(Obj) in functionality. */
+    /* Similar to BeanUtils.describe(Obj) in functionality. */
     public Map<String, Object> describe()
     {       
         return _map;

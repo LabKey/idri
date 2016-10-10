@@ -75,6 +75,12 @@
             <td class="labkey-form-label">Notebook Page</td><td><%=h((formulation.getNbpg() != null ? formulation.getNbpg() : "[Not provided]"))%></td>
         </tr>
         <tr>
+            <td class="labkey-form-label">Catalog</td><td><%=h((formulation.getCatalog() != null ? formulation.getCatalog() : "[Not provided]"))%></td>
+        </tr>
+        <tr>
+            <td class="labkey-form-label">Grant</td><td><%=h((formulation.getGrant() != null ? formulation.getGrant() : "[Not provided]"))%></td>
+        </tr>
+        <tr>
             <td class="labkey-form-label">Comments</td><td><%=h((formulation.getComments() != null ? formulation.getComments() : "[Not provided]"))%></td>
         </tr>
         <tr>

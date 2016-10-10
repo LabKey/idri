@@ -291,6 +291,36 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                             }),
                             scope: this
                         },{
+                            xtype: 'combo',
+                            fieldLabel: 'Catalog',
+                            name: 'Catalog',
+                            triggerAction: 'all',
+                            typeAhead: true,
+                            allowBlank: true,
+                            editable: false,
+                            validateOnBlur: false,
+                            displayField: 'catalogId',
+                            store: new LABKEY.ext.Store({
+                                schemaName: 'lists',
+                                queryName: 'Catalog'
+                            }),
+                            scope: this
+                        },{
+                            xtype: 'combo',
+                            fieldLabel: 'Grant',
+                            name: 'Grant',
+                            triggerAction: 'all',
+                            typeAhead: true,
+                            allowBlank: true,
+                            editable: false,
+                            validateOnBlur: false,
+                            displayField: 'grant',
+                            store: new LABKEY.ext.Store({
+                                schemaName: 'lists',
+                                queryName: 'Grants'
+                            }),
+                            scope: this
+                        },{
                             xtype: 'textarea',
                             fieldLabel: 'Comments',
                             name: 'Comments'
@@ -867,14 +897,18 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
         /* remap known fields */
         insertFormulation['batch'] = insertFormulation['Batch'];
+        insertFormulation['catalog'] = insertFormulation['Catalog'];
         insertFormulation['comments'] = insertFormulation['Comments'];
         insertFormulation['dm'] = insertFormulation['DM'];
+        insertFormulation['grant'] = insertFormulation['Grant'];
         insertFormulation['type'] = insertFormulation['Type'];
 
         /* remove extraneous fields */
         delete insertFormulation['Batch'];
+        delete insertFormulation['Catalog'];
         delete insertFormulation['Comments'];
         delete insertFormulation['DM'];
+        delete insertFormulation['Grant'];
         delete insertFormulation['Type'];
         delete insertFormulation['@stability'];
         delete insertFormulation['stability'];

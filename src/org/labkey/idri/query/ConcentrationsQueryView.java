@@ -15,18 +15,10 @@
  */
 package org.labkey.idri.query;
 
-import org.labkey.api.data.Aggregate;
-import org.labkey.api.data.ColumnInfo;
-import org.labkey.api.data.DisplayColumn;
-import org.labkey.api.data.DisplayColumnFactory;
 import org.labkey.api.data.SimpleFilter;
-import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.view.DataView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * User: jNicholas

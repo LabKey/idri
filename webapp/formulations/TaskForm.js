@@ -108,6 +108,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 var cmp = Ext4.getCmp('sb-watch-temp-' + temp);
                 cmp.setValue('false');
             });
+            var cmp = Ext4.getCmp('importance');
+            cmp.setValue('false');
 
             this.getFormPanel().getForm().setValues(Ext4.decode(record.get('profile')));
 
@@ -178,6 +180,14 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                     name : 'pSize',
                     id: 'pSize'
                 }, {
+                    width   : 450,
+                    columns : [150, 150],
+                    xtype: 'checkbox',
+                    boxLabel: 'High Importance',
+                       id: 'importance',
+                       name: 'importance',
+                       checked: false
+                    }, {
                     xtype: 'checkboxgroup',
                     columns: [100, 150],
                     border: false,
@@ -313,7 +323,16 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             record = stores.formulationsStore.findRecord('RowId', this.rowId),
             DM = record.get('DM'),
             currentDate = new Date(),
+            importance,
             cmp;
+
+        cmp = Ext4.getCmp('importance');
+        if (cmp && cmp.getValue())
+        {
+
+            importance = 'high';
+
+        }
 
         stores.tempStore.each(function(rec)
         {
@@ -336,12 +355,15 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                             temperature: temp,
                             timepoint: recTime.get("time"),
                             type: record.get('Type'),
-                            date: tempTime
+                            date: tempTime,
+                            importance: importance
                         });
                     }
                 }, this);
             }
         }, this);
+
+
 
         cmp = Ext4.getCmp('uv');
         if (cmp && cmp.getValue())
@@ -360,7 +382,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                         timepoint: recTime.get("time"),
                         type: record.get('Type'),
                         adjuvant: uvType.getValue(),
-                        date: tempTime
+                        date: tempTime,
+                        importance: importance
                     });
                 }
             }, this);
@@ -383,7 +406,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                         timepoint: recTime.get("time"),
                         type: record.get('Type'),
                         adjuvant: hplcType.getValue(),
-                        date: tempTime
+                        date: tempTime,
+                        importance: importance
                     });
                 }
             }, this);

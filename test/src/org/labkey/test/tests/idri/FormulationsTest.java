@@ -42,6 +42,8 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String FORMULATIONS_NAME = "Formulations";
     private static final String PROJECT_NAME = "FormulationsTest";
 
+    private static final String CATALOG_LIST = "Catalog";
+    private static final String GRANT_LIST = "Grants";
     private static final String TEMPERATURE_LIST = "Temperatures";
     private static final String TIME_LIST = "Timepoints";
     private static final String TYPES_LIST = "FormulationTypes";
@@ -68,6 +70,14 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String RAWMATERIALS_DATA_4 = RAW_MATERIAL_4 + "\tSPD\tSPD Supplier\tsynthetic\t9123D-AS\t12331-CC\n";
 
     private static final String FORMULATION = "TD789";
+
+    private static final String CATALOG_HEADER = "catalogId\n";
+    private static final String CATALOG_DATA_1 = "EM081";
+    private static final String CATALOG_DATA   = CATALOG_DATA_1 + "\n";
+
+    private static final String GRANT_HEADER = "grant\n";
+    private static final String GRANT_DATA_1 = "KL9090";
+    private static final String GRANT_DATA   = GRANT_DATA_1 + "\n";
 
     private static final String TEMPERATURE_HEADER = "Temperature\n";
     private static final String TEMPERATURE_DATA   = "5\n25\n37\n60\n";
@@ -155,6 +165,8 @@ public class FormulationsTest extends BaseWebDriverTest
     {
         goToProjectHome();
 
+        loadList(CATALOG_LIST, CATALOG_HEADER + CATALOG_DATA);
+        loadList(GRANT_LIST, GRANT_HEADER + GRANT_DATA);
         loadList(TEMPERATURE_LIST, TEMPERATURE_HEADER + TEMPERATURE_DATA);
         loadList(TIME_LIST, TIME_HEADER + TIME_DATA);
         loadList(TYPES_LIST, TYPES_HEADER + TYPES_DATA);
@@ -229,7 +241,8 @@ public class FormulationsTest extends BaseWebDriverTest
         assertTextPresent(
                 "Formulation Type*",
                 "Stability Watch",
-                "Notebook Page*");
+                "Notebook Page*",
+                "Catalog");
 
         // Describe Formulation
         setFormElement(Locator.name("Batch"), FORMULATION);
@@ -238,6 +251,8 @@ public class FormulationsTest extends BaseWebDriverTest
         setFormElement(Locator.name("batchsize"), "100");
         setFormElement(Locator.name("Comments"), "This might fail.");
         setFormElement(Locator.name("nbpg"), "549-87");
+        _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='Catalog']/.."), CATALOG_DATA_1);
+        _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='Grant']/.."), GRANT_DATA_1);
 
         clickButton(addButton, 0);
         _extHelper.selectComboBoxItem(getRawMaterialLocator(0), RAW_MATERIAL_1);

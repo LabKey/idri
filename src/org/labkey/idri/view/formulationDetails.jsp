@@ -68,6 +68,12 @@
                         <td class="labkey-form-label">Type</td><td><%=h(formulation.getType())%></td>
                     </tr>
                     <tr>
+                        <td class="labkey-form-label">Catalog</td><td><%=h(formulation.getCatalog())%></td>
+                    </tr>
+                    <tr>
+                        <td class="labkey-form-label">Grant</td><td><%=h(formulation.getGrant())%></td>
+                    </tr>
+                    <tr>
                         <td class="labkey-form-label">Lot Size</td><td><%=h(formulation.getBatchsize())%></td>
                     </tr>
                     <tr>
