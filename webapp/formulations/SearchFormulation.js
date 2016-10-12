@@ -60,10 +60,6 @@ function showInSearchView(resolvedView, data)
         }
         else
             topEl.innerHTML = "<span style='color:red;'>" + row["Name"] + " contains errors. No stability report available.</span>";
-
-        var hemoDiv = document.getElementById('hemoSearch');
-        if (hemoDiv)
-            buildHemoReport(hemoDiv);
     }
 
     var qwp = new LABKEY.QueryWebPart({
@@ -373,89 +369,4 @@ function validateHPLCReport(reportStore,reportRecords,opts)
         document.getElementById("dataRegionDiv2").style.display = "none";
         document.getElementById("concentrationDiv").style.display = "none";
     }
-}
-
-function buildHemoReport(element)
-{
-    var caps = globalQueryConfig.srchstr.toUpperCase();
-    
-    LABKEY.Query.selectRows({
-        schemaName : 'assay',
-        queryName  : 'AssayList',
-        filterArray: [ LABKEY.Filter.create("Type", "Hemolysis", LABKEY.Filter.Types.CONTAINS) ],
-        columns : ["Name", "RowId"],
-        successCallback : function(data, ops, response)
-        {
-            if (data.rows && data.rows.length == 1)
-            {
-                var existingAssayId = data.rows[0]["RowId"];
-                LABKEY.Query.selectRows({
-                    schemaName : 'assay',
-                    queryName  : data.rows[0]["Name"] + ' Runs',
-                    filterArray: [ LABKEY.Filter.create("Name", caps) ],
-                    columns    : ["Batch/RowId"],
-                    successCallback : function(data, ops, response)
-                    {
-                        if (data.rows && data.rows.length > 0)
-                        {
-                            var existingBatchId = data.rows[0]["Batch/RowId"];
-                            LABKEY.page = {};
-                            LABKEY.page.assay = {};
-                            LABKEY.page.assay.id = existingAssayId;
-                            LABKEY.Experiment.loadBatch({
-                                assayId : existingAssayId,
-                                batchId : existingBatchId,
-                                successCallback : function(batch, response)
-                                {
-                                    LABKEY.page = {};
-                                    LABKEY.page.batch = batch;
-                                    hemoRender(element, existingAssayId, caps, false);
-                                },
-                                errorCallback : function(response)
-                                {
-                                    console.info("Something weird happened.");
-                                }
-                            });
-                        }
-                        else
-                        {
-                            console.info("This is a new batch. No hemo data.");
-                            LABKEY.page = {};
-                            LABKEY.page.batch = {};
-                            hemoRender(element, existingAssayId, caps, true);
-                        }
-                    },
-                    failureCallback : function(error, ops, response)
-                    {
-                        console.info("Actually failed");
-                    }
-                });
-            }
-            else
-                alert("More or less than 1 hemolysis assay found.");
-        }
-    });
-}
-
-function hemoRender(element, assayId, lot, isNew)
-{
-    var params = {};
-    params["rowId"] = assayId;
-    params["Lot"]   = lot;
-    var hemo_url = LABKEY.ActionURL.buildURL("assay", "moduleAssayUpload",
-            LABKEY.ActionURL.getContainer(), params);
-
-    if (!isNew)
-    {
-        new LABKEY.hemolysis.HemolysisPanel({
-            graphTo  : 'hemoImage',
-            id       : 'hemo-panel',
-            frame    : false,
-            formulation : lot,
-            donorInfo: LABKEY.page.batch.runs[0].dataRows
-        });
-        document.getElementById('topDiv').innerHTML += "<p style='float: left;'>[<a href=" + hemo_url +">View Hemolysis Data</a>]</p><br/>";
-    }
-    else
-        document.getElementById('topDiv').innerHTML += "<p style='float: left;'>[<a href=" + hemo_url +">Enter Hemolysis Data</a>]</p><br/>";
 }

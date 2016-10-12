@@ -138,7 +138,8 @@ public class idriManager
     public static Map<String, Object> getMaterialType(String materialName)
     {
         ViewContext ctx = HttpView.getRootContext();
-        ExpMaterial formulationMaterial = getFormulationSampleSet(ctx.getContainer()).getSample(materialName);
+        Container c = ctx.getContainer();
+        ExpMaterial formulationMaterial = getFormulationSampleSet(c).getSample(c, materialName);
 
         Map<String, Object> aggregate = new CaseInsensitiveHashMap<>();
         aggregate.put("Type", "aggregate");
@@ -203,12 +204,12 @@ public class idriManager
                         BatchValidationException errors = new BatchValidationException();
                         if (forms.length == 0)
                         {
-                            info.getUpdateService().insertRows(user, container, _formulation, errors, null, new HashMap<String, Object>());
+                            info.getUpdateService().insertRows(user, container, _formulation, errors, null, Collections.emptyMap());
                         }
                         else
                         {
                             List<Map<String, Object>> result = info.getUpdateService().getRows(user, container, _formulation);
-                            info.getUpdateService().updateRows(user, container, _formulation, result, null, new HashMap<String, Object>());
+                            info.getUpdateService().updateRows(user, container, _formulation, result, null, Collections.emptyMap());
                         }
                     }
                 }
@@ -477,11 +478,11 @@ public class idriManager
     {
         ExperimentService.Interface service = ExperimentService.get();
         List<Concentration> concentrations = new ArrayList<>();
-        ExpMaterial m = getRawMaterialsSampleSet(c).getSample(material.getMaterialName());
+        ExpMaterial m = getRawMaterialsSampleSet(c).getSample(c, material.getMaterialName());
         
         if (m == null)
         {
-            m = getFormulationSampleSet(c).getSample(material.getMaterialName());
+            m = getFormulationSampleSet(c).getSample(c, material.getMaterialName());
             if (m == null)
                 throw new RuntimeException("The material received is not valid.");
 
@@ -720,10 +721,12 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("nbpg", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Failure", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Type", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Catalog", PropertyType.STRING.getTypeUri()));
+                properties.add(new GWTPropertyDescriptor("Grant", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Comments", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Raw Materials", PropertyType.STRING.getTypeUri()));
                 
-                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_FORMULATIONS, null, properties, Collections.emptyList(), 0, -1, -1, 7);
+                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_FORMULATIONS, null, properties, Collections.emptyList(), 0, -1, -1, 9);
             }
         }
         catch (SQLException e)
@@ -744,11 +747,29 @@ public class idriManager
             ListDefinition list;
             Domain listDomain;
 
+            // Create 'Catalog' list
+            list = listService.getList(c, "Catalog");
+            if (null == list)
+            {
+                list = listService.createList(c, "Catalog", ListDefinition.KeyType.Varchar);
+                list.setKeyName("catalogId");
+                list.save(user);
+            }
+
+            // Create 'Grant' list
+            list = listService.getList(c, "Grants");
+            if (null == list)
+            {
+                list = listService.createList(c, "Grants", ListDefinition.KeyType.Varchar);
+                list.setKeyName("grant");
+                list.save(user);
+            }
+
             // Create 'Temperatures' list
             list = listService.getList(c, "Temperatures");
             if (null == list)
             {
-                list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Varchar);
+                list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Integer);
                 list.setKeyName("temperature");
                 list.save(user);
             }
@@ -808,9 +829,10 @@ public class idriManager
                     addDomainLookupProperty(listDomain, "temperature", "Temp", PropertyType.STRING, c, "lists", "Temperatures");
                     addDomainLookupProperty(listDomain, "timepoint", "Timepoint", PropertyType.STRING, c, "lists", "Timepoints");
                     addDomainProperty(listDomain, "type", "formulation", PropertyType.STRING, c);
-                    addDomainProperty(listDomain, "typeof", "type", PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "adjuvant", "Adjuvant", PropertyType.STRING, c);
                     addDomainProperty(listDomain, "date", "Date Due", PropertyType.DATE_TIME, c);
                     addDomainProperty(listDomain, "comment", "comment", PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "importance", "importance", PropertyType.STRING, c);
                     addDomainProperty(listDomain, "complete", "Complete", PropertyType.BOOLEAN, c);
                     addDomainProperty(listDomain, "failed", "Failed", PropertyType.BOOLEAN, c);
                 }
@@ -890,6 +912,23 @@ public class idriManager
                 list.save(user);
             }
 
+            // Create 'VisualOptions' list
+            list = listService.getList(c, "VisualOptions");
+            if (null == list)
+            {
+                list = listService.createList(c, "VisualOptions", ListDefinition.KeyType.AutoIncrementInteger);
+                list.setKeyName("Key");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "item", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "category", null, PropertyType.STRING, c);
+                    addDomainProperty(listDomain, "pass", null, PropertyType.BOOLEAN, c);
+                    addDomainProperty(listDomain, "fail", null, PropertyType.BOOLEAN, c);
+                }
+                list.save(user);
+            }
+
             // Setup lookup for compound material type
             ExpSampleSet compounds = getCompoundsSampleSet(c);
             if (null != compounds)
@@ -901,7 +940,6 @@ public class idriManager
                     sampleDomain.save(user);
                 }
             }
-
         }
         catch (Exception e)
         {

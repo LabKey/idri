@@ -251,30 +251,32 @@
             },
             listeners: {
                 render: function(qwp) {
-                    var links = Ext4.DomQuery.select('a.labkey-text-link', qwp.getDataRegion().domId);
-                    if (!Ext4.isEmpty(links)) {
-                        Ext4.each(links, function(linkEl) {
-                            var link = Ext4.get(linkEl);
-                            var href = link.getAttribute('href');
-                            if (!Ext4.isEmpty(href)) {
-                                var params = LABKEY.ActionURL.getParameters(href);
-                                if (Ext4.isObject(params) && Ext4.isString(params['pHPLCRun'])) {
-                                    var runId = params['pHPLCRun'];
-                                    link.on('click', function() { viewSpectrum(runId); });
-                                    link.dom.removeAttribute('href');
-                                    link.update('chromatogram');
+                    if (qwp.getDataRegion().domId) {
+                        var links = Ext4.DomQuery.select('a.labkey-text-link', qwp.getDataRegion().domId);
+                        if (!Ext4.isEmpty(links)) {
+                            Ext4.each(links, function(linkEl) {
+                                var link = Ext4.get(linkEl);
+                                var href = link.getAttribute('href');
+                                if (!Ext4.isEmpty(href)) {
+                                    var params = LABKEY.ActionURL.getParameters(href);
+                                    if (Ext4.isObject(params) && Ext4.isString(params['pHPLCRun'])) {
+                                        var runId = params['pHPLCRun'];
+                                        link.on('click', function() { viewSpectrum(runId); });
+                                        link.dom.removeAttribute('href');
+                                        link.update('chromatogram');
+                                    }
+                                    else {
+                                        link.hide();
+                                    }
                                 }
                                 else {
                                     link.hide();
                                 }
-                            }
-                            else {
-                                link.hide();
-                            }
-                        });
-                    }
-                    else {
-                        console.log("Unable to hijack all the 'details' links for pHPLC chromatograms. There are no rows or the selector might have changed?");
+                            });
+                        }
+                        else {
+                            console.log("Unable to hijack all the 'details' links for pHPLC chromatograms. There are no rows or the selector might have changed?");
+                        }
                     }
                 }
             }

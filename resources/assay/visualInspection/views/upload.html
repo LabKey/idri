@@ -1,0 +1,26 @@
+<style type="text/css">
+    fieldset {
+        height: auto !important;
+    }
+
+    #processLog ul {
+        padding: 0 0 0 10px;
+    }
+
+    #processLog li {
+        white-space: pre-wrap;
+    }
+
+</style>
+<div id="appPanel"></div>
+<script type="text/javascript">
+
+    Ext4.onReady(function() {
+        Ext4.QuickTips.init();
+
+        var mainPanel = Ext4.create('LABKEY.idri.VisualInspection', {
+            renderTo: 'appPanel'
+        });
+    });
+
+</script>

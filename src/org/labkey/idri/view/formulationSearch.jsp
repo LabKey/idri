@@ -56,7 +56,5 @@
 <div id="dataRegionDiv" style="float: left;"></div>
 <div id="resultsDiv" style="float: left;"></div>
 <div id="resultsDiv2" style="float: left;"></div>
-<img id="hemoImage" style="display: none" src="" alt="">
-<div id="hemoSearch"></div>
 <div id="bottomDiv"></div>
 <div id="windowDiv"></div>

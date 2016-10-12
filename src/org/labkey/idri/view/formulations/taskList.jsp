@@ -16,6 +16,9 @@
  */
 %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies"%>
+<%@ page import="org.labkey.api.util.UniqueID" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
+<%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -25,14 +28,16 @@
         dependencies.add("formulations/TaskListPanel.js");
     }
 %>
-<div id="task-panel"></div>
+<%
+    String renderId = "idri-task-panel-" + UniqueID.getRequestScopedUID(HttpView.currentRequest());
+%>
+<div id="<%=text(renderId)%>"></div>
 <script type="text/javascript">
     Ext4.onReady(function() {
         Ext4.QuickTips.init();
 
         Ext4.create('LABKEY.idri.TaskListPanel', {
-            id: 'ext-taskList-panel',
-            renderTo : 'task-panel'
+            renderTo: <%=PageFlowUtil.jsString(renderId)%>
         });
     });
 </script>

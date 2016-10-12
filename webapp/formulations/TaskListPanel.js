@@ -14,6 +14,11 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
     width: 900,
 
     initComponent : function() {
+        this.ids = {
+            oldTasks: Ext4.id(),
+            taskDate: Ext4.id()
+        };
+
         this.getTaskStore();
 
         this.taskPanel = this.getGridItems();
@@ -34,27 +39,19 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
             tbar: [{
                 text: 'Save Changes',
                 tooltip: 'Click to save all changes to the database',
-                id: 'save-button',
-                handler: this.saveChanges,
-                scope: this
+                handler: this.saveChanges.bind(this)
             },'-',{
                 text: 'Export',
                 tooltip: 'Click to Export the data to Excel',
-                id: 'export-records-button',
-                handler: function() {
-                   this.exportExcel();
-                },
-                scope: this
+                handler: this.exportExcel.bind(this)
             },'-',{
                 text: 'Refresh',
                 tooltip: 'Click to refresh the table',
-                id: 'refresh-button',
-                handler: this.onRefresh,
-                scope: this
+                handler: this.onRefresh.bind(this)
             },'-',{
                 xtype: 'checkbox',
                 boxLabel: 'Include Overdue Tasks',
-                id: 'oldTasks',
+                id: this.ids.oldTasks,
                 name: 'oldTasks',
                 listeners: {
                     change: function() {
@@ -64,7 +61,7 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
                 }
             },'-',{
                 xtype : 'datefield',
-                id : 'taskDate',
+                id: this.ids.taskDate,
                 value: new Date(),
                 listeners: {
                     change: function() {
@@ -89,19 +86,30 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
     exportExcel : function() {
 
         var rows = [];
-        var gridData = [];
 
-        rows.push(['Category', 'Lot', 'Temp', 'Timepoint',
-            'Date Due', 'Type', 'Adjuvant', 'Comment', 'Complete','Fail']);
+        // headers
+        rows.push([
+            'Category', 'Lot', 'Temp', 'Timepoint', 'Date Due',
+            'Type', 'Adjuvant', 'Comment', 'Importance', 'Complete',
+            'Fail'
+        ]);
 
+        // rows
         this.taskStore.each(function(rec) {
-            rows.push([rec.get('cat'), rec.get('lotNum/Name'), rec.get('temperature'),rec.get('timepoint'), rec.get('date'), rec.get('type'),
-                    rec.get('adjuvant'), rec.get('comment'), rec.get('complete'), rec.get('failed')]);
+            rows.push([
+                rec.get('cat'), rec.get('lotNum/Name'), rec.get('temperature'),rec.get('timepoint'), rec.get('date'),
+                rec.get('type'), rec.get('adjuvant'), rec.get('comment'), rec.get('importance'), rec.get('complete'),
+                rec.get('failed')
+            ]);
         });
 
-        var workbook = {fileName:"TaskList.xlsx", sheets:[{name:"TaskList", data:rows}]};
-        LABKEY.Utils.convertToExcel(workbook);
-
+        LABKEY.Utils.convertToExcel({
+            fileName: 'TaskList.xlsx',
+            sheets: [{
+                name: 'TaskList',
+                data: rows
+            }]
+        });
     },
 
     getTaskStore : function() {
@@ -170,7 +178,9 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
                 field: {
                     type: 'textfield'
                 }
-            },{
+            },
+            { text: 'Importance',  dataIndex: 'importance', width: 100, editable: false },
+            {
                 xtype: 'checkcolumn',
                 header: 'Complete',
                 dataIndex: 'complete',
@@ -187,17 +197,17 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
                     },
                     scope:this
                 },
-                width: 50
+                width: 80
             }
         ];
     },
 
     getTasks : function() {
-        var date = Ext4.getCmp('taskDate').getValue();
+        var date = Ext4.getCmp(this.ids.taskDate).getValue();
         var week = this.getWeek(date);
         this.taskStore.filters.clear();
 
-        if (Ext4.getCmp('oldTasks').getValue()) {
+        if (Ext4.getCmp(this.ids.oldTasks).getValue()) {
             this.taskStore.filter(function(rec) {
                 if ((rec.get('date') >= week[0] && rec.get('date') <= week[1]) ||  (rec.get('date') < week[0] && !rec.get('complete') && !rec.get('failed'))) {
                     return true;
