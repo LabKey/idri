@@ -616,7 +616,7 @@ public class FormulationsTest extends BaseWebDriverTest
         DataRegionTable runs = new DataRegionTable("aqwp101", this.getDriver());
 //        runs.checkCheckbox(0);
         runs.checkAll();
-        clickButton("View Selected Runs");
+        clickButton("QC Selected Run");
 
         log("Start the Qualitative Analysis");
         waitForElement(Locator.tagWithClass("div", "x4-grid-cell-inner").withText(samples[0]));
@@ -750,5 +750,6 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Save & Close");
 
         setModuleProperties(Collections.singletonList(new ModulePropertyValue("SignalData", "/" + getProjectName(), "QCViewProviderModule", "idri")));
+        setModuleProperties(Collections.singletonList(new ModulePropertyValue("SignalData", "/" + getProjectName(), "BeginViewQuery", "Runs")));
     }
 }
