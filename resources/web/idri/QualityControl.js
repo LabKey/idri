@@ -60,7 +60,20 @@ Ext4.define('LABKEY.SignalData.QualityControl', {
         return this.sampleCreator;
     },
 
-    getRunContext: function(callback, scope) {
+    getSelectedRuns:function(callback,scope){
+        LABKEY.DataRegion.getSelected({
+            selectionKey: LABKEY.ActionURL.getParameter('selectionKey'),
+            success: function (resultSelection) {
+                SignalDataService.getRun(LABKEY.ActionURL.getParameter('schemaName'), resultSelection.selected, null, callback, scope);
+            },
+            error:function(){
+                console.log("Failed to get anything from server: Bad Selection Key");
+            },
+            scope: this
+        });
+    },
+
+    getSelectedResults:function(callback, scope) {
         LABKEY.DataRegion.getSelected({
             selectionKey: LABKEY.ActionURL.getParameter('selectionKey'),
             success: function (resultSelection) {
@@ -88,7 +101,6 @@ Ext4.define('LABKEY.SignalData.QualityControl', {
                                     LABKEY.Filter.create('RunIdentifier', runNames.join(';'), LABKEY.Filter.Types.IN)
                                 ],
                                 success: function (runs) {
-
                                     var runIds = [];
 
                                     Ext.each(runs.rows, function (row) {
@@ -106,5 +118,12 @@ Ext4.define('LABKEY.SignalData.QualityControl', {
             },
             scope: this
         });
+    },
+
+    getRunContext: function(callback, scope) {
+        if(LABKEY.ActionURL.getParameter('selectionKey').includes('$Runs$'))
+            this.getSelectedRuns(callback, scope || this);
+        else
+            this.getSelectedResults(callback, scope || this);
     }
 });
