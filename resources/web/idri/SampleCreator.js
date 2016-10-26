@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
-Ext4.define('LABKEY.SignalData.SampleCreator', {
+Ext4.define('LABKEY.hplc.SampleCreator', {
     extend: 'Ext.panel.Panel',
 
     title: 'HPLC Qualitative Analysis',
@@ -26,56 +26,56 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
         timeStore: undefined,
         tempStore: undefined,
         getTempStore : function() {
-            if (!LABKEY.SignalData.SampleCreator.tempStore) {
+            if (!LABKEY.hplc.SampleCreator.tempStore) {
 
-                LABKEY.SignalData.SampleCreator.tempStore = Ext4.create('LABKEY.ext4.data.Store', {
+                LABKEY.hplc.SampleCreator.tempStore = Ext4.create('LABKEY.ext4.data.Store', {
                     schemaName: 'Lists',
                     queryName: 'Temperatures'
                 });
 
                 // doesn't currently work as the return value is of type string
-//                LABKEY.SignalData.SampleCreator.tempStore.on('load', function(s) {
+//                LABKEY.hplc.SampleCreator.tempStore.on('load', function(s) {
 //                    s.sort('temperature', 'ASC');
 //                }, this, {single: true});
 
-                LABKEY.SignalData.SampleCreator.tempStore.load();
+                LABKEY.hplc.SampleCreator.tempStore.load();
             }
-            return LABKEY.SignalData.SampleCreator.tempStore;
+            return LABKEY.hplc.SampleCreator.tempStore;
         },
         getTimeStore : function() {
-            if (!LABKEY.SignalData.SampleCreator.timeStore) {
-                LABKEY.SignalData.SampleCreator.timeStore = Ext4.create('LABKEY.ext4.data.Store', {
+            if (!LABKEY.hplc.SampleCreator.timeStore) {
+                LABKEY.hplc.SampleCreator.timeStore = Ext4.create('LABKEY.ext4.data.Store', {
                     schemaName: 'Lists',
                     queryName: 'Timepoints'
                 });
 
-                LABKEY.SignalData.SampleCreator.timeStore.on('load', function(s) {
+                LABKEY.hplc.SampleCreator.timeStore.on('load', function(s) {
                     s.sort('sort', 'ASC');
                 }, this, {single: true});
 
-                LABKEY.SignalData.SampleCreator.timeStore.load();
+                LABKEY.hplc.SampleCreator.timeStore.load();
             }
-            return LABKEY.SignalData.SampleCreator.timeStore;
+            return LABKEY.hplc.SampleCreator.timeStore;
         },
         getCompoundsStore : function() {
-            if (!LABKEY.SignalData.SampleCreator.compoundStore) {
-                LABKEY.SignalData.SampleCreator.compoundStore = Ext4.create('LABKEY.ext4.data.Store', {
+            if (!LABKEY.hplc.SampleCreator.compoundStore) {
+                LABKEY.hplc.SampleCreator.compoundStore = Ext4.create('LABKEY.ext4.data.Store', {
                     schemaName: 'Samples',
                     queryName: 'Compounds'
                 });
-                LABKEY.SignalData.SampleCreator.compoundStore.load();
+                LABKEY.hplc.SampleCreator.compoundStore.load();
             }
-            return LABKEY.SignalData.SampleCreator.compoundStore;
+            return LABKEY.hplc.SampleCreator.compoundStore;
         },
         getFormulationStore : function() {
-            if (!LABKEY.SignalData.SampleCreator.formStore) {
-                LABKEY.SignalData.SampleCreator.formStore = Ext4.create('LABKEY.ext4.data.Store', {
+            if (!LABKEY.hplc.SampleCreator.formStore) {
+                LABKEY.hplc.SampleCreator.formStore = Ext4.create('LABKEY.ext4.data.Store', {
                     schemaName: 'Samples',
                     queryName: 'Formulations'
                 });
-                LABKEY.SignalData.SampleCreator.formStore.load();
+                LABKEY.hplc.SampleCreator.formStore.load();
             }
-            return LABKEY.SignalData.SampleCreator.formStore;
+            return LABKEY.hplc.SampleCreator.formStore;
         }
     },
 
@@ -120,7 +120,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                     xtype: 'grid',
                     store: {
                         xtype: 'store',
-                        model: 'LABKEY.SignalData.ProvisionalRun',
+                        model: 'LABKEY.hplc.ProvisionalRun',
                         data: this.context.rawInputs
                     },
                     columns: [
@@ -185,9 +185,6 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
     getNorth : function() {
 
         if (!this.northpanel) {
-            var xLabel = this.getXLabel();
-            var yLabel = this.getYLabel();
-
             this.northpanel = Ext4.create('Ext.panel.Panel', {
                 region: 'north',
                 height: 285,
@@ -215,7 +212,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                             id: 'compoundlist',
                             fieldLabel: 'Compound',
                             name: 'compoundrowid',
-                            store: LABKEY.SignalData.SampleCreator.getCompoundsStore(),
+                            store: LABKEY.hplc.SampleCreator.getCompoundsStore(),
                             displayField: 'Name',
                             valueField: 'RowId',
                             typeAhead: true,
@@ -227,7 +224,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                             id: 'standardslist',
                             fieldLabel: 'Standard',
                             name: 'standardrowid',
-                            store: LABKEY.SignalData.StandardCreator.getStandardsStore(this.context),
+                            store: LABKEY.hplc.StandardCreator.getStandardsStore(this.context),
                             displayField: 'Name',
                             valueField: 'Key',
                             typeAhead: true,
@@ -244,7 +241,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                                 id: 'formulationlist',
                                 emptyText: 'Formulation',
                                 name: 'formulationrowid',
-                                store: LABKEY.SignalData.SampleCreator.getFormulationStore(),
+                                store: LABKEY.hplc.SampleCreator.getFormulationStore(),
                                 typeAhead: true,
                                 validateOnBlur: false,
                                 allowBlank: false,
@@ -258,7 +255,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                                 id: 'temperaturelist',
                                 emptyText: 'Temperature',
                                 name: 'temperature',
-                                store: LABKEY.SignalData.SampleCreator.getTempStore(),
+                                store: LABKEY.hplc.SampleCreator.getTempStore(),
                                 displayField: 'temperature',
                                 valueField: 'temperature',
                                 typeAhead: true,
@@ -272,7 +269,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                                 id: 'timelist',
                                 emptyText: 'Timepoint',
                                 name: 'timepoint',
-                                store: LABKEY.SignalData.SampleCreator.getTimeStore(),
+                                store: LABKEY.hplc.SampleCreator.getTimeStore(),
                                 displayField: 'time',
                                 valueField: 'time',
                                 typeAhead: true,
@@ -311,7 +308,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                             fieldLabel: 'Standard Deviation'
                         },{
                             xtype: 'fieldcontainer',
-                            fieldLabel: xLabel,
+                            fieldLabel: 'Time (m)',
                             layout: 'hbox',
                             width: 300,
                             items: [{
@@ -347,7 +344,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                             }]
                         },{
                             xtype: 'fieldcontainer',
-                            fieldLabel: yLabel,
+                            fieldLabel: 'mV Range',
                             layout: 'hbox',
                             width: 300,
                             items: [{
@@ -397,7 +394,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                     //
                     // compute a valid date from the file path
                     //
-                    var date = SignalDataService.getDate(runs[0].get('filePath'));
+                    var date = HPLCService.getDate(runs[0].get('filePath'));
                     if (date) {
                         Ext4.getCmp('rundate').setValue(date);
                     }
@@ -436,9 +433,6 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
     getCenter : function() {
 
         if (!this.centerpanel) {
-            var xLabel = this.getXLabel();
-            var yLabel = this.getYLabel();
-
             this.centerpanel = Ext4.create('Ext.panel.Panel', {
                 region: 'center',
                 border: false, frame: false,
@@ -462,8 +456,8 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                 items: [{
                     id: 'plotarea',
                     xtype: 'spectrum',
-                    xLabel: xLabel,
-                    yLabel: yLabel,
+                    xLabel: 'Time (m)',
+                    yLabel: 'mV',
                     leftBoundField: 'aucleft',
                     rightBoundField: 'aucright',
                     lowBoundField: 'mvrangelow',
@@ -479,9 +473,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                 //
                 // load the appropriate content for each selected sample
                 //
-                var received = 0,
-                        expected = provisionalRuns.length,
-                        allContent = [],
+                var received = 0, expected = provisionalRuns.length, allContent = [],
                         contentMap = {};
 
                 var done = function(content) {
@@ -491,14 +483,14 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                     if (received == expected) {
                         this.allContent = allContent;
                         this.contentMap = contentMap;
-                        this.renderPlot(allContent, true);
+                        this.renderPlot(allContent);
                     }
                 };
 
                 for (var d=0; d < provisionalRuns.length; d++) {
                     var pr = provisionalRuns[d].get('expDataRun');
                     if (pr) {
-                        SignalDataService.FileContentCache(pr, done, this);
+                        HPLCService.FileContentCache(pr, done, this);
                     }
                     else {
                         console.error('Failed to load expDataRun from provisional run.');
@@ -509,26 +501,6 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
         }
 
         return this.centerpanel;
-    },
-
-    getXLabel: function(){
-        return this.getAxisLabel('XAxis');
-    },
-    getYLabel: function(){
-        return this.getAxisLabel('YAxis');
-    },
-
-    getAxisLabel: function(axisField) {
-        var assay = this.context.AssayDefinition;
-        if (assay && assay.domains && assay.domains[assay.name + ' Batch Fields']) {
-            var batchFields = assay.domains[assay.name + ' Batch Fields'];
-            for(var i=0; i< batchFields.length;i++) {
-                var field = batchFields[i];
-                if (field.fieldKey === axisField) {
-                    return field.defaultValue;
-                }
-            }
-        }
     },
 
     saveQC : function() {
@@ -554,7 +526,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                 var values = form.getValues();
                 var run = new LABKEY.Exp.Run();
 
-                var formStore = LABKEY.SignalData.SampleCreator.getFormulationStore();
+                var formStore = LABKEY.hplc.SampleCreator.getFormulationStore();
                 var formIdx = formStore.findExact('RowId', parseInt(values['formulationrowid']));
 
                 run.name = formStore.getAt(formIdx).get('Name');
@@ -651,7 +623,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
             var view = Ext4.create('Ext.view.View', {
                 store: {
                     xtype: 'store',
-                    model: 'LABKEY.SignalData.Sample'
+                    model: 'LABKEY.hplc.Sample'
                 },
                 itemSelector: 'tr.item',
                 autoScroll: true,
@@ -797,7 +769,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
     runAnalysis : function() {
 
         this.updateModels(function() {
-            var standardStore = LABKEY.SignalData.StandardCreator.getStandardsStore(this.context);
+            var standardStore = LABKEY.hplc.StandardCreator.getStandardsStore(this.context);
 
             //
             // Determine the selected standard
@@ -834,7 +806,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                         // calculate concentration
                         var _c = c - response;
 
-                        var x = LABKEY.SignalData.Stats.getQuadratic(a, b, _c);
+                        var x = LABKEY.hplc.Stats.getQuadratic(a, b, _c);
                         var nonDiluted = x[0] * dilutionFactor; // account for dilution ratio
                         result.set('concentration', nonDiluted);
                         concs.push(nonDiluted);
@@ -843,7 +815,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
 
                 var mean = 0; var deviation = 0;
                 if (concs.length > 0) {
-                    var computed = LABKEY.SignalData.Stats.average(concs);
+                    var computed = LABKEY.hplc.Stats.average(concs);
                     mean = computed.mean;
                     deviation = computed.deviation;
                 }
@@ -895,8 +867,8 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
                 response = this._getNode(view, model, 'span[name="response"]');
 
                 var fileContent = this.contentMap[model.get('name') + '.' + model.get('fileExt')];
-                var data = SignalDataService.getData(fileContent, xleft, xright, false);
-                var aucPeak = LABKEY.SignalData.Stats.getAUC(data, base);
+                var data = HPLCService.getData(fileContent, xleft, xright, false);
+                var aucPeak = LABKEY.hplc.Stats.getAUC(data, base);
                 response.update(+aucPeak.auc.toFixed(3));
 
                 model.suspendEvents(true);
@@ -927,12 +899,7 @@ Ext4.define('LABKEY.SignalData.SampleCreator', {
         return this._getNode(view, model, selector).getValue();
     },
 
-    renderPlot : function(contents, isStartQC) {
-        if (isStartQC) {
-            var mvHight = SignalDataService.getMaxHeight(contents);
-            var mvHighCmp = Ext4.getCmp('mvrangehigh');
-            mvHighCmp.setValue(mvHight);
-        }
+    renderPlot : function(contents) {
 
         var spectrumPlot = Ext4.getCmp('plotarea');
         spectrumPlot.leftRight = [Ext4.getCmp('aucleft').getValue(), Ext4.getCmp('aucright').getValue()];

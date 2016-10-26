@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
-Ext4.define('LABKEY.SignalData.StandardCreator', {
+Ext4.define('LABKEY.hplc.StandardCreator', {
 
     extend: 'Ext.panel.Panel',
 
@@ -16,18 +16,18 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
     statics: {
         standardsStore : undefined,
         getStandardsStore : function(context) {
-            if (!LABKEY.SignalData.StandardCreator.standardsStore) {
-                LABKEY.SignalData.StandardCreator.standardsStore = Ext4.create('LABKEY.ext4.data.Store', {
-//                   model: 'LABKEY.SignalData.Standard',
+            if (!LABKEY.hplc.StandardCreator.standardsStore) {
+                LABKEY.hplc.StandardCreator.standardsStore = Ext4.create('LABKEY.ext4.data.Store', {
+//                   model: 'LABKEY.hplc.Standard',
                     schemaName: 'lists',
                     queryName: 'HPLCStandard',
                     filterArray: [
                         LABKEY.Filter.create('provisionalRun', context.RunId)
                     ]
                 });
-                LABKEY.SignalData.StandardCreator.standardsStore.load();
+                LABKEY.hplc.StandardCreator.standardsStore.load();
             }
-            return LABKEY.SignalData.StandardCreator.standardsStore;
+            return LABKEY.hplc.StandardCreator.standardsStore;
         },
         getSourcesStore : function(doFilter, standardKey) {
 
@@ -37,19 +37,19 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
 
             var filters = [ LABKEY.Filter.create('standard/Key', standardKey) ];
 
-            if (!LABKEY.SignalData.StandardCreator.sourcesStore) {
-                LABKEY.SignalData.StandardCreator.sourcesStore = Ext4.create('LABKEY.ext4.data.Store', {
-//                   model: 'LABKEY.SignalData.StandardSource',
+            if (!LABKEY.hplc.StandardCreator.sourcesStore) {
+                LABKEY.hplc.StandardCreator.sourcesStore = Ext4.create('LABKEY.ext4.data.Store', {
+//                   model: 'LABKEY.hplc.StandardSource',
                     schemaName: 'lists',
                     queryName: 'HPLCStandardSource'
                 });
             }
 
             if (doFilter) {
-                LABKEY.SignalData.StandardCreator.sourcesStore.filterArray = filters;
-                LABKEY.SignalData.StandardCreator.sourcesStore.load();
+                LABKEY.hplc.StandardCreator.sourcesStore.filterArray = filters;
+                LABKEY.hplc.StandardCreator.sourcesStore.load();
             }
-            return LABKEY.SignalData.StandardCreator.sourcesStore;
+            return LABKEY.hplc.StandardCreator.sourcesStore;
         }
     },
 
@@ -101,7 +101,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
                 height: 400,
                 store: {
                     xtype: 'store',
-                    model: 'LABKEY.SignalData.StandardSource',
+                    model: 'LABKEY.hplc.StandardSource',
                     data: this.rawInputs
                 },
                 selModel: {
@@ -151,7 +151,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
                 xtype: 'grid',
                 itemId: 'standardsgrid',
                 height: 200,
-                store: LABKEY.SignalData.StandardCreator.getStandardsStore(this.context),
+                store: LABKEY.hplc.StandardCreator.getStandardsStore(this.context),
                 columns: [
                     {text: 'Inputs', dataIndex: 'Name', flex: 3}
                 ],
@@ -205,7 +205,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
 
             this.getStandardsDisplay().getEl().mask('Loading Definitions...');
 
-            var store = LABKEY.SignalData.StandardCreator.getSourcesStore(true, standard.get('Key'));
+            var store = LABKEY.hplc.StandardCreator.getSourcesStore(true, standard.get('Key'));
             store.on('load', function(s) {
                 // merge the 'sources' data to the inputs data
                 var inputsStore = sourcesGrid.getStore();
@@ -291,38 +291,38 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
      * Fired when a user saves a standard
      */
     onStandardSave : function() {
-        LABKEY.SignalData.StandardCreator.getStandardsStore(this.context).load();
+        LABKEY.hplc.StandardCreator.getStandardsStore(this.context).load();
     },
 
     getDefinitionForm : function() {
 
         var view = Ext4.create('Ext.view.View', {
             id: 'definitionformview',
-            store: LABKEY.SignalData.StandardCreator.getSourcesStore(),
+            store: LABKEY.hplc.StandardCreator.getSourcesStore(),
             itemSelector: 'tr.item',
             autoScroll: true,
             height: 305,
             tpl: new Ext4.XTemplate(
-                '<table style="width: 100%;">',
+                    '<table style="width: 100%;">',
                     '<tr>',
-                        '<th style="text-align: left;">Name</th>',
-                        '<th style="text-align: left;">Conc</th>',
-                        '<th style="text-align: left;">Left</th>',
-                        '<th style="text-align: left;">Right</th>',
-                        '<th style="text-align: left;">Base</th>',
-                        '<th style="text-align: left;"></th>',
+                    '<th style="text-align: left;">Name</th>',
+                    '<th style="text-align: left;">Conc</th>',
+                    '<th style="text-align: left;">Left</th>',
+                    '<th style="text-align: left;">Right</th>',
+                    '<th style="text-align: left;">Base</th>',
+                    '<th style="text-align: left;"></th>',
                     '</tr>',
                     '<tpl for=".">',
-                        '<tr class="item" modelname="{name}">',
-                            '<td>{name}</td>',
-                            '<td><input value="{concentration}" placeholder="µg/ml" name="concentration" style="width: 50px;"/></td>',
-                            '<td><input value="{xleft}" placeholder="xleft" name="xleft" style="width: 40px;"/></td>',
-                            '<td><input value="{xright}" placeholder="xright" name="xright" style="width: 40px;"/></td>',
-                            '<td><input value="{base}" name="base" style="width: 40px;"/></td>',
-                            '<td><button title="copy">C</button></td>',
-                        '</tr>',
+                    '<tr class="item" modelname="{name}">',
+                    '<td>{name}</td>',
+                    '<td><input value="{concentration}" placeholder="µg/ml" name="concentration" style="width: 50px;"/></td>',
+                    '<td><input value="{xleft}" placeholder="xleft" name="xleft" style="width: 40px;"/></td>',
+                    '<td><input value="{xright}" placeholder="xright" name="xright" style="width: 40px;"/></td>',
+                    '<td><input value="{base}" name="base" style="width: 40px;"/></td>',
+                    '<td><button title="copy">C</button></td>',
+                    '</tr>',
                     '</tpl>',
-                '</table>'
+                    '</table>'
             ),
             listeners: {
                 itemclick: function(view,model,z,a,evt) {
@@ -334,7 +334,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
                             fn: function(b) {
                                 if (b === 'yes') {
                                     this.commitSources();
-                                    var store = LABKEY.SignalData.StandardCreator.getSourcesStore();
+                                    var store = LABKEY.hplc.StandardCreator.getSourcesStore();
 
                                     var models = store.getRange(),
                                             n = model.get('name'),
@@ -540,7 +540,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
             buttons: Ext4.Msg.OKCANCEL,
             fn : function(btn) {
                 if (btn === "ok") {
-                    var store = LABKEY.SignalData.StandardCreator.getStandardsStore();
+                    var store = LABKEY.hplc.StandardCreator.getStandardsStore();
                     var realName = Ext4.getCmp('isupdate').getValue();
 
                     if (realName.length > 0) {
@@ -703,7 +703,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
     requestContent : function(def, callback, scope) {
         var sd = def.get('expDataRun');
         if (sd) {
-            SignalDataService.FileContentCache(sd, callback, scope);
+            HPLCService.FileContentCache(sd, callback, scope);
         }
         else {
             console.error('failed to load expDataRun from definition.');
@@ -754,7 +754,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
                         //
                         isHighlight = (this.highlighted === filename);
                         var pointLayer = new LABKEY.vis.Layer({
-                            data: SignalDataService.getData(contentMap[filename], xleft, xright, 3),
+                            data: HPLCService.getData(contentMap[filename], xleft, xright, 3),
                             aes: {
                                 x: function(r) { return r[0]; },
                                 y: function(r) { return r[1]; }
@@ -869,8 +869,8 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
                 for (n=0; n < count; n++) {
                     m = store.getAt(n);
                     fname = m.get('expDataRun').name;
-                    data = SignalDataService.getData(this.curveConfig.contentMap[fname], m.get('xleft'), m.get('xright'));
-                    var aucPeak = LABKEY.SignalData.Stats.getAUC(data, m.get('base'));
+                    data = HPLCService.getData(this.curveConfig.contentMap[fname], m.get('xleft'), m.get('xright'));
+                    var aucPeak = LABKEY.hplc.Stats.getAUC(data, m.get('base'));
                     m.set('auc', aucPeak.auc);
                     m.set('peakMax', aucPeak.peakMax);
                 }
@@ -891,7 +891,7 @@ Ext4.define('LABKEY.SignalData.StandardCreator', {
     },
 
     renderCalibrationCurve : function(data) {
-        var R = LABKEY.SignalData.Stats.getPolynomialRegression(data);
+        var R = LABKEY.hplc.Stats.getPolynomialRegression(data);
         var eq = R.equation;
         R.reverseString = 'y = ' + eq[0].toFixed(2) + ' + ' + eq[1].toFixed(2) + 'x ';
         R.reverseString += (eq[2] < 0 ? '- ' : '+ ');
