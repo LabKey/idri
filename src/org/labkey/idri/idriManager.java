@@ -627,7 +627,7 @@ public class idriManager
                     try
                     {
                         types = ld.getTable(u).getUpdateService().getRows(u, c, types);
-                        if (types.size() >= 0)
+                        if (types.size() > 0)
                             type = types.get(0);
                     }
                     catch (Exception e)
@@ -658,7 +658,7 @@ public class idriManager
             try
             {
                 types = ld.getTable(u).getUpdateService().getRows(u, c, types);
-                if (types.size() >= 0)
+                if (types.size() > 0)
                     type = types.get(0);
             }
             catch (Exception e)
@@ -949,7 +949,7 @@ public class idriManager
 
     private static DomainProperty addDomainProperty(Domain domain, String name, @Nullable String label, PropertyType type, Container c)
     {
-        PropertyDescriptor pd = new PropertyDescriptor(domain.getTypeURI(), type.getTypeUri(), name, c);
+        PropertyDescriptor pd = new PropertyDescriptor(domain.getTypeURI(), type, name, c);
         DomainProperty property = domain.addProperty(new PropertyStorageSpec(pd));
         if (null != label)
             property.setLabel(label);
@@ -958,7 +958,7 @@ public class idriManager
 
     private static DomainProperty addDomainLookupProperty(Domain domain, String name, @Nullable String label, PropertyType type, Container c, String lookupSchema, String lookupQuery)
     {
-        PropertyDescriptor pd = new PropertyDescriptor(domain.getTypeURI(), type.getTypeUri(), name, c);
+        PropertyDescriptor pd = new PropertyDescriptor(domain.getTypeURI(), type, name, c);
         DomainProperty property = domain.addProperty(new PropertyStorageSpec(pd));
         pd = property.getPropertyDescriptor();
         pd.setLookupContainer(c.getEntityId().toString());
