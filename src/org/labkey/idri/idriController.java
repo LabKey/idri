@@ -46,6 +46,7 @@ import org.labkey.api.util.URLHelper;
 import org.labkey.api.util.UnexpectedException;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
@@ -379,6 +380,11 @@ public class idriController extends SpringActionController
         }
     }
 
+    /**
+     * This action is the old Details view for a specific Formulation. For the current usage, visit
+     * the "Formulation Summary" tab from idriFormulationsFolderType.
+     */
+    @Deprecated
     @RequiresPermission(ReadPermission.class)
     public class FormulationDetailsAction extends SimpleViewAction<ExpObjectForm>
     {
@@ -390,6 +396,11 @@ public class idriController extends SpringActionController
             VBox vbox = new VBox();
 
             _formulation = idriManager.getFormulation(form.getRowId());
+
+            if (null == _formulation)
+            {
+                throw new NotFoundException("404: Formulation not found.");
+            }
 
             JspView view = new JspView<>("/org/labkey/idri/view/formulationDetails.jsp", form);
             view.setFrame(WebPartView.FrameType.NONE);
