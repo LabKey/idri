@@ -1,13 +1,12 @@
 <libraries xmlns="http://labkey.org/clientLibrary/xml/">
     <library compileInProductionMode="false">
+        <script path="idri/regression.js"/>
+        <script path="idri/Stats.js"/>
+        <script path="idri/DataService.js"/>
+        <script path="idri/ProvisionalRun.js"/>
+        <script path="idri/SpectrumPlot.js"/>
     </library>
     <dependencies>
         <dependency path="vis/vis" />
-        <dependency path="signaldata/regression.js"/>
-        <dependency path="signaldata/Stats.js"/>
-        <dependency path="signaldata/DataService.js"/>
-        <dependency path="signaldata/ProvisionalRun.js"/>
-        <dependency path="signaldata/SpectrumPlot.js"/>
-
     </dependencies>
 </libraries>

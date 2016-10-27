@@ -2,9 +2,12 @@
     <dependencies>
         <dependency path="clientapi/ext4"/>
         <dependency path="clientapi/ext3"/>
-        <dependency path="spectrum"/>
-
-        <!--Override the SignalData module versions-->
+        <dependency path="vis/vis"/>
+        <dependency path="idri/regression.js"/>
+        <dependency path="idri/Stats.js"/>
+        <dependency path="idri/DataService.js"/>
+        <dependency path="idri/SpectrumPlot.js"/>
+        <dependency path="idri/ProvisionalRun.js"/>
         <dependency path="idri/SampleCreator.js"/>
         <dependency path="idri/StandardCreator.js"/>
         <dependency path="idri/QualityControl.js"/>

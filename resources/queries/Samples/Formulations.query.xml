@@ -5,7 +5,7 @@
                 <insertUrl>/idri/createFormulation.view</insertUrl>
                 <importUrl></importUrl> <!-- workaround to get rid of import button so that Insert wont show-->
                 <updateUrl>/idri/createFormulation.view?RowId=${RowId}</updateUrl>
-                <tableUrl>/idri/formulationDetails.view?rowId=${RowId}</tableUrl>
+                <tableUrl>/project/begin.view?pageId=idri.LOT_SUMMARY&amp;rowId=${RowId}</tableUrl>
 
                 <!-- deleteUrl is not currently supported for Sample Sets -->
                 <!--<deleteUrl>/idri/deleteFormulation.view?materialName=${Name}</deleteUrl>-->
