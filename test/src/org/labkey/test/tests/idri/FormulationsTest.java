@@ -58,11 +58,11 @@ public class FormulationsTest extends BaseWebDriverTest
     // Name must be same as what is used as target stability group
     private static final String STABILITY_GROUP = "Stability";
 
-    private static final String COMPOUNDS_HEADER = "Compound Name\tFull Name\tCAS Number\tDensity\tMolecular Weight\n";
-    private static final String COMPOUNDS_DATA_1 = "Alum\tAluminum Hydroxide\t21645-51-2\t\t78.0\n";  // adjuvant
-    private static final String COMPOUNDS_DATA_2 = "Squawk\tBean Oil\t21235-51-3\t\t7.0\n";           // oil
-    private static final String COMPOUNDS_DATA_3 = "Cholesterol\tCholesterol\t29935-53-9\t\t123.6\n"; // sterol
-    private static final String COMPOUNDS_DATA_4 = "SPD\tSPD\t2313-23-1\t\t32.23\n";                  // buffer
+    private static final String COMPOUNDS_HEADER = "Compound Name\tFull Name\tCAS Number\tDensity\tMolecular Weight\tType of Material\n";
+    private static final String COMPOUNDS_DATA_1 = "Alum\tAluminum Hydroxide\t21645-51-2\t\t78.0\t1\n";  // adjuvant (rowId 1)
+    private static final String COMPOUNDS_DATA_2 = "Squawk\tBean Oil\t21235-51-3\t\t7.0\t3\n";           // oil (rowId 3)
+    private static final String COMPOUNDS_DATA_3 = "Cholesterol\tCholesterol\t29935-53-9\t\t123.6\t2\n"; // sterol (rowId 2)
+    private static final String COMPOUNDS_DATA_4 = "SPD\tSPD\t2313-23-1\t\t32.23\t4\n";                  // buffer (rowId 4)
 
     private static final String RAWMATERIALS_HEADER = "Identifier\tMaterial Name\tSupplier\tSource\tCatalogue ID\tLot ID\n";
     private static final String RAW_MATERIAL_1 = "IRM-0456";
@@ -212,20 +212,6 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Import More Samples");
         click(Locator.radioButtonById("insertOnlyChoice"));
         setFormElement(Locator.name("data"), COMPOUNDS_HEADER + COMPOUNDS_DATA_1 + COMPOUNDS_DATA_2 + COMPOUNDS_DATA_3 + COMPOUNDS_DATA_4);
-        clickButton("Submit");
-
-        this.setCompoundMaterial("adjuvant", 0);
-        this.setCompoundMaterial("oil", 1);
-        this.setCompoundMaterial("sterol", 2);
-        this.setCompoundMaterial("buffer", 3);
-    }
-
-    private void setCompoundMaterial(String materialName, int rowIdx)
-    {
-        DataRegionTable table = new DataRegionTable("Material", this);
-
-        clickAndWait(table.link(rowIdx, 0));
-        selectOptionByText(Locator.tagWithName("select", "quf_CompoundLookup"), materialName);
         clickButton("Submit");
     }
 
