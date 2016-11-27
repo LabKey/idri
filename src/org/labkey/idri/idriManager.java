@@ -694,7 +694,7 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Density", PropertyType.DOUBLE.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Molecular Weight", PropertyType.DOUBLE.getTypeUri()));
 
-                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, Collections.emptyList(), 0, -1, -1, -1);
+                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, Collections.emptyList(), 0, -1, -1, -1, null, null);
             }
 
             // Create the Raw Materials Sample Set
@@ -708,7 +708,7 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Catalogue ID", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Lot ID", PropertyType.STRING.getTypeUri()));
 
-                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties, Collections.emptyList(), 0, -1, -1, 1);
+                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties, Collections.emptyList(), 0, -1, -1, 1, null, null);
             }
 
             // Create the Formulations Sample Set
@@ -726,7 +726,7 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Comments", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Raw Materials", PropertyType.STRING.getTypeUri()));
                 
-                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_FORMULATIONS, null, properties, Collections.emptyList(), 0, -1, -1, 9);
+                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_FORMULATIONS, null, properties, Collections.emptyList(), 0, -1, -1, 9, null, null);
             }
         }
         catch (SQLException e)
