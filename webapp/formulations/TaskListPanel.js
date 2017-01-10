@@ -11,7 +11,9 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
 
     buttonAlign: 'left',
 
-    width: 900,
+    layout: 'fit',
+
+    taskMode: 'weektasks',
 
     initComponent : function() {
         this.ids = {
@@ -21,66 +23,82 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
 
         this.getTaskStore();
 
-        this.taskPanel = this.getGridItems();
-
-        this.items = [this.taskPanel];
+        this.items = [this.getGrid()];
 
         this.callParent();
     },
 
-    getGridItems : function() {
-        return Ext4.create('Ext4.grid.Panel', {
-            store: this.getTaskStore(),
-            columns: this.storeColumns(),
-            frame: false,
-            border: false,
-            height: 500,
-            width: 900,
-            tbar: [{
-                text: 'Save Changes',
-                tooltip: 'Click to save all changes to the database',
-                handler: this.saveChanges.bind(this)
-            },'-',{
-                text: 'Export',
-                tooltip: 'Click to Export the data to Excel',
-                handler: this.exportExcel.bind(this)
-            },'-',{
-                text: 'Refresh',
-                tooltip: 'Click to refresh the table',
-                handler: this.onRefresh.bind(this)
-            },'-',{
-                xtype: 'checkbox',
-                boxLabel: 'Include Overdue Tasks',
-                id: this.ids.oldTasks,
-                name: 'oldTasks',
-                listeners: {
-                    change: function() {
-                        this.getTasks();
-                    },
-                    scope: this
-                }
-            },'-',{
-                xtype : 'datefield',
-                id: this.ids.taskDate,
-                value: new Date(),
-                listeners: {
-                    change: function() {
-                        this.getTasks();
-                    },
-                    scope : this
-                }
-            }],
-            bbar: Ext4.create('Ext.PagingToolbar',{
-                pageSize: this.pageSize, //default is 20
-                store: this.taskStore,
-                displayInfo: true,
-                emptyMsg: "No data to display"
-            }),
-            selModel: {
-                selType: 'cellmodel'
-            },
-            plugins: [Ext4.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })]
-        });
+    getGrid : function() {
+        if (!this.grid) {
+            var taskStore = this.getTaskStore();
+
+            this.grid = Ext4.create('Ext4.grid.Panel', {
+                store: taskStore,
+                columns: this.storeColumns(),
+                frame: false,
+                border: false,
+                height: 500,
+                tbar: [{
+                    text: 'Save Changes',
+                    tooltip: 'Click to save all changes to the database',
+                    handler: this.saveChanges.bind(this)
+                },'-',{
+                    text: 'Export',
+                    tooltip: 'Click to Export the data to Excel',
+                    handler: this.exportExcel.bind(this)
+                },'-',{
+                    text: 'Refresh',
+                    tooltip: 'Click to refresh the table',
+                    handler: this.reloadTasks.bind(this)
+                },'-',{
+                    xtype: 'radiogroup',
+                    id: this.ids.oldTasks,
+                    columns: [135, 165],
+                    width: 300,
+                    items: [
+                        {
+                            boxLabel: 'Show overdue tasks',
+                            checked: this.taskMode === 'overduetasks',
+                            inputValue: 'overduetasks',
+                            name: 'taskMode'
+                        },{
+                            boxLabel: 'Show tasks for the week of:',
+                            checked: this.taskMode === 'weektasks',
+                            inputValue: 'weektasks',
+                            name: 'taskMode'
+                        }
+                    ],
+                    listeners: {
+                        change: function(rbg, newValue) {
+                            this.taskMode = newValue.taskMode;
+                            this.reloadTasks();
+
+                            Ext4.getCmp(this.ids.taskDate).setDisabled(this.taskMode === 'overduetasks');
+                        },
+                        scope: this
+                    }
+                },{
+                    xtype: 'datefield',
+                    id: this.ids.taskDate,
+                    disabled: this.taskMode === 'overduetasks',
+                    value: new Date(),
+                    listeners: {
+                        change: this.reloadTasks.bind(this)
+                    }
+                }],
+                bbar: Ext4.create('Ext.PagingToolbar', {
+                    store: taskStore,
+                    displayInfo: true,
+                    emptyMsg: 'No data to display'
+                }),
+                selModel: {
+                    selType: 'cellmodel'
+                },
+                plugins: [Ext4.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })]
+            });
+        }
+
+        return this.grid;
     },
 
     exportExcel : function() {
@@ -112,11 +130,39 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
         });
     },
 
+    generateTaskFilters : function(date) {
+
+        var week;
+
+        if (this.taskMode === 'overduetasks') {
+
+            // set the filter to the current week
+            week = this.getWeek();
+
+            return [
+                // Use NOT_EQUAL true since value not being set is considered false (but may actually be NULL)
+                LABKEY.Filter.create('complete', true, LABKEY.Filter.Types.NOT_EQUAL),
+                LABKEY.Filter.create('failed', true, LABKEY.Filter.Types.NOT_EQUAL),
+                LABKEY.Filter.create('date', week[1], LABKEY.Filter.Types.DATE_LESS_THAN_OR_EQUAL)
+            ];
+        }
+        else if (this.taskMode === 'weektasks') {
+
+            // set the filter to the specified week
+            week = this.getWeek(date);
+
+            return [
+                LABKEY.Filter.create('date', week[0], LABKEY.Filter.Types.DATE_GREATER_THAN_OR_EQUAL),
+                LABKEY.Filter.create('date', week[1], LABKEY.Filter.Types.DATE_LESS_THAN_OR_EQUAL)
+            ];
+        }
+
+        return [];
+    },
+
     getTaskStore : function() {
         if (!this.taskStore) {
-            var week = this.getWeek();
-
-            this.taskStore = new LABKEY.ext4.Store({
+            this.taskStore = Ext4.create('LABKEY.ext4.Store', {
                 schemaName: 'lists',
                 queryName: 'TaskList',
                 groupField: 'cat',
@@ -128,16 +174,12 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
                     property: 'lotNum/Name',
                     direction: 'ASC'
                 }],
-                columns : [ 'lotNum/Name', '*' /* The rest of the columns */],
-                filters:  function(rec) {
-                    if (rec.get('date') >= week[0] && rec.get('date') <= week[1]) {
-                        return true;
-                    }
-                }
+                columns: [ 'lotNum/Name', '*' /* The rest of the columns */],
+                filterArray: this.generateTaskFilters(),
+                autoLoad: true,
+                maxRows: 40,
+                remoteSort: true
             });
-
-
-            this.taskStore.load();
         }
 
         return this.taskStore;
@@ -165,21 +207,11 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
                 width: 55,
                 editable: false
             },
-            { text: 'Timepoint',  dataIndex: 'timepoint', width: 80, editable: false },
-            { text: 'Date Due',  dataIndex: 'date', renderer: Ext4.util.Format.dateRenderer('m/d/y'),width: 90, editable: false },
-            { text: 'Type',  dataIndex: 'type', width: 90, editable: false },
-            { text: 'Adjuvant',  dataIndex: 'adjuvant', width: 100, editable: false },
-            {
-                text: 'Comment',
-                header: 'Comment',
-                dataIndex: 'comment',
-                editable: true,
-                width: 200,
-                field: {
-                    type: 'textfield'
-                }
-            },
-            { text: 'Importance',  dataIndex: 'importance', width: 100, editable: false },
+            { text: 'Timepoint', dataIndex: 'timepoint', width: 80, editable: false },
+            { text: 'Date Due', dataIndex: 'date', renderer: Ext4.util.Format.dateRenderer('m/d/y'), width: 90, editable: false },
+            { text: 'Type', dataIndex: 'type', width: 90, editable: false },
+            { text: 'Adjuvant', dataIndex: 'adjuvant', width: 100, editable: false },
+            { text: 'Importance',  dataIndex: 'importance', width: 90, editable: false },
             {
                 xtype: 'checkcolumn',
                 header: 'Complete',
@@ -189,42 +221,110 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
                 xtype: 'checkcolumn',
                 header: 'Fail',
                 dataIndex: 'failed',
-                listeners: {
-                    checkchange : function(column, recordIndex, checked, item) {
-                        if (checked == true) {
-                            this.getMessage(recordIndex);
-                        }
-                    },
-                    scope:this
-                },
-                width: 80
-            }
+                width: 50
+            },{
+                text: 'Comment',
+                header: 'Comment',
+                dataIndex: 'comment',
+                editable: true,
+                flex: 1,
+                field: {
+                    type: 'textfield'
+                }
+            },
         ];
     },
 
-    getTasks : function() {
-        var date = Ext4.getCmp(this.ids.taskDate).getValue();
-        var week = this.getWeek(date);
-        this.taskStore.filters.clear();
+    reloadTasks : function() {
+        var taskStore = this.getTaskStore();
+        taskStore.filterArray = this.generateTaskFilters(Ext4.getCmp(this.ids.taskDate).getValue());
+        taskStore.reload();
+    },
 
-        if (Ext4.getCmp(this.ids.oldTasks).getValue()) {
-            this.taskStore.filter(function(rec) {
-                if ((rec.get('date') >= week[0] && rec.get('date') <= week[1]) ||  (rec.get('date') < week[0] && !rec.get('complete') && !rec.get('failed'))) {
-                    return true;
+    removeFutureTasks : function(failedTasks, cb, scope) {
+
+        var me = this;
+        var callback = function() {
+            if (Ext4.isFunction(cb)) {
+                cb.call(scope || me);
+            }
+        };
+
+        var filterSets = [];
+        Ext4.each(failedTasks, function(task) {
+            var category = task.cat;
+
+            var filters = [
+                LABKEY.Filter.create('lotNum', task.lotNum),
+                LABKEY.Filter.create('cat', category),
+                LABKEY.Filter.create('date', task.date, LABKEY.Filter.Types.DATE_GREATER_THAN)
+            ];
+
+            category = category.toLowerCase();
+            if (category === 'nano' || category === 'aps') {
+                filters.push(LABKEY.Filter.create('temperature', task.temperature));
+            }
+
+            filterSets.push(filters);
+        });
+
+        if (filterSets.length > 0) {
+            this.aggregateTasks(filterSets, function(futureTasks) {
+
+                var rows = [];
+                for (var key in futureTasks) {
+                    if (futureTasks.hasOwnProperty(key)) {
+                        rows.push({
+                            Key: key
+                        });
+                    }
                 }
-            });
 
+                if (rows.length > 0) {
+                    LABKEY.Query.deleteRows({
+                        schemaName: 'lists',
+                        queryName: 'TaskList',
+                        rows: rows,
+                        success: callback
+                    });
+                }
+                else {
+                    callback();
+                }
+            }, this);
         }
         else {
-            this.taskStore.filter(function(rec) {
-                if (rec.get('date') >= week[0] && rec.get('date') <= week[1]) {
-                    return true;
+            callback();
+        }
+    },
+
+    aggregateTasks : function(filterSets, cb, scope) {
+
+        var taskKeys = {};
+        var requestCount = 0;
+        var totalRequests = filterSets.length;
+
+        Ext4.each(filterSets, function(filterSet) {
+            LABKEY.Query.selectRows({
+                schemaName: 'lists',
+                queryName: 'TaskList',
+                filterArray: filterSet,
+                requiredVersion: 16.2,
+                columns: 'Key',
+                success: function(data) {
+                    Ext4.each(data.rows, function(row) {
+                        taskKeys[row['Key'].value] = true;
+                    });
+
+                    requestCount++;
+                    if (requestCount === totalRequests) {
+                        if (Ext4.isFunction(cb)) {
+                            cb.call(scope || this, taskKeys);
+                        }
+                    }
                 }
             });
-
-        }
-
-        this.onRefresh();
+        });
     },
 
     getWeek : function(date) {
@@ -249,71 +349,115 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
 
     saveChanges : function() {
 
-        this.taskStore.commitChanges();
-        var updatedRecords = this.taskStore.getModifiedRecords();
-        var deleteRecord =  [];
-        Ext4.each(updatedRecords, function(record) {
-            if (record.get('failed') == true) {
-                this.taskStore.clearFilter(true);
-                if (record.get('cat') == 'nano' || record.get('cat') == 'aps') {
-                    this.taskStore.each(function(rec) {
-                        if (rec.get('cat') == record.get('cat') &&
-                            rec.get('lotNum') == record.get('lotNum') &&
-                            rec.get('temperature') == record.get('temperature') &&
-                            rec.get('date') > record.get('date')) {
-                            deleteRecord.push(rec);
-                        }
-                    });
-                }
-                else if (record.get('cat') == 'HPLC' || record.get('cat') == 'UV') {
-                    this.taskStore.each(function(rec) {
-                        if (rec.get('cat') == record.get('cat') &&
-                            rec.get('lotNum') == record.get('lotNum') &&
-                            rec.get('date') > record.get('date')) {
-                            deleteRecord.push(rec);
-                        }
-                    });
-                }
+        var taskStore = this.getTaskStore();
+        var modified = taskStore.getModifiedRecords();
+
+        if (modified.length === 0) {
+            return;
+        }
+
+        // determine which tasks have been marked as failed, later used
+        // to determine which future tasks to clean up.
+        var failedTasks = [];
+        Ext4.each(modified, function(task) {
+            if (task.get('failed') === true) {
+                failedTasks.push(Ext4.clone(task.data));
             }
-        }, this);
+        });
 
-        if (Ext4.isEmpty(deleteRecord)) {
-            this.getTasks();
+        var me = this;
+        var removeTasks = false;
+
+        var doSave = function() {
+            me.getEl().mask('Saving...');
+
+            var onCommitException = function(store) {
+                // remove write listener
+                me.un('write', onSaveSuccess, me);
+
+                // store handles displaying error to the user
+                me.getEl().unmask();
+            };
+
+            var onSaveSuccess = function(store) {
+                // remove commit exception listener
+                me.un('commitexception', onCommitException, me);
+
+                if (removeTasks) {
+                    me.removeFutureTasks(failedTasks, function() {
+                        me.getEl().unmask();
+                        me.reloadTasks();
+                    }, me);
+                }
+                else {
+                    me.getEl().unmask();
+                    me.reloadTasks();
+                }
+            };
+
+            // write event fired once changes are successfully committed
+            taskStore.on('write', onSaveSuccess, me, {single: true});
+
+            // commitexception event fired if there is an error when committing
+            taskStore.on('commitexception', onCommitException, me, {single: true});
+
+            taskStore.commitChanges();
+        };
+
+        if (failedTasks.length > 0) {
+            var checkboxId = Ext4.id();
+            var windowId = Ext4.id();
+
+            Ext4.create('Ext.window.Window', {
+                id: windowId,
+                title: 'Task List - Save Changes',
+                autoShow: true,
+                height: 200,
+                width: 350,
+                bodyPadding: 10,
+                resizable: false,
+                constrain: true,
+                constrainTo: this.getRegion(),
+                modal: true,
+                items: [{
+                    xtype: 'box',
+                    html: 'Some lots were marked as failing. Would you like to remove future tasks for these Lots at the failed temperatures?'
+                },{
+                    xtype: 'checkboxfield',
+                    id: checkboxId,
+                    boxLabel: 'Remove future tasks (recommended)',
+                    checked: true,
+                    style: 'margin-top: 10px'
+                },{
+                    xtype: 'container',
+                    style: 'margin-top: 25px',
+                    layout: {
+                        type: 'hbox',
+                        pack: 'center'
+                    },
+                    items: [{
+                        xtype: 'button',
+                        text: 'OK',
+                        handler: function() {
+                            removeTasks = Ext4.getCmp(checkboxId).getValue() === true;
+                            doSave();
+                            Ext4.getCmp(windowId).close();
+                        }
+                    },{
+                        xtype: 'box',
+                        html: '&nbsp;&nbsp;'
+                    },{
+                        xtype: 'button',
+                        text: 'Cancel',
+                        handler: function() {
+                            Ext4.getCmp(windowId).close();
+                        }
+                    }]
+                }]
+            });
         }
         else {
-            this.taskStore.remove(deleteRecord);
-            this.taskStore.sync({
-                success: function() {
-                    this.getTasks();
-                },
-                scope: this
-            });
-        }
-    },
-
-    onRefresh : function() {
-        this.taskStore.reload();
-    },
-
-    getMessage : function(recordIndex) {
-
-        var record = this.taskPanel.getView().getRecord(this.taskPanel.getView().getNode(recordIndex));
-
-        if (record.get('cat') == 'nano' || record.get('cat') == 'aps') {
-            Ext4.Msg.show({
-                title: 'Delete Future Tasks?',
-                msg: 'Once you click "Save Changes" all future timepoints at Temperature ' + record.get('temperature') + 'C for ' + record.get('lotNum/Name') + ' will be removed!',
-                buttons: Ext4.Msg.OK,
-                scope: this
-            });
-        }
-        else {
-            Ext4.Msg.show({
-                title: 'Delete Future Tasks?',
-                msg: 'Once you click "Save Changes" all future timepoints for ' + record.get('lotNum/Name') + ' will be removed!',
-                buttons: Ext4.Msg.OK,
-                scope: this
-            });
+            doSave();
         }
     }
 });
