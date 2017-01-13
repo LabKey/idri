@@ -68,7 +68,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class idriManager
-{   
+{
     private static final idriManager _instance = new idriManager();
     static Logger _log = Logger.getLogger(idriManager.class);
 
@@ -90,7 +90,7 @@ public class idriManager
     public static ExpMaterial getFormulationAsSample(Formulation formulation)
     {
         ExperimentService.Interface service = ExperimentService.get();
-        
+
         String materialSrcLSID = service.getSampleSetLsid(idriSchema.TABLE_FORMULATIONS, HttpView.getContextContainer()).toString();
 
         return service.createExpMaterial(HttpView.getContextContainer(), materialSrcLSID, formulation.getBatch());
@@ -259,7 +259,7 @@ public class idriManager
 
                 for (String key : formulationMap.keySet())
                     assert columnSet.contains(key) : "Cannot find '" + key + "' in " + idriSchema.TABLE_FORMULATIONS;
-                
+
                 List<Map<String, Object>> rows = new ArrayList<>();
                 rows.add(formulationMap);
 
@@ -284,7 +284,7 @@ public class idriManager
                 // Delete all rows for the current formulation
                 SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("lot"), formulation.getRowID());
                 Table.delete(getSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), filter);
-                
+
                 // Add all the new concentration values
                 for (Concentration conc : concentrations)
                 {
@@ -439,7 +439,7 @@ public class idriManager
             concentrations.add(top);
         }
         for (Concentration conc : map.values())
-        {           
+        {
             conc.setLot(formulation.getRowID());
             conc.setRowid(-1); // all of these rows must be added as new.
 
@@ -473,13 +473,13 @@ public class idriManager
 
         return Collections.emptyList();
     }
-    
+
     private static List<Concentration> getConcentrations(Material material, Container c, User u)
     {
         ExperimentService.Interface service = ExperimentService.get();
         List<Concentration> concentrations = new ArrayList<>();
         ExpMaterial m = getRawMaterialsSampleSet(c).getSample(c, material.getMaterialName());
-        
+
         if (m == null)
         {
             m = getFormulationSampleSet(c).getSample(c, material.getMaterialName());
@@ -550,7 +550,7 @@ public class idriManager
             conc.setIsTop(material.isTop());
             concentrations.add(conc);
         }
-        
+
         return concentrations;
     }
 
@@ -627,7 +627,7 @@ public class idriManager
                     try
                     {
                         types = ld.getTable(u).getUpdateService().getRows(u, c, types);
-                        if (types.size() > 0)
+                        if (types.size() >= 0)
                             type = types.get(0);
                     }
                     catch (Exception e)
@@ -658,7 +658,7 @@ public class idriManager
             try
             {
                 types = ld.getTable(u).getUpdateService().getRows(u, c, types);
-                if (types.size() > 0)
+                if (types.size() >= 0)
                     type = types.get(0);
             }
             catch (Exception e)
@@ -771,6 +771,11 @@ public class idriManager
             {
                 list = listService.createList(c, "Temperatures", ListDefinition.KeyType.Integer);
                 list.setKeyName("temperature");
+                listDomain = list.getDomain();
+                if (null != listDomain)
+                {
+                    addDomainProperty(listDomain, "defaultStability", "On Stability", PropertyType.BOOLEAN, c);
+                }
                 list.save(user);
             }
 
@@ -784,6 +789,7 @@ public class idriManager
                 if (null != listDomain)
                 {
                     addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+                    addDomainProperty(listDomain, "defaultStability", "On Stability", PropertyType.BOOLEAN, c);
                 }
                 list.save(user);
             }
@@ -849,6 +855,7 @@ public class idriManager
                 if (null != listDomain)
                 {
                     addDomainProperty(listDomain, "sort", "Sort Order", PropertyType.INTEGER, c);
+                    addDomainProperty(listDomain, "defaultStability", "On Stability", PropertyType.BOOLEAN, c);
                 }
                 list.save(user);
             }
