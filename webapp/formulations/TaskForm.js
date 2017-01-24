@@ -409,6 +409,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             DM = record.get('DM'),
             currentDate = new Date(),
             cmp = Ext4.getCmp(this.ids.importance),
+            cmp2,
             cmpTimeHplc,
             importance;
 
@@ -445,63 +446,64 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                         }
                     }
                 }, this);
+
+                cmp2 = Ext4.getCmp(this.ids.uv);
+                if (cmp2 && cmp2.getValue())
+                {
+                    stores.timepointHplcUvStore.each(function(recTime)
+                    {
+                        cmpTimeHplc = Ext4.getCmp('sb-watch-timeHplc-' + recTime.get('time'));
+                        if (cmpTimeHplc && cmpTimeHplc.getValue()){
+                            var tempTime = Ext4.Date.add(DM, Ext4.Date.DAY, parseInt(recTime.get('sort')));
+
+                            var uvType = Ext4.getCmp(this.ids.uvType);
+
+                            if (tempTime >= currentDate)
+                            {
+                                stores.taskListStore.add({
+                                    lotNum: this.rowId,
+                                    cat: 'UV',
+                                    temperature: temp,
+                                    timepoint: recTime.get("time"),
+                                    type: record.get('Type'),
+                                    adjuvant: uvType.getValue(),
+                                    date: tempTime,
+                                    importance: importance
+                                });
+                            }
+                        }
+                    }, this);
+
+                }
+
+                cmp2 = Ext4.getCmp(this.ids.hplc);
+                if (cmp2 && cmp2.getValue())
+                {
+                    stores.timepointHplcUvStore.each(function(recTime)
+                    {
+                        cmpTimeHplc = Ext4.getCmp('sb-watch-timeHplc-' + recTime.get('time'));
+                        if (cmpTimeHplc && cmpTimeHplc.getValue()){
+                            var tempTime = Ext4.Date.add(DM, Ext4.Date.DAY, parseInt(recTime.get('sort')));
+                            var hplcType = Ext4.getCmp(this.ids.hplcType);
+
+                            if (tempTime >= currentDate)
+                            {
+                                stores.taskListStore.add({
+                                    lotNum: this.rowId,
+                                    cat: 'HPLC',
+                                    temperature: temp,
+                                    timepoint: recTime.get('time'),
+                                    type: record.get('Type'),
+                                    adjuvant: hplcType.getValue(),
+                                    date: tempTime,
+                                    importance: importance
+                                });
+                            }
+                        }
+                    }, this);
+                }
             }
         }, this);
-
-
-        cmp = Ext4.getCmp(this.ids.uv);
-        if (cmp && cmp.getValue())
-        {
-            stores.timepointHplcUvStore.each(function(recTime)
-            {
-                cmpTimeHplc = Ext4.getCmp('sb-watch-timeHplc-' + recTime.get('time'));
-                if (cmpTimeHplc && cmpTimeHplc.getValue()){
-                    var tempTime = Ext4.Date.add(DM, Ext4.Date.DAY, parseInt(recTime.get('sort')));
-
-                    var uvType = Ext4.getCmp(this.ids.uvType);
-
-                    if (tempTime >= currentDate)
-                    {
-                        stores.taskListStore.add({
-                            lotNum: this.rowId,
-                            cat: 'UV',
-                            timepoint: recTime.get("time"),
-                            type: record.get('Type'),
-                            adjuvant: uvType.getValue(),
-                            date: tempTime,
-                            importance: importance
-                        });
-                    }
-                }
-            }, this);
-
-        }
-
-        cmp = Ext4.getCmp(this.ids.hplc);
-        if (cmp && cmp.getValue())
-        {
-            stores.timepointHplcUvStore.each(function(recTime)
-            {
-                cmpTimeHplc = Ext4.getCmp('sb-watch-timeHplc-' + recTime.get('time'));
-                if (cmpTimeHplc && cmpTimeHplc.getValue()){
-                    var tempTime = Ext4.Date.add(DM, Ext4.Date.DAY, parseInt(recTime.get('sort')));
-                    var hplcType = Ext4.getCmp(this.ids.hplcType);
-
-                    if (tempTime >= currentDate)
-                    {
-                        stores.taskListStore.add({
-                            lotNum: this.rowId,
-                            cat: "HPLC",
-                            timepoint: recTime.get("time"),
-                            type: record.get('Type'),
-                            adjuvant: hplcType.getValue(),
-                            date: tempTime,
-                            importance: importance
-                        });
-                    }
-                }
-            }, this);
-        }
 
         function showSuccess() {
             Ext4.Msg.show({
