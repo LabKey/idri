@@ -61,7 +61,7 @@ public class idriSchema extends UserSchema
     }
 
     @Override
-    protected TableInfo createTable(String name)
+    public TableInfo createTable(String name)
     {
         if (TABLE_CONCENTRATIONS.equalsIgnoreCase(name))
         {

@@ -627,7 +627,7 @@ public class idriManager
                     try
                     {
                         types = ld.getTable(u).getUpdateService().getRows(u, c, types);
-                        if (types.size() >= 0)
+                        if (types.size() > 0)
                             type = types.get(0);
                     }
                     catch (Exception e)
@@ -658,7 +658,7 @@ public class idriManager
             try
             {
                 types = ld.getTable(u).getUpdateService().getRows(u, c, types);
-                if (types.size() >= 0)
+                if (types.size() > 0)
                     type = types.get(0);
             }
             catch (Exception e)
