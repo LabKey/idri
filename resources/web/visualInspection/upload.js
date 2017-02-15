@@ -58,12 +58,18 @@ Ext4.define('LABKEY.idri.VisualInspection', {
             items: [{
                 region: 'west',
                 width: 305,
+                layout: {
+                    type: 'vbox',
+                    align: 'stretch'
+                },
                 defaults: {
                     border: false,
-                    frame: false
+                    frame: false,
+                    bodyPadding: 10
                 },
                 items: [{
                     title: 'Task Date',
+                    height: 100,
                     items: [{
                         xtype: 'datefield',
                         fieldLabel: 'Date',
@@ -91,13 +97,30 @@ Ext4.define('LABKEY.idri.VisualInspection', {
                     title: 'Timepoints',
                     name: 'timepoint',
                     id: this.ids.timepoint,
+                    height: 150,
+                    layout: {
+                        type: 'column'
+                    },
+                    defaults: {
+                        columnWidth: 0.25,
+                        margin: 5
+                    },
                     scope: this
                 },{
                     title: 'Lots',
                     name: 'lots',
                     id: this.ids.lots,
-                    scope: this,
-                    scrollable: true
+                    flex: 1, // required for scrolling to appear
+                    autoScroll: true,
+                    layout: {
+                        type: 'column',
+                        reserveScrollbar: true
+                    },
+                    defaults: {
+                        columnWidth: 0.5,
+                        margin: 5
+                    },
+                    scope: this
                 }],
                 scope: this
             },{
@@ -617,7 +640,7 @@ Ext4.define('LABKEY.idri.VisualInspection', {
                 filters.push(LABKEY.Filter.create('Run/LotNumber/Name', this.lot));
             }
 
-            var qwp = new LABKEY.QueryWebPart({
+            new LABKEY.QueryWebPart({
                 title: 'History',
                 renderTo: 'todayRecord',
                 schemaName: assay.protocolSchemaName, // 'assay.visualInspection.<name>'
@@ -632,7 +655,7 @@ Ext4.define('LABKEY.idri.VisualInspection', {
 
         this.getAssayDefinition(LABKEY.ActionURL.getParameter('rowId'), function(assay) {
 
-            var qwp = new LABKEY.QueryWebPart({
+            new LABKEY.QueryWebPart({
                 title: 'Log',
                 renderTo: 'todayRecord',
                 schemaName: assay.protocolSchemaName,
@@ -691,14 +714,10 @@ Ext4.define('LABKEY.idri.VisualInspection', {
             var lot = rec.get('lotNum/Name');
             var timepoint = rec.get('timepoint');
 
-            // Ext4.getCmp(timepoint).btnInnerEl.setStyle({color: 'red'});
-
             if (newTimepoint == timepoint || newTimepoint == null) {
                 taskButtons.push({
                     xtype: 'button',
-                    text: lot + '(' + timepoint + ')',
-                    width: 90,
-                    margin: 5,
+                    text: lot + ' (' + timepoint + ')',
                     toggleGroup: 'taskGroupButtons',
                     handler: function() {
                         this.onLotClick(lot, timepoint);
@@ -710,22 +729,27 @@ Ext4.define('LABKEY.idri.VisualInspection', {
 
         taskButtons.push({
             layout: 'hbox',
+            columnWidth: 1,
+            border: false,
+            frame: false,
             items: [{
                 xtype: 'combo',
                 id: this.ids.lotCombo,
-                fieldLabel: 'Enter Lot',
+                emptyText: 'Choose a lot',
                 store: this.stores.formulationsStore,
                 triggerAction: 'all',
                 displayField: 'Name',
                 valueField: 'Name',
                 handler: this.verifyField.bind(this),
                 mode: 'local',
-                width: 220,
+                width: 180,
                 invalidText: 'Not a valid lot.'
+            },{
+                xtype: 'box',
+                flex: 1
             },{
                 xtype: 'button',
                 text: 'Submit',
-                width: 70,
                 handler: this.verifyField.bind(this)
             }]
         });
@@ -809,8 +833,6 @@ Ext4.define('LABKEY.idri.VisualInspection', {
                 xtype: 'button',
                 recordId: rec.getId(),
                 text: time,
-                width: 50,
-                margin: 5,
                 toggleGroup: 'timepointButtons',
                 handler: this.getTasks.bind(this, time)
             });

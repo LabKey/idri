@@ -140,9 +140,9 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
             week = this.getWeek();
 
             return [
-                // Use NOT_EQUAL true since value not being set is considered false (but may actually be NULL)
-                LABKEY.Filter.create('complete', true, LABKEY.Filter.Types.NOT_EQUAL),
-                LABKEY.Filter.create('failed', true, LABKEY.Filter.Types.NOT_EQUAL),
+                // Use NOT_EQUAL_OR_MISSING true since value not being set is considered false (but may actually be NULL)
+                LABKEY.Filter.create('complete', true, LABKEY.Filter.Types.NOT_EQUAL_OR_MISSING),
+                LABKEY.Filter.create('failed', true, LABKEY.Filter.Types.NOT_EQUAL_OR_MISSING),
                 LABKEY.Filter.create('date', week[1], LABKEY.Filter.Types.DATE_LESS_THAN_OR_EQUAL)
             ];
         }
