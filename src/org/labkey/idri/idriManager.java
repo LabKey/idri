@@ -743,7 +743,7 @@ public class idriManager
     {
         try
         {
-            ListService.Interface listService = ListService.get();
+            ListService listService = ListService.get();
             ListDefinition list;
             Domain listDomain;
 
