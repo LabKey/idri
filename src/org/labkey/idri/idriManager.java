@@ -89,7 +89,7 @@ public class idriManager
 
     public static ExpMaterial getFormulationAsSample(Formulation formulation)
     {
-        ExperimentService.Interface service = ExperimentService.get();
+        ExperimentService service = ExperimentService.get();
 
         String materialSrcLSID = service.getSampleSetLsid(idriSchema.TABLE_FORMULATIONS, HttpView.getContextContainer()).toString();
 
@@ -122,7 +122,7 @@ public class idriManager
     @Nullable
     public static Material getMaterial(int rowID)
     {
-        ExperimentService.Interface service = ExperimentService.get();
+        ExperimentService service = ExperimentService.get();
         ExpMaterial mat = service.getExpMaterial(rowID);
 
         if (mat != null)
@@ -368,7 +368,7 @@ public class idriManager
     @Nullable
     public static Formulation getFormulation(int RowId)
     {
-        ExperimentService.Interface service = ExperimentService.get();
+        ExperimentService service = ExperimentService.get();
         Formulation formulation = null;
 
         ExpMaterial mat = service.getExpMaterial(RowId);
@@ -452,7 +452,7 @@ public class idriManager
 
     public static List<Concentration> getConcentrations(Formulation f, Container c, User u, boolean isTopOnly)
     {
-        ExperimentService.Interface service = ExperimentService.get();
+        ExperimentService service = ExperimentService.get();
         ExpSampleSet sampleSet = getFormulationSampleSet(c);
 
         if (sampleSet != null)
@@ -476,7 +476,7 @@ public class idriManager
 
     private static List<Concentration> getConcentrations(Material material, Container c, User u)
     {
-        ExperimentService.Interface service = ExperimentService.get();
+        ExperimentService service = ExperimentService.get();
         List<Concentration> concentrations = new ArrayList<>();
         ExpMaterial m = getRawMaterialsSampleSet(c).getSample(c, material.getMaterialName());
 
@@ -597,7 +597,7 @@ public class idriManager
     private static Map<String, Object> getCompoundType(String CompoundName)
     {
         Container container = HttpView.getRootContext().getContainer();
-        ExperimentService.Interface service = ExperimentService.get();
+        ExperimentService service = ExperimentService.get();
         ExpMaterial m = service.getSampleSet(container, idriSchema.TABLE_COMPOUNDS).getSample(CompoundName);
         if (m != null)
             return getCompoundType(m);
