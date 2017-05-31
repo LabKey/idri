@@ -35,7 +35,6 @@ import org.labkey.api.security.User;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.study.assay.AssayProvider;
 import org.labkey.api.study.assay.AssayRunUploadContext;
-import org.labkey.api.study.assay.AssayRunUploadContextImpl;
 import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.study.assay.AssayUploadXarContext;
 import org.labkey.api.study.assay.DefaultAssayRunCreator;
@@ -96,12 +95,12 @@ public class HPLCManager
             {
                 // Create Run
                 ExpRun run = AssayService.get().createExperimentRun(runName, container, protocol, null); // Try 'metadata' file
-                Map<String, String> runProps = new HashMap<>();
+                Map<String, Object> runProps = new HashMap<>();
                 runProps.put("RunIdentifier", runName);
-                Map<String, String> batchProps = new HashMap<>();
+                Map<String, Object> batchProps = new HashMap<>();
 
                 // Populate Upload Context
-                AssayRunUploadContextImpl.Factory factory = new AssayRunUploadContextImpl.Factory<>(protocol, provider, user, container)
+                AssayRunUploadContext.Factory factory = provider.createRunUploadFactory(protocol, user, container)
                         .setName(runName)
                         .setComments("")
                         .setRunProperties(runProps)
