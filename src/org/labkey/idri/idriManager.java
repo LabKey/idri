@@ -21,6 +21,7 @@ import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.DbSchemaType;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.PropertyStorageSpec;
 import org.labkey.api.data.RuntimeSQLException;
@@ -84,7 +85,7 @@ public class idriManager
 
     public static DbSchema getSchema()
     {
-        return DbSchema.get(idriSchema.NAME);
+        return DbSchema.get(idriSchema.NAME, DbSchemaType.Module);
     }
 
     public static ExpMaterial getFormulationAsSample(Formulation formulation)

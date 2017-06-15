@@ -26,6 +26,7 @@ import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.idri.idriManager;
 import org.labkey.idri.idriModule;
 
 import java.util.HashSet;
@@ -57,7 +58,7 @@ public class idriSchema extends UserSchema
 
     public idriSchema(User user, Container container)
     {
-        super(NAME, DESCRIPTION, user, container, DbSchema.get(NAME));
+        super(NAME, DESCRIPTION, user, container, idriManager.getSchema());
     }
 
     @Override
