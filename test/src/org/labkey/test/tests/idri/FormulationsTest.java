@@ -25,11 +25,9 @@ import org.labkey.test.categories.Git;
 import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
-import org.labkey.test.util.LabKeyExpectedConditions;
 import org.labkey.test.util.LogMethod;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
@@ -40,6 +38,7 @@ import java.util.List;
 @Category({Git.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
+    {setIsBootstrapWhitelisted(true);}
     private ApiPermissionsHelper _permissionsHelper = new ApiPermissionsHelper(this);
 
     private static final String COMPOUNDS_NAME = "Compounds";
@@ -99,9 +98,6 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String PS_ASSAY      = "Particle Size";
     private static final String PS_ASSAY_DESC = "IDRI Particle Size Data as provided by Nano and APS machine configurations.";
 
-    private static final String VIS_ASSAY      = "Visual";
-    private static final String VIS_ASSAY_DESC = "IDRI Visual Data.";
-
     private static final String HPLC_ASSAY = "HPLC";
     private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
     private static final String PROVISIONAL_HPLC_RUN = "2014_9_19_15_53_20";
@@ -144,10 +140,6 @@ public class FormulationsTest extends BaseWebDriverTest
         insertFormulation();
         defineParticleSizeAssay();
         uploadParticleSizeData();
-
-        defineVisualAssay();
-        uploadVisualAssayData();
-        validateVisualAssayData();
 
         defineProvisionalHPLCAssay();
         defineHPLCAssay();
@@ -238,8 +230,7 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Inserting a Formulation");
         clickAndWait(Locator.linkWithText("Sample Sets"));
         clickAndWait(Locator.linkWithText(FORMULATIONS_NAME));
-        clickButton("New Formulation");
-
+        new DataRegionTable("Material",this).clickInsertNewRow();
         _ext4Helper.waitForMaskToDisappear();
 
         assertTextPresent(
@@ -378,38 +369,6 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    protected void defineVisualAssay()
-    {
-        goToProjectHome();
-
-        log("Defining Visual Assay");
-        clickAndWait(Locator.linkWithText("Manage Assays"));
-        clickButton("New Assay Design");
-
-        assertTextPresent("Visual Formulation Time-Point Data");
-        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Visual"));
-        clickButton("Next");
-
-        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
-        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), VIS_ASSAY);
-        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), VIS_ASSAY_DESC);
-        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
-
-        assertTextPresent(
-                // Batch Properties
-                "No fields have been defined.",
-                // Run Properties
-                "LotNumber",
-                // Result Properties
-                "PhaseSeparation",
-                "ColorChange",
-                "ForeignObject");
-
-        clickButton("Save", 0);
-        waitForText(10000, "Save successful.");
-    }
-
-    @LogMethod
     protected void defineVisualInspectionAssay()
     {
         goToProjectHome();
@@ -442,63 +401,6 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    protected void uploadVisualAssayData()
-    {
-        goToProjectHome();
-
-        log("Uploading Visual Data");
-        clickAndWait(Locator.linkWithText(VIS_ASSAY));
-        clickButton("Import Data");
-
-        waitForText(WAIT_FOR_JAVASCRIPT, "What is the Lot Number?");
-        waitForElement(Locator.id("lot-field"));
-        setFormElement(Locator.name("lot"), FORMULATION);
-        clickButton("Next", 0);
-
-        waitForText("What temperatures are you examining?");
-        WebElement radio = Locator.radioButtonByNameAndValue("time", "1 mo").findElement(getDriver());
-        shortWait().until(LabKeyExpectedConditions.animationIsDone(Locator.css(("#card-1-fieldset-2"))));
-        radio.click();
-        clickButton("Next", 0);
-        waitForText("Please complete this page to continue.");
-
-        checkCheckbox(Locator.checkboxByNameAndValue("temp", "5C"));
-        checkCheckbox(Locator.checkboxByNameAndValue("temp", "60C"));
-        clickButton("Next", 0);
-
-        waitForText("State of " + FORMULATION + " at 1 mo");
-        checkCheckbox(Locator.radioButtonByNameAndValue("5C", "fail"));
-        checkCheckbox(Locator.radioButtonByNameAndValue("60C", "pass"));
-        clickButton("Next", 0);
-
-        waitForText("Additional Comments for passing");
-        setFormElement(Locator.name("comment60C"), "This is a passing comment.");
-        clickButton("Next", 0);
-
-        waitForText("Failure Criteria for 5C");
-        clickButton("Next", 0);
-        waitForText("At least one criteria must be marked as a failure.");
-
-        checkCheckbox(Locator.checkboxByName("failed"));
-        checkCheckbox(Locator.checkboxByName("failed").index(2));
-
-        setFormElement(Locator.name("color"), "Color changed.");
-        setFormElement(Locator.name("foreign"), TRICKY_CHARACTERS);
-        clickButton("Next", 0);
-
-        waitForText("Visual Inspection Summary Report");
-        assertElementPresent(Locator.css("p").withText("Color: Color changed."));
-        assertTextBefore("5C", "60C");
-        assertTextBefore("Failed", "Passed");
-        clickButton("Submit", 0);
-
-        waitForText("Updated successfully.");
-        waitAndClick(Locator.linkWithText("MORE VISUAL INSPECTION"));
-        waitForText("Formulation Lot Information");
-        waitAndClick(Locator.xpath("//div[@id='wizard-window']//div[contains(@class,'x-tool-close')]"));
-    }
-
-    @LogMethod
     protected void uploadVisualInspectionAssayData()
     {
         goToProjectHome();
@@ -506,20 +408,6 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Uploading Visual Inspection Data");
         clickAndWait(Locator.linkWithText(VIS_INSPEC_ASSAY));
         clickButton("Import Data");
-    }
-
-    @LogMethod
-    protected void validateVisualAssayData()
-    {
-        // Assumes starting where uploadVisualAssayData left
-        clickAndWait(Locator.linkWithText("Visual Batches"));
-        clickAndWait(Locator.linkWithText("view runs"));
-        clickAndWait(Locator.linkWithText(FORMULATION));
-
-        assertTextPresent(
-                "Color changed.",
-                TRICKY_CHARACTERS,
-                "This is a passing comment.");
     }
 
     @LogMethod
