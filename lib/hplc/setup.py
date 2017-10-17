@@ -47,7 +47,7 @@ setup(
     packages=packages,
     package_data={},
     install_requires=['requests'],
-    tests_require=['requests', 'watchdog'],
+    tests_require=['labkey', 'requests', 'watchdog'],
     keywords="labkey hplc",
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -58,7 +58,7 @@ setup(
         'Operating System :: MacOS',
         'Operating System :: Microsoft',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering'
     ]
 )

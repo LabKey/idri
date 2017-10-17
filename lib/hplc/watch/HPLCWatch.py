@@ -36,12 +36,14 @@ from datetime import datetime
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
+from labkey.utils import create_server_context
+
 server = ''  # required, leave off any http(s):// and include any ports (e.g. :8000)
 target_dir = ''  # required
-user = ''  # required
-password = ''  # required
 use_ssl = True
-context_path = ''  # optional, in development environments. Production environments tend not to use a context path.
+context_path = ''
+archive_dir = 'archive'
+drop_dir = 'drop'
 
 file_patterns = ["*.txt", "*.csv", "*.tsv", "*.SEQ"]
 sleep_interval = 60
@@ -49,13 +51,37 @@ success_interval = 60
 machine_name = ''
 END_RUN_PREFIX = 'POST'
 
-session = requests.Session()
+# OS delimiter
+delimiter = '/'
+if sys.platform == "win32":
+    delimiter = "\\"
+
+# create the server context to be used for the lifetime of this watch
+server_ctx = create_server_context(server, target_dir, context_path=context_path, use_ssl=use_ssl)
+
+handler = None
+drop_path = None
+obs = None
+
+
+def start_observer():
+    logging.info("Starting observer")
+    obs = Observer()
+    obs.schedule(HPLCHandler(), path=drop_path, recursive=False)
+    obs.start()
+
+
+def stop_observer():
+    logging.info("Stopping observer")
+    if obs is not None:
+        obs.stop()
+        obs.join()
 
 
 class HPLCHandler(PatternMatchingEventHandler):
 
     def __init__(self, patterns=file_patterns):
-        super(HPLCHandler, self).__init__(patterns=patterns)
+        super(HPLCHandler, self).__init__(patterns=patterns, ignore_directories=True)
 
         try:
             self.assayId = self.request_assay()
@@ -67,10 +93,11 @@ class HPLCHandler(PatternMatchingEventHandler):
             logging.exception("Failed configuration.")
             raise Exception(str(e))
 
-        self.successTimerDelay = success_interval # time in seconds
+        self.successTimerDelay = success_interval  # time in seconds
         self.runFiles = []
         self.runFilesMap = {}
         self.folder = ""
+        self.observer = None
 
         #
         # Initialize the run task
@@ -78,11 +105,8 @@ class HPLCHandler(PatternMatchingEventHandler):
         self.checkTask = 0
 
     def on_created(self, event):
-        super(HPLCHandler, self).on_any_event(event)
+        super(HPLCHandler, self).on_created(event)
         self.handle_file_event(event)
-
-    # def on_modified(self, event):
-    #     super(HPLCHandler, self).on_created(event)
 
     def on_deleted(self, event):
         super(HPLCHandler, self).on_deleted(event)
@@ -90,7 +114,7 @@ class HPLCHandler(PatternMatchingEventHandler):
 
     def handle_file_event(self, event, is_delete=False):
         if event.is_directory == False and len(event.src_path) > 0:
-            split_path = event.src_path.split("\\") # should check / or \
+            split_path = event.src_path.split("\\")  # should check / or \
             if len(split_path) > 0:
                 name = str(split_path[len(split_path)-1])
                 if name.find('~') == -1:
@@ -98,24 +122,23 @@ class HPLCHandler(PatternMatchingEventHandler):
                         self.remove_run_file(name)
                     else:
                         logging.info(" Adding file to run: " + name)
-                        files = {'file' : name} # (name, open(name, 'rb'))}
+                        files = {'file': name}
                         self.add_run_file(name, files)
 
     def upload(self, file_json, folder):
         logging.info(" Preparing to send...")
 
-        # self.buildURL(server, context_path, target_dir)
-        url = self.get_scheme() + '://' + server + self.pipelinePath + '/' + folder + '/'
+        url = server_ctx._scheme + server + self.pipelinePath + '/' + folder + '/'
         name = file_json['file']
 
         #
         # Attempt to open the file
         #
-        _file = open(name, 'rb')
+        _file = open(os.getcwd() + delimiter + drop_dir + delimiter + name, 'rb')
         payload = {'file': (name, _file)}
 
         try:
-            r = session.post(url, files=payload, auth=(user, password))
+            r = server_ctx._session.post(url, files=payload)
             s = r.status_code
             if s == 207 or s == 200:
                 logging.info(" " + str(s) + " Uploaded Successfully: " + name)
@@ -154,11 +177,9 @@ class HPLCHandler(PatternMatchingEventHandler):
             sub_pipeline_path = self.pipelinePath.replace('/' + context_path, '')
 
         dav_path = sub_pipeline_path + '/' + folder + '/' + file_name
+        url = server_ctx.build_url('idri', 'getHPLCResource.api') + '?path=' + dav_path
 
-        url = self.build_action_url('idri', 'getHPLCResource')
-        url += '?path=' + dav_path
-
-        r = session.get(url, auth=(user, password))
+        r = server_ctx._session.get(url)
         s = r.status_code
         if s == 200:
             decoded = json.JSONDecoder().decode(r.text)
@@ -167,33 +188,15 @@ class HPLCHandler(PatternMatchingEventHandler):
         logging.info("...done")
 
     @staticmethod
-    def get_scheme():
-        scheme = 'http'
-        if use_ssl:
-            scheme += 's'
-        return scheme
-
-    def get_base_url(self, context):
-        ctx = '/' + context + '/' if len(context) > 0 else ''
-        return self.get_scheme() + '://' + server + '/' + ctx
-
-    def build_url(self, server, context, target):
-        return self.get_base_url(context) + '/' + target + '/'
-
-    def build_action_url(self, controller, action):
-        return self.get_base_url(context_path) + '/' + controller + '/' + target_dir + '/' + action + '.api'
-
-    def request_assay(self):
-        assayURL = self.build_action_url('assay', 'assayList')
+    def request_assay():
+        assay_url = server_ctx.build_url('assay', 'assayList.api')
         logging.info("...Requesting Assay Metadata")
 
         payload = {'type': "Provisional HPLC"}
-
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        r = session.post(assayURL, data=json.dumps(payload), headers=headers, auth=(user, password))
-        s = r.status_code
-        if s == 200:
-            decoded = json.JSONDecoder().decode(r.text)
+
+        try:
+            decoded = server_ctx.make_request(assay_url, json.dumps(payload), headers=headers)
             definitions = decoded[u'definitions']
             if len(definitions) != 1:
                 msg = "Unable to determine target Assay. Ensure there is one and only one 'Provisional HPLC' " \
@@ -206,31 +209,24 @@ class HPLCHandler(PatternMatchingEventHandler):
             #
             logging.info('Done. AssayID: ' + str(definitions[0][u'id']))
             return definitions[0][u'id']
-        elif s == 401:
-            msg = str(s) + ": Authentication failed."
-            raise Exception(msg)
-        else:
-            msg = str(s) + ": Unable to determine target Assay."
+        except Exception as e:
+            msg = "Unable to determine target Assay."
             logging.error(msg)
             raise Exception(msg)
 
-    def request_pipeline(self):
-        action_url = self.build_action_url('idri', 'getHPLCPipelineContainer')
+    @staticmethod
+    def request_pipeline():
+        action_url = server_ctx.build_url('idri', 'getHPLCPipelineContainer.api')
         logging.info("...Requesting Pipeline Configuration")
 
-        r = session.get(action_url, auth=(user, password))
-        s = r.status_code
-        logging.info("...done. Status: " + str(s))
-
-        if s == 200:
-            pipe = r.json()['webDavURL']
+        try:
+            decoded = server_ctx.make_request(action_url, None, method='GET')
+            logging.info("...done.")
+            pipe = decoded[u'webDavURL']
             logging.info(" Pipeline Path: " + pipe)
             return pipe
-        elif s == 401:
-            msg = str(s) + ": Authentication failed."
-            raise Exception(msg)
-        else:
-            msg = "\nUnable to process pipeline configuration.\n" + str(s) + ": " + action_url
+        except Exception as e:
+            msg = "\nUnable to process pipeline configuration.\n" + str(e) + ": " + action_url
             msg += "\nCheck that this URL resolves and/or the IDRI module is properly installed on the server."
 
             logging.error(msg)
@@ -238,7 +234,7 @@ class HPLCHandler(PatternMatchingEventHandler):
 
     def add_run_file(self, file_name, file_json):
         if len(self.runFiles) == 0:
-            print("Starting new run")
+            print("Starting new run", file_name, file_json)
 
         self.runFiles.append(file_json)
         self.runFilesMap[file_name] = len(self.runFiles) - 1
@@ -263,9 +259,6 @@ class HPLCHandler(PatternMatchingEventHandler):
             else:
                 logging.info(" Index out of sync for: " + file_name)
             self.runFilesMap.pop(file_name)
-            # else:
-            #     logging.info(" File not tracked at time of remove request: " + file_name)
-
 
     @staticmethod
     def is_end_run(file_name):
@@ -283,13 +276,15 @@ class HPLCHandler(PatternMatchingEventHandler):
 
     def run_over(self):
         logging.info("...Current run is over, no other files were uploaded. Attempting to push run to server...")
+        stop_observer()
 
         #
         # Create a unique folder in the pipeline for upload
         #
         self.folder = self.generate_folder_name()
-        folderURL = self.get_scheme() + '://' + server + self.pipelinePath + '/' + self.folder
-        r = session.request('MKCOL', folderURL, auth=(user, password))
+        folderURL = server_ctx._scheme + server + self.pipelinePath + '/' + self.folder
+
+        r = server_ctx._session.request('MKCOL', folderURL)
         s = r.status_code
 
         if s == 201:
@@ -305,30 +300,19 @@ class HPLCHandler(PatternMatchingEventHandler):
             #
             # Move all files into a run folder
             #
-            os.mkdir(self.folder)
             cwd = os.getcwd()
+            drop_path = cwd + delimiter + drop_dir
+            archive_folder = cwd + delimiter + archive_dir + delimiter + self.folder
 
-            #
-            # OS delimiter
-            #
-            delimiter = '/'
-            if sys.platform == "win32":
-                delimiter = "\\"
-
-            dest_path = cwd + delimiter + self.folder + delimiter
-            print("Destination:", dest_path)
-
-            for f in self.runFiles:
-                fileName = f['file']
-                dest = dest_path + fileName
-                source = cwd + delimiter + fileName
-                print("Source:", source)
-                shutil.move(source, dest)
+            logging.info("Archive destination: " + archive_folder)
+            print("Archive destination", archive_folder)
+            shutil.move(drop_path, archive_folder)
+            os.mkdir(drop_path)
 
             #
             # Now iterate over each file and determine the dataFileURL
             #
-            run_files = [] # deep copy
+            run_files = []  # deep copy
             for i in range(len(self.runFiles)):
                 run_files.append(self.runFiles[i])
 
@@ -342,20 +326,18 @@ class HPLCHandler(PatternMatchingEventHandler):
             # Files are fully processed, now update run information in Assay
             #
             hplc_run = self.create_hplc_run()
-
-            saveURL = self.build_action_url('assay', 'saveAssayBatch')
-
-            hplc_run.save(saveURL)
+            hplc_run.save(server_ctx.build_url('assay', 'saveAssayBatch.api'))
 
             logging.info("...done")
         else:
             logging.error(" Failed to created folder (" + self.folder + ") in " + folderURL)
-            print("Failed to create folder:", self.folder)
+            print("Failed to create folder on server:", self.folder, s)
 
         self.runFiles = []
         self.runFilesMap = {}
         self.checkTask = 0
         self.folder = ""
+        start_observer()
 
         print("Preparation for next run complete.")
 
@@ -430,7 +412,7 @@ class HPLCRun:
         self.rowId = None
 
     def save(self, save_url):
-        print("Saving HPLC Run...", save_url)
+        print("Saving HPLC Run...")
 
         #
         # This is the only run in this batch
@@ -446,27 +428,12 @@ class HPLCRun:
         payload = {'assayId': self.assayId, 'batch': batch}
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
-        # print "****** PAYLOAD ********"
-        # print(json.dumps(payload))
-
-        r = session.post(save_url, data=json.dumps(payload), headers=headers, auth=(user, password))
-        s = r.status_code
-
-        if s == 400:
-            print(r.status_code, "Bad Request")
-            print(r.text)
-            print(r.json)
-        elif s == 500:
-            print(r.status_code, "Server Error")
-            print(r.text)
-            print(r.json)
-            logging.error(r.status_code)
-            logging.error(r.text)
-            logging.error(r.json)
-            logging.error("Failed to create Assay Run due to server error")
-        else:
+        try:
+            server_ctx.make_request(save_url, json.dumps(payload), headers=headers)
             logging.info("Run saved successfully.")
             print("Run saved Successfully.")
+        except Exception as e:
+            logging.exception(str(e))
 
     def add_result(self, result_row):
         self.dataRows.append(result_row)
@@ -522,26 +489,37 @@ if __name__ == "__main__":
 
     os.chdir(path)
 
-    logging.info(" Watching: " + path)
+    #
+    # Prepare drop/archive directories
+    #
+    drop_path = path + delimiter + drop_dir
+    archive_path = path + delimiter + archive_dir
+
+    if os.path.isdir(drop_path):
+        shutil.rmtree(drop_path)
+    os.mkdir(drop_path)
+
+    if not os.path.isdir(archive_path):
+        os.mkdir(archive_path)
+
+    logging.info(" Watching: " + drop_path)
     logging.info(" File Matchers: " + str(file_patterns))
     logging.info(" sleep_interval: " + str(sleep_interval))
 
     #
-    # Start observing the configured path
+    # Start observing the configured drop path
     #
-    obs = Observer()
-    obs.schedule(HPLCHandler(), path=path, recursive=False)
-    obs.start()
+    handler = HPLCHandler()
+    start_observer()
 
     #
     # Let the command line user know it is responding
     #
-    print("Configuration complete. Listening in", path)
+    print("Configuration complete. Listening in", drop_path)
 
     try:
         while True:
             time.sleep(sleep_interval)
     except KeyboardInterrupt:
         logging.info(" Keyboard Interrupt: Expected from User.")
-        obs.stop()
-    obs.join()
+        stop_observer()
