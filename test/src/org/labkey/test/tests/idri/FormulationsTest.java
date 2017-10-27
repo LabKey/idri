@@ -38,7 +38,6 @@ import java.util.List;
 @Category({Git.class})
 public class FormulationsTest extends BaseWebDriverTest
 {
-    {setIsBootstrapWhitelisted(true);}
     private ApiPermissionsHelper _permissionsHelper = new ApiPermissionsHelper(this);
 
     private static final String COMPOUNDS_NAME = "Compounds";
