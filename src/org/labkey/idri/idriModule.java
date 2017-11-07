@@ -23,7 +23,6 @@ import org.labkey.api.files.FileContentService;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.view.BaseWebPartFactory;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.Portal;
@@ -72,7 +71,7 @@ public class idriModule extends DefaultModule
     @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return new ArrayList<WebPartFactory>(Arrays.asList(
+        return new ArrayList<>(Arrays.asList(
 
             new BaseWebPartFactory(FormulationSearchWebPart.NAME)
             {
@@ -165,7 +164,7 @@ public class idriModule extends DefaultModule
         FolderTypeManager.get().registerFolderType(this, new idriFormulationsFolderType(this));
 
         // listen for webdav events
-        ServiceRegistry.get(FileContentService.class).addFileListener(new idriFileListener());
+        FileContentService.get().addFileListener(new idriFileListener());
 
         // HPLC Assay Support
         ExperimentService.get().registerExperimentDataHandler(new HPLCAssayDataHandler());
@@ -189,7 +188,7 @@ public class idriModule extends DefaultModule
     @Override
     public Set<Class> getUnitTests()
     {
-        return new HashSet<Class>(Arrays.asList(
+        return new HashSet<>(Arrays.asList(
                 HPLCManager.HPLCImportTestCase.class
         ));
     }
