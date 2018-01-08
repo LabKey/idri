@@ -97,7 +97,8 @@ Ext4.define('LABKEY.idri.VisualInspection', {
                     title: 'Timepoints',
                     name: 'timepoint',
                     id: this.ids.timepoint,
-                    height: 150,
+                    height: 200,
+                    autoScroll: true,
                     layout: {
                         type: 'column'
                     },
@@ -142,6 +143,8 @@ Ext4.define('LABKEY.idri.VisualInspection', {
                         items:[{
                             id: this.ids.temperatures,
                             title: 'Temperature',
+                            height: 215,
+                            autoScroll: true,
                             layout: {
                                 align: 'middle',
                                 pack: 'center',

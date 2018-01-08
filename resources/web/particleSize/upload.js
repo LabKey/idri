@@ -13,39 +13,29 @@
             MAX_PDI = 1.0,
             MIN_ZAVE = 1.0;
 
+    var getPrefixes = function() {
+        var prefixes = LABKEY.moduleContext.idri.FormulationPrefixes;
+        if (prefixes) {
+            return prefixes.split(',');
+        }
+        return [];
+    };
+
     var fileNameToBatchNumber = function(filename) {
         // Edits the suffix of the filename
         filename = filename.split('.')[0];
 
+        var prefixes = getPrefixes();
+
         // This checks the first part of the filename for specific run names.
-        /* TODO: Change this check to a regular expression. The batchNumber might need to be rethought. */
-        if (/^TD/.test(filename))
-        {
-            filename = filename.substring(2, filename.length);
-        }
-        else if (/^QF/.test(filename))
-        {
-            // QF is used as 1000-1999 test runs.
-            filename = filename.substring(2, filename.length);
-            filename = '1' + filename;
-        }
-        else if (/^QD/.test(filename))
-        {
-            // QD is used as 2000-2999 test runs.
-            filename = filename.substring(2, filename.length);
-            filename = '2' + filename;
-        }
-        else if (/^QG/.test(filename))
-        {
-            // QG is used as 3000-3999 test runs.
-            filename = filename.substring(2, filename.length);
-            filename = '3' + filename;
-        }
-        else if (/^QH/.test(filename))
-        {
-            // QH is used as 4000-4999 test runs.
-            filename = filename.substring(2, filename.length);
-            filename = '4' + filename;
+        for (var i = 0; i < prefixes.length; i++) {
+            if (new RegExp('^' + prefixes[i]).test(filename)) {
+                filename = filename.substring(prefixes[i].length, filename.length);
+                if (i > 0) {
+                    filename = '' + i + filename;
+                }
+                break;
+            }
         }
 
         return filename;

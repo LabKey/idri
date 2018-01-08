@@ -15,6 +15,12 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
 
     taskMode: 'weektasks',
 
+    statics: {
+        TASK_LIST_SCHEMA: 'lists',
+        TASK_LIST_QUERY: 'TaskList',
+        TASK_LIST_COLUMNS: ['adjuvant', 'date', 'cat', 'comment', 'complete', 'failed', 'importance', 'key', 'lotNum', 'lotNum/Grant', 'lotNum/Name', 'temperature', 'timepoint', 'type']
+    },
+
     initComponent : function() {
         this.ids = {
             oldTasks: Ext4.id(),
@@ -103,30 +109,56 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
 
     exportExcel : function() {
 
-        var rows = [];
+        var exportParams = {
+            schemaName: LABKEY.idri.TaskListPanel.TASK_LIST_SCHEMA,
+            'query.queryName': LABKEY.idri.TaskListPanel.TASK_LIST_QUERY,
+            // export only the displayed columns
+            'query.columns': this.storeColumns().reduce(function(prev, col) {
+                if (col.dataIndex) {
+                    prev.push(col.dataIndex);
+                }
+                return prev;
+            }, []).join(','),
+            'query.showRows': 'ALL'
+        };
 
-        // headers
-        rows.push([
-            'Category', 'Lot', 'Temp', 'Timepoint', 'Date Due',
-            'Type', 'Adjuvant', 'Comment', 'Importance', 'Complete',
-            'Fail'
-        ]);
+        var taskStore = this.getTaskStore();
 
-        // rows
-        this.taskStore.each(function(rec) {
-            rows.push([
-                rec.get('cat'), rec.get('lotNum/Name'), rec.get('temperature'),rec.get('timepoint'), rec.get('date'),
-                rec.get('type'), rec.get('adjuvant'), rec.get('comment'), rec.get('importance'), rec.get('complete'),
-                rec.get('failed')
-            ]);
+        // apply filters
+        Ext4.each(taskStore.filterArray, function(filter) {
+            exportParams[filter.getURLParameterName()] = [filter.getURLParameterValue()];
         });
 
-        LABKEY.Utils.convertToExcel({
-            fileName: 'TaskList.xlsx',
-            sheets: [{
-                name: 'TaskList',
-                data: rows
-            }]
+        // apply sorts
+        if (taskStore.sorters) {
+            var sorts = [];
+
+            taskStore.sorters.each(function(sort) {
+                if (sort.property) {
+                    sorts.push((sort.direction === 'DESC' ? '-' : '') + sort.property);
+                }
+            });
+
+            if (sorts.length) {
+                exportParams['query.sort'] = sorts.join(',');
+            }
+        }
+
+        /**
+         * Sometimes the GET URL gets too long, so use a POST instead. We have to create a separate <form>.
+         */
+        var newForm = document.createElement('form');
+        document.body.appendChild(newForm);
+
+        Ext4.Ajax.request({
+            url: LABKEY.ActionURL.buildURL('query', 'exportRowsXLSX'),
+            method: 'POST',
+            form: newForm,
+            isUpload: true,
+            params: exportParams,
+            callback: function() {
+                document.body.removeChild(newForm);
+            }
         });
     },
 
@@ -163,21 +195,22 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
     getTaskStore : function() {
         if (!this.taskStore) {
             this.taskStore = Ext4.create('LABKEY.ext4.Store', {
-                schemaName: 'lists',
-                queryName: 'TaskList',
-                groupField: 'cat',
-                groupDir: 'ASC',
+                schemaName: LABKEY.idri.TaskListPanel.TASK_LIST_SCHEMA,
+                queryName: LABKEY.idri.TaskListPanel.TASK_LIST_QUERY,
+                columns: LABKEY.idri.TaskListPanel.TASK_LIST_COLUMNS.join(','),
                 sorters: [{
-                    property: 'temperature',
+                    property: 'cat',
                     direction: 'ASC'
                 },{
                     property: 'lotNum/Name',
                     direction: 'ASC'
+                },{
+                    property: 'temperature',
+                    direction: 'ASC'
                 }],
-                columns: [ 'lotNum/Name', '*' /* The rest of the columns */],
                 filterArray: this.generateTaskFilters(),
                 autoLoad: true,
-                maxRows: 40,
+                maxRows: 16,
                 remoteSort: true
             });
         }
@@ -231,7 +264,10 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
                 field: {
                     type: 'textfield'
                 }
-            },
+            },{
+                text: 'Grant',
+                dataIndex: 'lotNum/Grant'
+            }
         ];
     },
 
@@ -282,8 +318,8 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
 
                 if (rows.length > 0) {
                     LABKEY.Query.deleteRows({
-                        schemaName: 'lists',
-                        queryName: 'TaskList',
+                        schemaName: LABKEY.idri.TaskListPanel.TASK_LIST_SCHEMA,
+                        queryName: LABKEY.idri.TaskListPanel.TASK_LIST_QUERY,
                         rows: rows,
                         success: callback
                     });
@@ -306,11 +342,11 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
 
         Ext4.each(filterSets, function(filterSet) {
             LABKEY.Query.selectRows({
-                schemaName: 'lists',
-                queryName: 'TaskList',
+                schemaName: LABKEY.idri.TaskListPanel.TASK_LIST_SCHEMA,
+                queryName: LABKEY.idri.TaskListPanel.TASK_LIST_QUERY,
+                columns: LABKEY.idri.TaskListPanel.TASK_LIST_COLUMNS,
                 filterArray: filterSet,
                 requiredVersion: 16.2,
-                columns: 'Key',
                 success: function(data) {
                     Ext4.each(data.rows, function(row) {
                         taskKeys[row['Key'].value] = true;

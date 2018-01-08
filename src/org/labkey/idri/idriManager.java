@@ -43,6 +43,9 @@ import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
 import org.labkey.api.exp.query.SamplesSchema;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.module.Module;
+import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
@@ -976,5 +979,33 @@ public class idriManager
         if (null != label)
             property.setLabel(label);
         return property;
+    }
+
+    private static final String[] NO_PREFIXES = {};
+
+    public static String[] getValidBatchPrefixes(Container c)
+    {
+        Module module = ModuleLoader.getInstance().getModule("idri");
+        ModuleProperty property = module.getModuleProperties().get(idriModule.FORMULATION_PREFIXES);
+        String value = property.getValueContainerSpecific(c);
+        if (value != null && !"".equals(value))
+            return value.split(",");
+        return NO_PREFIXES;
+    }
+
+    public static boolean isValidBatchName(String name, Container c)
+    {
+        if (name == null || "".equals(name))
+            return false;
+
+        String upperName = name.toUpperCase();
+
+        for (String prefix : getValidBatchPrefixes(c))
+        {
+            if (upperName.startsWith(prefix))
+                return true;
+        }
+
+        return false;
     }
 }
