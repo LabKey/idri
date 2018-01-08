@@ -83,6 +83,14 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
         this.rawInputs = context.rawInputs;
     },
 
+    getPrefixes : function() {
+        var prefixes = LABKEY.moduleContext.idri.FormulationPrefixes;
+        if (prefixes) {
+            return prefixes.split(',');
+        }
+        return [];
+    },
+
     getInputs : function() {
 
         return {
@@ -114,31 +122,30 @@ Ext4.define('LABKEY.hplc.StandardCreator', {
                 // listeners
                 listeners: {
                     viewready : function(g) {
-                        g.getStore().filter([{
+                        var filters = [{
                             filterFn: function(item) {
-                                return item.get('name').indexOf('PRE_') == -1 && item.get('name').indexOf('POST_') == -1;
+                                return item.get('name').indexOf('PRE_') === -1 && item.get('name').indexOf('POST_') === -1;
                             }
                         },{
                             filterFn: function(item) {
-                                return item.get('name').indexOf('BLANK') == -1;
+                                return item.get('name').indexOf('BLANK') === -1;
                             }
-                        },{
-                            filterFn: function(item) {
-                                return item.get('name').indexOf('QF') == -1;
+                        }];
+
+                        function filterFactory(prefix) {
+                            return {
+                                filterFn: function(item) {
+                                    return item.get('name').indexOf(prefix) === -1;
+                                }
                             }
-                        },{
-                            filterFn: function(item) {
-                                return item.get('name').indexOf('QD') == -1;
-                            }
-                        },{
-                            filterFn: function(item) {
-                                return item.get('name').indexOf('QG') == -1;
-                            }
-                        },{
-                            filterFn: function(item) {
-                                return item.get('name').indexOf('QH') == -1;
-                            }
-                        }]);
+                        }
+
+                        var prefixes = this.getPrefixes();
+                        for (var i=0; i < prefixes.length; i++) {
+                            filters.push(filterFactory(prefixes[i]));
+                        }
+
+                        g.getStore().filter(filters);
                     },
                     selectionchange: function(g, selects) {
                         this.fireEvent('selectsource', selects);
