@@ -98,11 +98,11 @@
                     //
                     var filters = [{
                         filterFn: function(item) {
-                            return item.get('name').indexOf('PRE_') == -1 && item.get('name').indexOf('POST_') == -1;
+                            return item.get('name').indexOf('PRE_') === -1 && item.get('name').indexOf('POST_') === -1;
                         }
                     },{
                         filterFn: function(item) {
-                            return item.get('name').indexOf('BLANK') == -1;
+                            return item.get('name').indexOf('BLANK') === -1;
                         }
                     }];
 
@@ -110,7 +110,13 @@
                         filters.push({
                             filterFn: function(item) {
                                 var name = item.get('name');
-                                return name.indexOf('TD') != -1 || name.indexOf('QD') != -1 || name.indexOf('QF') != -1;
+                                var prefixes = getPrefixes();
+
+                                for (var i=0; i < prefixes.length; i++) {
+                                    if (name.indexOf(prefixes[i]) !== -1) {
+                                        return true;
+                                    }
+                                }
                             }
                         });
                     }
@@ -226,10 +232,6 @@
                                 xLabel: 'Time (m)',
                                 yLabel: 'mV',
                                 autoZoom: true
-//                            listeners: {
-//                                zoom: this.updateZoom,
-//                                scope: this
-//                            }
                             }]
                         }]
                     }]
@@ -292,14 +294,12 @@
             frame: 'none',
             buttonBarPosition: 'none',
             showPagination: false,
-//        showRecordSelectors: true,
             suppressRenderErrors: !LABKEY.devMode,
             parameters: {
                 Formulation: assayId
             }
         });
     });
-
 </script>
 <%
     }

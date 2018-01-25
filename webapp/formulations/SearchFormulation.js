@@ -1,23 +1,35 @@
 /*
- * Copyright (c) 2011-2016 LabKey Corporation
+ * Copyright (c) 2011-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
-
 var _searchStatus = 'SearchStatusDiv';
+
+function getPrefixes() {
+    var prefixes = LABKEY.moduleContext.idri.FormulationPrefixes;
+    if (prefixes) {
+        return prefixes.split(',');
+    }
+    return [];
+}
 
 function resolveView(queryString)
 {
-    if (queryString.length > 0) {
+    if (queryString.length) {
         if (/^IRM\-?\s*\d{1,4}\s*$/.test(queryString)) {
             return "RM";
         }
-        else if (/(TD|QF|QD|QG|QH)\d{1,3}\s*$/.test(queryString)) {
-            return "FORMULATION";
-        }
         else {
-            return "COMPOUND";
+            var prefixes = getPrefixes();
+            if (prefixes.length) {
+                var expr = '(' + prefixes.join('|') + ')\\d{1,3}\\s*$';
+                if (new RegExp(expr).test(queryString)) {
+                    return "FORMULATION";
+                }
+            }
         }
+
+        return "COMPOUND";
     }
     return "";
 }
@@ -26,8 +38,7 @@ function resolveView(queryString)
 function formatQueryString(queryString, resolvedView)
 {
     var newString = queryString;
-    if(resolvedView == "RM")
-    {
+    if (resolvedView === "RM") {
         /* Means it matched on ^IRM */
         newString = newString.replace(" ","");
         newString = newString.replace("-","");
@@ -47,8 +58,7 @@ function showInSearchView(resolvedView, data)
     document.getElementById(_searchStatus).innerHTML = "";
 
     // This is what is displayed when a Formulation search is performed.
-    if(data.rowCount == 1 && resolvedView == "FORMULATION")
-    {
+    if (data.rowCount === 1 && resolvedView === "FORMULATION") {
         var row = data.rows[0];
         var runId = row["RowId"].toString();
         var topEl = document.getElementById('topDiv');
@@ -147,7 +157,7 @@ function getRunIdIfUnique(searchElementId)
 
 function onFailure(errorInfo, options, responseObj)
 {
-    if(errorInfo && errorInfo.exception)
+    if (errorInfo && errorInfo.exception)
         alert("Failure: " + errorInfo.exception);
     else
         alert("Failure: " + responseObj.statusText);
@@ -155,15 +165,13 @@ function onFailure(errorInfo, options, responseObj)
 
 function onSuccess(data)
 {
-    if(data.rowCount == 0)
-    {
-        if(document.getElementById(_searchStatus))
+    if (data.rowCount === 0) {
+        if (document.getElementById(_searchStatus))
             document.getElementById(_searchStatus).innerHTML = "Search failed. No matches found.";
         return false;
     }
-    else if(data.rowCount > 1)
-    {
-        if(globalQueryConfig.resolvedView)
+    else if (data.rowCount > 1) {
+        if (globalQueryConfig.resolvedView)
             showInSearchView(globalQueryConfig.resolvedView, data);
         else
             document.getElementById(_searchStatus).innerHTML = "Search failed.";
@@ -174,13 +182,9 @@ function onSuccess(data)
     var runId = row["RowId"].toString();
 
     // There is only one data result
-    if(globalQueryConfig.resolvedView)
-    {
-        if(globalQueryConfig.resolvedView == "assay")
-        {
-            showInSearchView("assay", data);
-            return false;
-        }
+    if (globalQueryConfig.resolvedView && globalQueryConfig.resolvedView === 'assay') {
+        showInSearchView('assay', data);
+        return false;
     }
 
     // Successfully moving to the requested page.
@@ -284,8 +288,7 @@ function displayGraphic(name, temp, tool, imageElement, divElement)
 
 function buildHPLCReports(tempStr)
 {
-    if(reportObjects['dataRegionDiv2Obj'])
-    {
+    if (reportObjects['dataRegionDiv2Obj']) {
         getReportObject('dataRegionDiv2Obj').destroy();
     }
 
@@ -343,13 +346,11 @@ function buildHPLCReports(tempStr)
 
 function validatePSReport(reportStore,reportRecords,opts)
 {
-    if(reportRecords.length > 0)
-    {
+    if (reportRecords.length > 0) {
         document.getElementById("dataRegionDiv").style.display = "inline";
         document.getElementById("resultsDiv").style.display = "inline";
     }
-    else
-    {
+    else {
         document.getElementById('errorDiv').innerHTML += "<br/><span style='color:red;'>WARNING: No Particle Size Data Present for current temperature of " + LABKEY.ActionURL.getParameter('nameContains') + "</span>";
         document.getElementById("dataRegionDiv").style.display = "none";
         document.getElementById("resultsDiv").style.display = "none";
@@ -358,13 +359,11 @@ function validatePSReport(reportStore,reportRecords,opts)
 
 function validateHPLCReport(reportStore,reportRecords,opts)
 {
-    if(reportRecords.length > 0)
-    {
+    if (reportRecords.length > 0) {
         document.getElementById("dataRegionDiv2").style.display = "inline";
         document.getElementById("concentrationDiv").style.display = "inline";
     }
-    else
-    {
+    else {
         document.getElementById('errorDiv').innerHTML += "<br/><span style='color:red;'>WARNING: No HPLC Data Present for current temperature of " + LABKEY.ActionURL.getParameter('nameContains') + "</span>";
         document.getElementById("dataRegionDiv2").style.display = "none";
         document.getElementById("concentrationDiv").style.display = "none";

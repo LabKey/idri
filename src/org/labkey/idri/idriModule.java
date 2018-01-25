@@ -23,7 +23,7 @@ import org.labkey.api.files.FileContentService;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.view.BaseWebPartFactory;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.Portal;
@@ -54,6 +54,18 @@ public class idriModule extends DefaultModule
     public static final String WEBPART_CREATE_FORMULATION = "Formulation Creation";
     public static final String WEBPART_TASKLIST = "Formulations Task List";
 
+    public static final String FORMULATION_PREFIXES = "FormulationPrefixes";
+    final ModuleProperty _formulationPrefixes;
+
+    public idriModule()
+    {
+        _formulationPrefixes = new ModuleProperty(this, FORMULATION_PREFIXES);
+        _formulationPrefixes.setDescription("The set of valid prefixes available for creating, searching, and reading Formulation lots.");
+        _formulationPrefixes.setCanSetPerContainer(true);
+        _formulationPrefixes.setDefaultValue("TD,QF,QD,QG,QH,QI,QJ,QK,QL");
+        addModuleProperty(_formulationPrefixes);
+    }
+
     public String getName()
     {
         return "idri";
@@ -61,7 +73,7 @@ public class idriModule extends DefaultModule
 
     public double getVersion()
     {
-        return 17.20;
+        return 17.30;
     }
 
     public boolean hasScripts()
@@ -72,7 +84,7 @@ public class idriModule extends DefaultModule
     @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return new ArrayList<WebPartFactory>(Arrays.asList(
+        return new ArrayList<>(Arrays.asList(
 
             new BaseWebPartFactory(FormulationSearchWebPart.NAME)
             {
@@ -165,7 +177,7 @@ public class idriModule extends DefaultModule
         FolderTypeManager.get().registerFolderType(this, new idriFormulationsFolderType(this));
 
         // listen for webdav events
-        ServiceRegistry.get(FileContentService.class).addFileListener(new idriFileListener());
+        FileContentService.get().addFileListener(new idriFileListener());
 
         // HPLC Assay Support
         ExperimentService.get().registerExperimentDataHandler(new HPLCAssayDataHandler());
@@ -189,7 +201,7 @@ public class idriModule extends DefaultModule
     @Override
     public Set<Class> getUnitTests()
     {
-        return new HashSet<Class>(Arrays.asList(
+        return new HashSet<>(Arrays.asList(
                 HPLCManager.HPLCImportTestCase.class
         ));
     }

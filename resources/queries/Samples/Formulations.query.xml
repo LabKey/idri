@@ -14,30 +14,15 @@
                     <item text="Grid Views">
                         <originalText>Grid Views</originalText>
                     </item>
-                    <item text="Reports">
-                        <originalText>Reports</originalText>
-                    </item>
                     <item text="Charts">
                         <originalText>Charts</originalText>
                     </item>
-                    <!--<item text="Insert">-->
-                        <!--<originalText>Insert</originalText>-->
-                    <!--</item>-->
                     <item text="New Formulation">
                         <originalText>Insert New Row</originalText>
                     </item>
                     <item text="Export">
                         <originalText>Export</originalText>
                     </item>
-                    <item text="Paging">
-                        <originalText>Paging</originalText>
-                    </item>
-                    <!--<item text="Import Data">-->
-                        <!--<originalText>Import Data</originalText>-->
-                    <!--</item>-->
-                    <!--<item text="Delete">-->
-                        <!--<originalText>Delete</originalText>-->
-                    <!--</item>-->
                     <includeScript>/formulations/buttons.js</includeScript>
                     <item text="Delete Formulation" requiresSelection="true" insertBefore="Delete">
                         <onClick>LABKEY.idri.buttons.DeleteFormulationHandler(dataRegion)</onClick>
