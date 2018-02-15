@@ -711,6 +711,10 @@
                 listeners: {
                     change: function(field, file) { form.submit(); }
                 }
+            }, {
+                xtype: 'hidden',
+                name: 'X-LABKEY-CSRF',
+                value: LABKEY.CSRF
             }],
             listeners: {
                 actioncomplete : function(_form, action, eOpts){
