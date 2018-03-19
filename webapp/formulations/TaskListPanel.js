@@ -122,6 +122,12 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
             'query.showRows': 'ALL'
         };
 
+        for (var h in LABKEY.defaultHeaders) {
+            if (LABKEY.defaultHeaders.hasOwnProperty(h)) {
+                exportParams[h] = LABKEY.defaultHeaders[h];
+            }
+        }
+
         var taskStore = this.getTaskStore();
 
         // apply filters

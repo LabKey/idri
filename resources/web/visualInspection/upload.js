@@ -705,7 +705,7 @@ Ext4.define('LABKEY.idri.VisualInspection', {
         Ext4.getCmp(this.ids.timepoint).items.each(function(item) {
             var record = this.stores.timepointStore.getById(item.recordId);
             if (record) {
-                item.btnInnerEl.setStyle({ color: 'blue' });
+                item.addCls('timepoint-selectable');
             }
 
             if (!newTimepoint) {

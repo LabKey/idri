@@ -307,11 +307,11 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                             scope: this
                         },{
                             xtype: 'combo',
-                            fieldLabel: 'Grant',
+                            fieldLabel: 'Grant*',
                             name: 'Grant',
                             triggerAction: 'all',
                             typeAhead: true,
-                            allowBlank: true,
+                            allowBlank: false,
                             editable: false,
                             validateOnBlur: false,
                             displayField: 'grant',
@@ -616,7 +616,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         Ext4.onReady(function() {
             var window = Ext4.create('Ext.window.Window', {
                 title: 'Stability Profile',
-                height: 425,
+                height: 550,
                 width: 625,
                 bodyStyle: 'padding:5px; padding-top; 30px;',
                 items: [{
