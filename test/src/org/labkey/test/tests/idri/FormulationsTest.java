@@ -16,12 +16,15 @@
 package org.labkey.test.tests.idri;
 
 import com.google.common.base.Function;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.Git;
+import org.labkey.test.components.ext4.ComboBox;
+import org.labkey.test.pages.list.BeginPage;
 import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
@@ -45,13 +48,7 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String FORMULATIONS_NAME = "Formulations";
     private static final String PROJECT_NAME = "FormulationsTest";
 
-    private static final String CATALOG_LIST = "Catalog";
-    private static final String GRANT_LIST = "Grants";
-    private static final String TEMPERATURE_LIST = "Temperatures";
-    private static final String TIME_LIST = "Timepoints";
-    private static final String TYPES_LIST = "FormulationTypes";
-    private static final String MATERIAL_TYPES_LIST = "MaterialTypes";
-    private static final String VIS_OPTIONS_LIST = "VisualOptions";
+    private static final File LIST_DATA = TestFileUtils.getSampleData("idri/FormulationsTest.lists.zip");
 
     // Name must be same as what is used as target stability group
     private static final String STABILITY_GROUP = "Stability";
@@ -74,25 +71,8 @@ public class FormulationsTest extends BaseWebDriverTest
 
     private static final String FORMULATION = "TD789";
 
-    private static final String CATALOG_HEADER = "catalogId\n";
     private static final String CATALOG_DATA_1 = "EM081";
-    private static final String CATALOG_DATA   = CATALOG_DATA_1 + "\n";
-
-    private static final String GRANT_HEADER = "grant\n";
     private static final String GRANT_DATA_1 = "KL9090";
-    private static final String GRANT_DATA   = GRANT_DATA_1 + "\n";
-
-    private static final String TEMPERATURE_HEADER = "Temperature\n";
-    private static final String TEMPERATURE_DATA   = "5\n25\n37\n60\n";
-
-    private static final String TIME_HEADER = "Time\tSort\n";
-    private static final String TIME_DATA   = "T=0\t0\n1 wk\t7\n2 wk\t14\n1 mo\t30\n3 mo\t90\n6 mo\t180\n9 mo\t270\n12 mo\t360\n24 mo\t720\n36 mo\t1080\n";
-
-    private static final String TYPES_HEADER = "Type\n";
-    private static final String TYPES_DATA   = "Emulsion\nAqueous\nPowder\nLiposome\nAlum\nNiosomes\n";
-
-    private static final String MTYPES_HEADER = "Type\tUnits\n";
-    private static final String MTYPES_DATA   = "adjuvant\t%w/vol\nsterol\t%w/vol\noil\t%v/vol\nbuffer\tmM\n";
 
     private static final String PS_ASSAY      = "Particle Size";
     private static final String PS_ASSAY_DESC = "IDRI Particle Size Data as provided by Nano and APS machine configurations.";
@@ -106,9 +86,6 @@ public class FormulationsTest extends BaseWebDriverTest
 
     private static final String VIS_INSPEC_ASSAY = "VisualInspection";
     private static final String VIS_INSPEC_ASSAY_DESC = "Improved IDRI Visual Data.";
-
-    private static final String VIS_OPTIONS_HEADER = "Item\tCategory\tPass\tFail\n";
-    private static final String VIS_OPTIONS_DATA = "White\tColor\ttrue\ttrue\nOpaque\tOpacity\ttrue\ttrue\nColorless\tColor\ttrue\ttrue\nGrowth/Contaminate\tPhase\tfalse\ttrue\n";
 
     @Override
     public List<String> getAssociatedModules()
@@ -172,24 +149,10 @@ public class FormulationsTest extends BaseWebDriverTest
     @LogMethod
     protected void setupLists()
     {
-        goToProjectHome();
-
-        loadList(CATALOG_LIST, CATALOG_HEADER + CATALOG_DATA);
-        loadList(GRANT_LIST, GRANT_HEADER + GRANT_DATA);
-        loadList(TEMPERATURE_LIST, TEMPERATURE_HEADER + TEMPERATURE_DATA);
-        loadList(TIME_LIST, TIME_HEADER + TIME_DATA);
-        loadList(TYPES_LIST, TYPES_HEADER + TYPES_DATA);
-        loadList(MATERIAL_TYPES_LIST, MTYPES_HEADER + MTYPES_DATA);
-        loadList(VIS_OPTIONS_LIST, VIS_OPTIONS_HEADER + VIS_OPTIONS_DATA);
-    }
-
-    private void loadList(String name, String tsvData)
-    {
-        log("Upload " + name + " data");
-        clickAndWait(Locator.linkWithText(name));
-        _listHelper.clickImportData();
-        _listHelper.submitTsvData(tsvData);
-        clickAndWait(Locator.linkWithText("Lists"));
+        BeginPage listBegin = goToManageLists();
+        List<String> formulationsLists = listBegin.getGrid().getColumnDataAsText("Name");
+        listBegin = listBegin.importListArchive(LIST_DATA);
+        Assert.assertEquals("List archive doesn't match initial Formulations lists", formulationsLists, listBegin.getGrid().getColumnDataAsText("Name"));
     }
 
     @LogMethod
@@ -532,11 +495,11 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Start QC", 0);
         waitForElementToDisappear(Locator.id("sampleinputs").notHidden());
 
-        _ext4Helper.selectComboBoxItem(Locator.id("compoundlist"), "Squawk");
-        _ext4Helper.selectComboBoxItem(Locator.id("standardslist"), standardName);
-        _ext4Helper.selectComboBoxItem(Locator.id("formulationlist"), FORMULATION);
-        _ext4Helper.selectComboBoxItem(Locator.id("temperaturelist"), "5");
-        _ext4Helper.selectComboBoxItem(Locator.id("timelist"), "T=0");
+        new ComboBox.ComboBoxFinder(getDriver()).withIdPrefix("compoundlist").find(getDriver()).selectComboBoxItem("Squawk");
+        new ComboBox.ComboBoxFinder(getDriver()).withIdPrefix("standardslist").find(getDriver()).selectComboBoxItem(standardName);
+        new ComboBox.ComboBoxFinder(getDriver()).withIdPrefix("formulationlist").find(getDriver()).selectComboBoxItem(FORMULATION);
+        new ComboBox.ComboBoxFinder(getDriver()).withIdPrefix("temperaturelist").find(getDriver()).selectComboBoxItem("5");
+        new ComboBox.ComboBoxFinder(getDriver()).withIdPrefix("timelist").find(getDriver()).selectComboBoxItem("T=0");
 
         Locator.XPathLocator firstSampleRow = Locator.tagWithAttribute("tr", "modelname", samples[0]);
         setFormElement(firstSampleRow.append(Locator.input("xleft")), sleft);
