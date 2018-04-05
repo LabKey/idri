@@ -127,9 +127,17 @@ public class FormulationsTest extends BaseWebDriverTest
         uploadVisualInspectionAssayData();
     }
 
+    @Override
+    protected void doCleanup(boolean afterTest)
+    {
+        _userHelper.deleteUser("ops@labkey.com");
+        super.doCleanup(afterTest);
+    }
+
     @LogMethod
     protected void setupFormulationsProject()
     {
+        _userHelper.createUser("ops@labkey.com", false, false);
         enableEmailRecorder();
         _containerHelper.createProject(PROJECT_NAME, "IDRI Formulations");
 
