@@ -481,7 +481,7 @@ public class idriController extends SpringActionController
 
             if (null != resource)
             {
-                FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+                FileContentService svc = FileContentService.get();
                 ExpData data = svc.getDataObject(resource, c);
 
                 if (form.isTest() && data == null)

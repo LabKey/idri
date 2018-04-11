@@ -170,7 +170,7 @@ public class HPLCManager
 
         private File getTestRoot()
         {
-            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
+            FileContentService service = FileContentService.get();
             File siteRoot = service.getSiteDefaultRoot();
             File testRoot = new File(siteRoot, FILE_ROOT_SUFFIX);
             testRoot.mkdirs();
@@ -196,7 +196,7 @@ public class HPLCManager
         @After
         public void cleanup()
         {
-            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            FileContentService svc = FileContentService.get();
             Assert.assertNotNull(svc);
 
             File testRoot = getTestRoot();
