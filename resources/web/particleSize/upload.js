@@ -94,9 +94,11 @@
         // Argument - sampleText is equivalent to one row in the file.
 
         // Possible pattern types recognized
-        // 1. [ TIME PERIOD ] [ SAMPLE # ]              nano -- Missing TEMP
-        // 2. [ TEMP ] [ TIME PERIOD ] [ SAMPLE # ]     nano
-        // 3. [ TIME PERIOD ] [ TEMP ] [ WELL INFO ]    aps  -- Missing SAMPLE #
+        // 1. [ TIME PERIOD ] [ SAMPLE # ]                      nano -- Missing TEMP
+        // 2. [ TEMP ] [ TIME PERIOD ] [ SAMPLE # ]             nano
+        // 3. [ TIME PERIOD ] [ TEMP ] [ WELL INFO ]            aps  -- Missing SAMPLE #
+        // 4. [ LOT # ] [ TEMP ] [ TIME PERIOD ] [ SAMPLE # ]   nano -- auto-sampling
+        // LOT #       = QF145, TD336, etc (we don't record or use this, just given a slot for clarity)
         // TIME PERIOD = DM, T=0, 1 wk, 2 wk, 3mo, 6mo, etc.
         // SAMPLE #    = 1, 2, 3, ..., n samples
         // TEMP        = 5C, 25C, 37C, etc
@@ -183,7 +185,7 @@
             }
             else if (sampleText.match(pattern2))
             {
-                // Work with type 2
+                // Work with type 2 and 4
                 temperature = sampleText.match(patternTemp)[0];
                 sampleText = sampleText.replace(temperature,"");
 
@@ -194,9 +196,20 @@
                 else
                 {
                     timeLabel = sampleText.match(patternTime)[0];
-                    sampleText = sampleText.replace(timeLabel,"");
-                    extractionNum = parseInt(sampleText.replace(/\s/g,""));
+                    sampleText = sampleText.replace(timeLabel, "").trim();
                     machineType = "nano";
+
+                    // differentiate between patterns 2 and 4
+                    var sampleTextParts = sampleText
+                            .split(' ')
+                            .filter(function(part) { return part !== ''; });
+
+                    if (sampleTextParts.length === 1) {
+                        extractionNum = parseInt(sampleText);
+                    }
+                    else if (sampleTextParts.length > 1) {
+                        extractionNum = parseInt(sampleTextParts[1]);
+                    }
                 }
             }
             else if (sampleText.match(pattern1))
