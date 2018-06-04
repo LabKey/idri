@@ -18,18 +18,7 @@
 library(Rlabkey)
 
 # Relative Directory to where Particle Size Images are stored
-relativeDirectory <- paste(labkey.url.path, "@files/PSData", sep="")
-
-# Base Server URL
-baseURL <- labkey.url.base
-
-if(.Platform[1] == "windows") {
-    relativeDirectory <- paste("C:/code/labkey/modules142/build/deploy/files", relativeDirectory, sep="")
-    baseURL <- "http://localhost:8080/labkey/"
-} else {
-    relativeDirectory <- paste("/labkey/labkey/files", relativeDirectory, sep="")
-}
-
+relativeDirectory <- paste("/labkey/labkey/files", labkey.url.path, "@files/PSData", sep="")
 setwd(relativeDirectory)
 
 searchParam      <- labkey.url.params$nameContains
@@ -41,7 +30,7 @@ cat("searchParam:", searchParam, "\n")
 cat("temperatureParam:", temperatureParam, "\n")
 cat("toolParam:", toolParam, "\n")
 cat("exactName:", exactName, "\n")
-cat("base URL:", baseURL, "\n")
+cat("base URL:", labkey.url.base, "\n")
 cat("folder:", labkey.url.path, "\n")
 
 filter1 <- makeFilter(c("name", "EQUALS", searchParam))
@@ -52,14 +41,14 @@ cat("Filter 1:", filter1, "\n")
 cat("Filter 2:", filter2, "\n")
 cat("Filter 3:", filter3, "\n")
 
-mydata <- suppressWarnings(labkey.selectRows(baseUrl=baseURL,
+mydata <- suppressWarnings(labkey.selectRows(baseUrl=labkey.url.base,
                             folderPath=labkey.url.path,
                             schemaName="assay.particleSize.Particle Size",
                             queryName="R_ReportSummaryNonParameter",
                             colFilter=c(filter1,filter2,filter3)))
 
 # This is NOT GOOD - view-dependence.
-# There should only be a certian set of columns in the default view
+# There should only be a certain set of columns in the default view
 # Run Assay Id, Measure (sorted descending), Test (sorted ascending), DM, ..., 36 mo in that order
 
 # Truncate the initial columns

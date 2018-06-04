@@ -44,8 +44,7 @@ function formatQueryString(queryString, resolvedView)
         newString = newString.replace("-","");
         newString = newString.replace("IRM","IRM-");
         var buffer = "-0";
-        while(newString.length < 8)
-        {
+        while (newString.length < 8) {
             newString = newString.replace(/\-[0]*/, buffer);
             buffer += "0";
         }
@@ -63,8 +62,7 @@ function showInSearchView(resolvedView, data)
         var runId = row["RowId"].toString();
         var topEl = document.getElementById('topDiv');
         topEl.style.display = "block";
-        if (parseInt(row["RunProperties/ZAveMean"]) >= 0)
-        {
+        if (parseInt(row["RunProperties/ZAveMean"]) >= 0) {
             buildPSReports('5C', globalQueryConfig.srchstr);
             topEl.innerHTML = "<p style='float: left;'>[<a href=" + getSummaryViewURL(runId) + ">Stability report</a>]&nbsp</p>";
         }
@@ -72,12 +70,12 @@ function showInSearchView(resolvedView, data)
             topEl.innerHTML = "<span style='color:red;'>" + row["Name"] + " contains errors. No stability report available.</span>";
     }
 
-    var qwp = new LABKEY.QueryWebPart({
-        renderTo   : _searchStatus,
-        title      : 'Search Results',
-        schemaName : globalQueryConfig.schemaName,
-        queryName  : globalQueryConfig.queryName,
-        filters    : globalQueryConfig.filterArray,
+    new LABKEY.QueryWebPart({
+        renderTo: _searchStatus,
+        title: 'Search Results',
+        schemaName: globalQueryConfig.schemaName,
+        queryName: globalQueryConfig.queryName,
+        filters: globalQueryConfig.filterArray,
         buttonBarPosition: 'none'
     });
 }
@@ -110,16 +108,14 @@ function getRunIdIfUnique(searchElementId)
 
         var filters = [LABKEY.Filter.create("Name",srchstr, LABKEY.Filter.Types.CONTAINS)];
 
-        if (view == "RM")
-        {
+        if (view === "RM") {
             globalQueryConfig.schemaName = 'exp';
             globalQueryConfig.queryName = 'Materials';
             globalQueryConfig.controller = 'experiment';
             globalQueryConfig.action = 'showMaterial';
             globalQueryConfig.filterArray = filters;
         }
-        else if (view == "FORMULATION")
-        {
+        else if (view === "FORMULATION") {
             globalQueryConfig.schemaName = 'Samples';
             globalQueryConfig.queryName = 'Formulations';
             globalQueryConfig.controller = 'project';
@@ -128,8 +124,7 @@ function getRunIdIfUnique(searchElementId)
             globalQueryConfig.resolvedView = view;
             globalQueryConfig.params = { pageId: 'idri.LOT_SUMMARY' };
         }
-        else if (view == "COMPOUND")
-        {
+        else if (view === "COMPOUND") {
             globalQueryConfig.schemaName = 'Samples';
             globalQueryConfig.queryName = 'Compounds';
             globalQueryConfig.controller = 'experiment';
@@ -137,19 +132,18 @@ function getRunIdIfUnique(searchElementId)
             globalQueryConfig.filterArray = filters;
             globalQueryConfig.resolvedView = view;
         }
-        else
-        {
+        else {
             if (ss)
                 ss.update("Search failed.");
             return false;
         }
 
         LABKEY.Query.selectRows({
-            schemaName      : globalQueryConfig.schemaName,
-            queryName       : globalQueryConfig.queryName,
-            successCallback : onSuccess,
-            errorCallback   : onFailure,
-            filterArray     : globalQueryConfig.filterArray
+            schemaName: globalQueryConfig.schemaName,
+            queryName: globalQueryConfig.queryName,
+            success: onSuccess,
+            failure: onFailure,
+            filterArray: globalQueryConfig.filterArray
         });
     }
     return false;
@@ -158,9 +152,9 @@ function getRunIdIfUnique(searchElementId)
 function onFailure(errorInfo, options, responseObj)
 {
     if (errorInfo && errorInfo.exception)
-        alert("Failure: " + errorInfo.exception);
+        LABKEY.Utils.alert("Failure: " + errorInfo.exception);
     else
-        alert("Failure: " + responseObj.statusText);
+        LABKEY.Utils.alert("Failure: " + responseObj.statusText);
 }
 
 function onSuccess(data)
@@ -202,20 +196,6 @@ function getSummaryViewURL(rowId)
     return LABKEY.ActionURL.buildURL(globalQueryConfig.controller, globalQueryConfig.action, null, params);
 }
 
-var reportObjects = {};
-
-function registerReportObject(name, newObject)
-{
-    reportObjects[name] = newObject;
-}
-
-function getReportObject(name)
-{
-    if (reportObjects[name])
-        return reportObjects[name];
-    return null;
-}
-
 function buildPSReports(tempstr, name, machine, renderImage)
 {
     var nameCont = (name ? name : LABKEY.ActionURL.getParameter('nameContains'));
@@ -226,146 +206,63 @@ function buildPSReports(tempstr, name, machine, renderImage)
 // Specifically Displays the PS charts
 function displayGraphic(name, temp, tool, imageElement, divElement)
 {
-    var _name = name;
-    var parameters = {
-        'RunName': name,
-        'StoreTemp': temp,
-        'Tool': tool
-    };
+    // Check if there is a cached image
+    // Cannot use LABKEY.ActionURL.buildURL for _webdav URLs as it does not conform to new URL pattern
+    // (e.g. controller-action.view)
+    var _url = [
+        LABKEY.contextPath,
+        '/_webdav',
+        LABKEY.ActionURL.getContainer(),
+        '/%40files/PSData/',
+        name, '_', tool, 'PS.png?', new Date().getTime()
+    ].join('');
 
-    /* First check to make sure there are results for the given params */
-    LABKEY.Query.selectRows({
-        schemaName: 'assay.particleSize.Particle Size',
-        queryName: 'R_ReportSummary',
-        parameters: parameters,
-        success : function(data) {
-            if (data.rowCount > 0)
-            {
-                /* Check if there is a cached image */
-                var date = new Date(); // bypass browser cache
-                var _url = LABKEY.ActionURL.buildURL("_webdav", "%40files/PSData/" + name + "_" + tool  + "PS.png?" + date.getTime());
-                Ext.Ajax.request({
-                    url : _url,
-                    method : 'GET',
-                    success : function(result, response)
-                    {
-                        var _img = new Image();
-                        _img.src = _url;
-                        document.getElementById(divElement).innerHTML = "<img src='' alt='ps image' id='" + imageElement + "' style='display: none;'/>";
-                        document.getElementById(imageElement).style.display = "inline";
-                        document.getElementById(imageElement).src = _img.src;
-                    },
-                    failure : function(result, response)
-                    {
+    LABKEY.Ajax.request({
+        url: _url,
+        success : function() {
+            // cached image found
+            var _img = new Image();
+            _img.src = _url;
+            document.getElementById(divElement).innerHTML = "<img src='' alt='ps image' id='" + imageElement + "' style='display: none;'/>";
+            document.getElementById(imageElement).style.display = "inline";
+            document.getElementById(imageElement).src = _img.src;
+        },
+        failure : function() {
+            // cached image not found -- check if there are results for the given params
+            LABKEY.Query.selectRows({
+                schemaName: 'assay.particleSize.Particle Size',
+                queryName: 'R_ReportSummary',
+                maxRows: 1,
+                parameters: {
+                    'RunName': name,
+                    'StoreTemp': temp,
+                    'Tool': tool
+                },
+                success : function(data) {
+                    if (data.rowCount > 0) {
                         document.getElementById(divElement).innerHTML = "<br/><span style='text-decoration: blink;'>Generating " + tool +" Report...   </span>";
-                        var wp = new LABKEY.WebPart({
+                        new LABKEY.WebPart({
                             partName: 'Report',
                             renderTo: divElement,
-                            frame   : 'none',
-                            partConfig : {
-                                reportId      :'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
-                                showSection   :'labkey' + tool + '_png',
-                                'nameContains': _name,
-                                'exactName'   : name,
-                                'storageTemp' : temp,
-                                'analysisTool': tool
+                            frame: 'none',
+                            partConfig: {
+                                reportId:'module:idri/schemas/assay/Particle Size Data/Z-Ave Graph.r',
+                                showSection: 'labkey' + tool + '_png',
+                                nameContains: name,
+                                exactName: name,
+                                storageTemp: temp,
+                                analysisTool: tool
                             }
-                        });
-                        wp.render();
+                        }).render();
                     }
-                });
-            }
-            else
-            {
-                document.getElementById(divElement).innerHTML = "";
-            }
-        },
-        errorCallback  : function() {
-            document.getElementById(divElement).innerHTML = "";
+                    else {
+                        document.getElementById(divElement).innerHTML = '';
+                    }
+                },
+                failure : function() {
+                    document.getElementById(divElement).innerHTML = '';
+                }
+            });
         }
     });
-}
-
-function buildHPLCReports(tempStr)
-{
-    if (reportObjects['dataRegionDiv2Obj']) {
-        getReportObject('dataRegionDiv2Obj').destroy();
-    }
-
-    // Configuration for Ext.Grid2
-    var config2 = {};
-    config2.schemaName = 'assay';
-    config2.queryName = 'HPLCReportSummary';
-    var nameCont2 = LABKEY.ActionURL.getParameter('nameContains');
-
-    var dataRegionDiv2Obj = null;
-
-    Ext.onReady(function()
-    {
-        nextstore = new LABKEY.ext.Store({
-            schemaName: config2.schemaName,
-            queryName: config2.queryName,
-            filterArray: [    LABKEY.Filter.create('Name', nameCont2, LABKEY.Filter.Types.CONTAINS)]
-        });
-
-        nextstore.on('load',validateHPLCReport);
-
-        // The concentrations EditorGridPanel is defined here. See the 'HPLCReportSummary' query
-        // for the structure of the data.
-        dataRegionDiv2Obj = new LABKEY.ext.EditorGridPanel({
-            store: nextstore,
-            renderTo: 'dataRegionDiv2',
-            width: 1000,
-            title: 'Concentrations ',
-            autoHeight: true,
-            editable: false,
-            lookups: false,
-            enableFilters: false,
-            header: false,
-            fbar: [],
-            bbar: [],
-            tbar: [],
-            footer: true
-        });
-
-        registerReportObject('dataRegionDiv2Obj',dataRegionDiv2Obj);
-
-        // This is filtered using the URL -- need to change how it is searched.
-        var concentrationWebPartRenderer = new LABKEY.WebPart({
-            partName: 'Report',
-            renderTo: 'concentrationDiv',
-            frame: 'none',
-            partConfig: {
-                reportId:'module:idri/schemas/assay/HPLC Data/Concentration Graph.r',
-                showSection:'labkey2_png'
-            }});
-
-        concentrationWebPartRenderer.render();
-    });
-}
-
-function validatePSReport(reportStore,reportRecords,opts)
-{
-    if (reportRecords.length > 0) {
-        document.getElementById("dataRegionDiv").style.display = "inline";
-        document.getElementById("resultsDiv").style.display = "inline";
-    }
-    else {
-        document.getElementById('errorDiv').innerHTML += "<br/><span style='color:red;'>WARNING: No Particle Size Data Present for current temperature of " + LABKEY.ActionURL.getParameter('nameContains') + "</span>";
-        document.getElementById("dataRegionDiv").style.display = "none";
-        document.getElementById("resultsDiv").style.display = "none";
-    }
-}
-
-function validateHPLCReport(reportStore,reportRecords,opts)
-{
-    if (reportRecords.length > 0) {
-        document.getElementById("dataRegionDiv2").style.display = "inline";
-        document.getElementById("concentrationDiv").style.display = "inline";
-    }
-    else {
-        document.getElementById('errorDiv').innerHTML += "<br/><span style='color:red;'>WARNING: No HPLC Data Present for current temperature of " + LABKEY.ActionURL.getParameter('nameContains') + "</span>";
-        document.getElementById("dataRegionDiv2").style.display = "none";
-        document.getElementById("concentrationDiv").style.display = "none";
-    }
 }
