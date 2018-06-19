@@ -172,6 +172,6 @@ public class Material
     public int hashCode()
     {
         int prime = 23;
-        return prime + this._materialName.hashCode();
+        return prime + _materialName.hashCode();
     }
 }
