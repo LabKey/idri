@@ -15,7 +15,6 @@
  */
 package org.labkey.test.tests.idri;
 
-import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -37,6 +36,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 @Category({Git.class})
 public class FormulationsTest extends BaseWebDriverTest
