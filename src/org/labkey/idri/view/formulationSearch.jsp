@@ -21,6 +21,7 @@
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.idri.idriController" %>
+<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
@@ -50,7 +51,9 @@
 </form>
 <div id="SearchStatusDiv"></div>
 <div id="SearchStatusDiv2"></div>
+<% if (getContainer().hasPermission(getUser(), InsertPermission.class)) { %>
 <div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", new ActionURL(idriController.CreateFormulationAction.class, getContainer()))%></div>
+<% } %>
 <div id="topDiv"></div>
 <div id="errorDiv"></div>
 <div id="dataRegionDiv" style="float: left;"></div>

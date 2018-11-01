@@ -17,6 +17,7 @@ package org.labkey.test.tests.idri;
 
 import com.google.common.base.Function;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
@@ -34,7 +35,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.List;
 
@@ -87,55 +87,14 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String VIS_INSPEC_ASSAY = "VisualInspection";
     private static final String VIS_INSPEC_ASSAY_DESC = "Improved IDRI Visual Data.";
 
-    @Override
-    public List<String> getAssociatedModules()
+    @BeforeClass
+    public static void setupProject()
     {
-        return Collections.singletonList("idri");
+        FormulationsTest init = (FormulationsTest) getCurrentTest();
+        init.doSetup();
     }
 
-    @Override
-    protected String getProjectName()
-    {
-        return PROJECT_NAME;
-    }
-
-    @Override
-    public BrowserType bestBrowser()
-    {
-        return BrowserType.CHROME;
-    }
-
-    @Test
-    public void testSteps()
-    {
-        setupFormulationsProject();
-        setupLists();
-        setupCompounds();
-        setupRawMaterials();
-
-        insertFormulation();
-        defineParticleSizeAssay();
-        uploadParticleSizeData();
-
-        defineProvisionalHPLCAssay();
-        defineHPLCAssay();
-
-        uploadProvisionalHPLCData();
-        qualityControlHPLCData();
-
-        defineVisualInspectionAssay();
-        uploadVisualInspectionAssayData();
-    }
-
-    @Override
-    protected void doCleanup(boolean afterTest)
-    {
-        _userHelper.deleteUser("ops@labkey.com");
-        super.doCleanup(afterTest);
-    }
-
-    @LogMethod
-    protected void setupFormulationsProject()
+    private void doSetup()
     {
         _userHelper.createUser("ops@labkey.com", false, false);
         enableEmailRecorder();
@@ -146,12 +105,49 @@ public class FormulationsTest extends BaseWebDriverTest
         // Create 'Stability' Group
         _permissionsHelper.createPermissionsGroup(STABILITY_GROUP, getCurrentUser());
 
-        goToProjectHome();
-
         // Sample Sets should already exist
         assertElementPresent(Locator.linkWithText(COMPOUNDS_NAME));
         assertElementPresent(Locator.linkWithText(RAW_MATERIALS_NAME));
         assertElementPresent(Locator.linkWithText(FORMULATIONS_NAME));
+
+        setupLists();
+        setupCompounds();
+        setupRawMaterials();
+
+        // Insert Formulation that the test cases rely on
+        // TODO: Separate depended on formulation data from testing of formulation creation
+        insertFormulation();
+    }
+
+    @Override
+    protected void doCleanup(boolean afterTest)
+    {
+        _userHelper.deleteUser("ops@labkey.com");
+        super.doCleanup(afterTest);
+    }
+
+    @Test
+    public void testParticleSizeAssay()
+    {
+        defineParticleSizeAssay();
+        uploadParticleSizeData();
+    }
+
+    @Test
+    public void testHPLCAssay()
+    {
+        defineProvisionalHPLCAssay();
+        defineHPLCAssay();
+
+        uploadProvisionalHPLCData();
+        qualityControlHPLCData();
+    }
+
+    @Test
+    public void testVisualInspectionAssay()
+    {
+        defineVisualInspectionAssay();
+        uploadVisualInspectionAssayData();
     }
 
     @LogMethod
@@ -319,16 +315,11 @@ public class FormulationsTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText(PS_ASSAY));
         clickButton("Import Data");
 
-        assertTextPresent("Must have working sets of size");
+        assertTextPresent("pdI value for each entry must be");
 
-        File dataRoot = TestFileUtils.getSampleData("particleSize");
-        File[] allFiles = dataRoot.listFiles(new FilenameFilter()
-        {
-            public boolean accept(File dir, String name)
-            {
-                return name.matches("^TD789.xls");
-            }
-        });
+        File[] allFiles = TestFileUtils
+                .getSampleData("particleSize")
+                .listFiles((dir, name) -> name.matches("^TD789.xls"));
 
         for (File file : allFiles)
         {
@@ -583,5 +574,23 @@ public class FormulationsTest extends BaseWebDriverTest
         clickButton("Save", 0);
         waitForText(10000, "Save successful.");
         clickButton("Save & Close");
+    }
+
+    @Override
+    public List<String> getAssociatedModules()
+    {
+        return Collections.singletonList("idri");
+    }
+
+    @Override
+    protected String getProjectName()
+    {
+        return PROJECT_NAME;
+    }
+
+    @Override
+    public BrowserType bestBrowser()
+    {
+        return BrowserType.CHROME;
     }
 }
