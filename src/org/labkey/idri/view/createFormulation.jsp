@@ -22,10 +22,9 @@
     public void addClientDependencies(ClientDependencies dependencies)
     {
         dependencies.add("clientapi/ext3");
-        dependencies.add("clientapi/ext4");
-        dependencies.add("FileUploadField.js");
+        dependencies.add("Ext4");
         dependencies.add("formulations/FormulationForm.js");
-        dependencies.add("formulations/TaskForm.js");
+        dependencies.add("formulations/stabilityProfile");
     }
 %>
 <style type="text/css">

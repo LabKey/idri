@@ -15,6 +15,8 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
     hasStabilityProfile: false,
 
+    isClone: false,
+
     isUpdate: false,
 
     initComponent : function() {
@@ -78,7 +80,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         me.getEl().mask('Loading...');
         function handleLoad() {
             loadCount++;
-            if (loadCount == 3) {
+            if (loadCount === 3) {
                 me.getEl().unmask();
                 if (Ext.isFunction(callback)) {
                     callback.call(scope || this);
@@ -126,24 +128,53 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         return this.stabilityStore;
     },
 
-    loadFormulation : function(formulation) {
+    loadFormulation : function(formulation, isClone) {
         this.getEl().mask('Loading Formulation...');
-
-        this.getForm().getForm().loadRecord(formulation);
 
         var batch = formulation.get('Batch');
         var rowId = formulation.get('RowId');
+        var sb = this.getStabilityCheckCmp();
 
-        this.lastChecked = rowId;
-        this.isUpdate = true;
-        this.getSubmitBtn().setText('Save Changes');
+        if (isClone === true) {
+            this.isClone = true;
 
-        if (this.getStabilityStore().findExact('lotNum', rowId) > -1) {
-            this.setStabilityWatch(true);
-            this.hasStabilityProfile = true;
+            Ext.getCmp('lot-field-id').emptyText = 'Cloned from ' + Ext4.htmlEncode(batch);
+
+            // clone non-identifying fields only
+            this.getForm().getForm().loadRecord({
+                data: Ext4.apply(Ext4.clone(formulation.data), {
+                    Batch: undefined,
+                    DM: undefined,
+                    Name: undefined,
+                    nbpg: undefined,
+                    RowId: undefined
+                })
+            });
+
+            sb.setBoxLabel('');
+            this.getForm().getForm().clearInvalid();
+
+            this.showMsg('Cloned from ' + formulation.data.Name + '. Please fill in remaining required fields.');
+        }
+        else {
+            this.getForm().getForm().loadRecord(formulation);
+            this.isUpdate = true;
+            this.lastChecked = rowId;
+            this.getSubmitBtn().setText('Save Changes');
+
+            if (this.getStabilityStore().findExact('lotNum', rowId) > -1) {
+                this.setStabilityWatch(true);
+                this.hasStabilityProfile = true;
+
+                var url = LABKEY.ActionURL.buildURL('idri', 'stabilityProfile.view', undefined, { rowId: rowId });
+                sb.setBoxLabel('<a href="' + url + '">Edit stability profile</a>');
+            }
+            else {
+                sb.setBoxLabel('');
+            }
         }
 
-        /* In addition the the formulation record this will request any material components */
+        /* In addition to the formulation record this will request any material components */
         LABKEY.Ajax.request({
             url: LABKEY.ActionURL.buildURL('idri', 'getFormulation.api'),
             method: 'GET',
@@ -152,7 +183,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             },
             success: function(response) {
                 var json = Ext.decode(response.responseText);
-                this.loadMaterials(formulation, json.formulation.materials);
+                this.loadMaterials(json.formulation.materials);
 
                 this.getEl().unmask();
             },
@@ -164,23 +195,24 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         });
     },
 
-    loadMaterials : function(formulation, materials) {
+    loadMaterials : function(materials) {
         Ext.each(materials, function(mat, i) {
             if (!this.materialMap['material' + i]) {
                 this.add(this.generateMaterialsForm()); // This will add to the materialMap
-                this.doLayout();
             }
 
             var cmp = this.materialMap['material' + i];
             cmp.fireEvent('loadMaterial', cmp, mat);
         }, this);
+
+        this.doLayout();
     },
 
     showMsg : function(msg, error) {
         var dialogPanel = this.getComponent('dialogPanel');
 
         if (dialogPanel) {
-            if (msg.length == 0)
+            if (msg.length === 0)
                 dialogPanel.hide();
             else
                 dialogPanel.show();
@@ -225,7 +257,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                             validationEvent: false,
                             listeners: {
                                 specialkey : function(field, e) {
-                                    if (e.getKey() == e.ENTER) {
+                                    if (e.getKey() === e.ENTER) {
                                         field.fireEvent('blur', field);
                                     }
                                 },
@@ -245,23 +277,37 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
                                             var rowId = formulation.get('RowId');
 
-                                            if (this.lastChecked == rowId) {
+                                            if (this.lastChecked === rowId) {
                                                 return;
                                             }
                                             this.lastChecked = rowId;
 
+                                            var encodedName = Ext4.htmlEncode(batch);
+
                                             Ext.Msg.show({
-                                                title: 'Load ' + Ext4.htmlEncode(batch) + '?',
-                                                msg: Ext4.htmlEncode(batch) + ' already exists. Would you like to load the formulation?',
-                                                buttons: Ext.Msg.YESNO,
+                                                title: 'Load ' + encodedName + '?',
+                                                msg: [
+                                                    '<span class="ext-mb-text">',
+                                                        encodedName + ' already exists. Would you like to edit, clone, or overwrite the formulation?',
+                                                        '<div><ul style="list-style: none; padding: 0; margin-top: 10px;">',
+                                                        '<li><b>Edit</b> - make changes to the formulation.</li>',
+                                                        '<li><b>Clone</b> - clone this formulation to create a new lot.</li>',
+                                                        '<li><b>Overwrite</b> - create an all new definition for the formulation.</li>',
+                                                        '</ul></div>',
+                                                    '</span>'
+                                                ].join(''),
+                                                buttons:  {yes: 'Edit', no: 'Clone', cancel: 'Overwrite'},
                                                 closable: false,
                                                 fn: function(id) {
-                                                    if (id == 'yes') {
+                                                    var isEdit = id === 'yes';
+                                                    var isClone = id === 'no';
+
+                                                    if (isEdit || isClone) {
                                                         this.getForm().getForm().reset();
                                                         this.resetMaterials();
 
                                                         this.showMsg('');
-                                                        this.loadFormulation(formulation);
+                                                        this.loadFormulation(formulation, isClone);
                                                     }
                                                 },
                                                 icon: Ext.MessageBox.QUESTION,
@@ -357,7 +403,15 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                             id: 'stability-check',
                             xtype: 'checkbox',
                             fieldLabel: 'Stability Watch',
-                            name: 'stability'
+                            name: 'stability',
+                            setBoxLabel: function(html) {
+                                var cmp = this.getStabilityCheckCmp();
+                                var q = cmp.wrap.query('.x-form-cb-label');
+
+                                if (q.length === 1) {
+                                    Ext.get(q[0]).update(html);
+                                }
+                            }.bind(this)
                         }]
                     }],
                     scope: this
@@ -369,8 +423,12 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         return this.formPanel;
     },
 
+    getStabilityCheckCmp : function() {
+        return Ext.getCmp('stability-check');
+    },
+
     onStabilityWatch : function() {
-        var sb = Ext.getCmp('stability-check'),
+        var sb = this.getStabilityCheckCmp(),
             onStability = false;
 
         if (sb) {
@@ -384,10 +442,10 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
     },
 
     setStabilityWatch : function(onStability) {
-        var sb = Ext.getCmp('stability-check');
+        var sb = this.getStabilityCheckCmp();
 
         if (sb) {
-            sb.setValue(onStability === true)
+            sb.setValue(onStability === true);
         }
         else {
             console.error('Unable to set stability watch state. Cannot find form element.');
@@ -508,7 +566,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     buttons: Ext.Msg.YESNO,
                     icon: Ext.MessageBox.QUESTION,
                     fn: function(id) {
-                        if (id == 'yes') {
+                        if (id === 'yes') {
                             this.removeStabilityWatch(formulation, this.saveFormulation, this);
                         }
                     },
@@ -565,7 +623,9 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         /* reset back to the initial state */
         this.getSubmitBtn().setText('Create');
         this.isUpdate = false;
+        this.lastChecked = undefined;
         this.hasStabilityProfile = false;
+        this.getStabilityCheckCmp().setBoxLabel('');
         this.getForm().getForm().reset();
         this.resetMaterials();
         this._loadStores();
@@ -578,7 +638,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     msg: 'Would you like to change the Stability Profile?<br/>Note, changing the Stability Profile will delete all tasks and create new ones.',
                     buttons: Ext.Msg.YESNO,
                     fn: function(id) {
-                        if (id == 'yes') {
+                        if (id === 'yes') {
                             this.showTaskWindow(formulation);
                         }
                     },
@@ -623,7 +683,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     xtype: 'idri-taskpanel',
                     rowId: formulation.rowID,
                     listeners: {
-                        profilecreated: function() {
+                        profilechange: function() {
                             if (window) {
                                 window.close();
                             }
@@ -919,10 +979,10 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             var cmp = Ext.getCmp('material' + i);
             if (cmp) {
                 var parent = cmp.findParentByType('form');
-                if (parent.getForm().isValid())
+                if (parent.getForm().isValid()) {
                     insertFormulation.materials.push(parent.getForm().getValues());
-                else
-                {
+                }
+                else {
                     this.showMsg("> Invalid material.", true);
                     return false;
                 }

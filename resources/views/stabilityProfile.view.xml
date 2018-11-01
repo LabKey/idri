@@ -1,0 +1,8 @@
+<view xmlns="http://labkey.org/data/xml/view" title="Stability Profile">
+    <permissions>
+        <permission name="read"/>
+    </permissions>
+    <dependencies>
+        <dependency path="formulations/stabilityProfile"/>
+    </dependencies>
+</view>
