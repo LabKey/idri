@@ -29,6 +29,7 @@
 <%@ page import="org.labkey.idri.idriController.ExpObjectForm" %>
 <%@ page import="org.labkey.idri.idriManager" %>
 <%@ page import="org.labkey.idri.model.Formulation" %>
+<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -51,7 +52,9 @@
 %>
 <div style="padding: 20px 0 0 20px;">
     <%=textLink("Home Page", PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(c))%>
+    <% if (c.hasPermission(getUser(), InsertPermission.class)) { %>
     <%=textLink("Edit " + formulation.getBatch(), new ActionURL(idriController.CreateFormulationAction.class, c).addParameter("RowId", formulation.getRowID()))%>
+    <% } %>
     <%=textLink("Browse Formulations", PageFlowUtil.urlProvider(ExperimentUrls.class).getShowSampleSetURL(ss))%>
     <%=textLink("Sample View", "#", "getOldView();", null)%>
 </div>

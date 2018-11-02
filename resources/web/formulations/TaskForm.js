@@ -11,15 +11,17 @@ Ext4.define('LABKEY.idri.TaskPanel', {
 
     border: false,
 
+    bodyStyle: 'background-color: transparent',
+
     frame: false,
 
     rowId: 0,
 
+    webpart: undefined,
+
     constructor : function(config) {
-
         this.callParent([config]);
-
-        this.addEvents('profilecreated');
+        this.addEvents('profilechange');
     },
 
     initComponent : function() {
@@ -43,6 +45,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             xtype: 'form',
             labelAlign: 'top',
             itemId: 'form-panel',
+            bodyStyle: 'background-color: transparent',
             width: 625,
             border: false,
             frame: false,
@@ -57,6 +60,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 name: 'importance',
                 checked: false
             },{
+                xtype: 'box',
                 html: "<hr>",
                 border: false
             },{
@@ -68,6 +72,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 validateOnBlur : false,
                 id: this.ids.temperatures
             }, {
+                xtype: 'box',
                 html: "<hr>",
                 border: false
             }, {
@@ -102,6 +107,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 name : 'pSize',
                 id: this.ids.pSize
             }, {
+                xtype: 'box',
                 html: "<hr>",
                 border: false
             },{
@@ -129,7 +135,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                     validateOnBlur: false,
                     //valueField: 'RowId',
                     displayField: 'Name',
-                    store: new LABKEY.ext4.Store({
+                    store: Ext4.create('LABKEY.ext4.Store', {
                         schemaName: 'Samples',
                         queryName: 'Compounds',
                         filterArray:  [
@@ -154,7 +160,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                     editable: false,
                     validateOnBlur: false,
                     displayField: 'Name',
-                    store: new LABKEY.ext4.Store({
+                    store: Ext4.create('LABKEY.ext4.Store', {
                         schemaName: 'Samples',
                         queryName: 'Compounds',
                         filterArray:  [
@@ -194,7 +200,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
     getStores : function() {
         if (!this.stores) {
             this.stores = {
-                timepointStore: new LABKEY.ext4.Store({
+                timepointStore: Ext4.create('LABKEY.ext4.Store', {
                     schemaName: 'lists',
                     queryName: 'Timepoints',
                     fields: ['time', 'sort', 'defaultStability'],
@@ -203,7 +209,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                         load: this.onLoadTimepoints.bind(this)
                     }
                 }),
-                timepointHplcUvStore: new LABKEY.ext4.Store({
+                timepointHplcUvStore: Ext4.create('LABKEY.ext4.Store', {
                     schemaName: 'lists',
                     queryName: 'TimepointsHPLCUV',
                     sort: 'sort',
@@ -211,22 +217,25 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                         load: this.onLoadHplcUvTimepoints.bind(this)
                     }
                 }),
-                taskListStore: new LABKEY.ext4.Store({
+                taskListStore: Ext4.create('LABKEY.ext4.Store', {
                     schemaName: 'lists',
                     queryName: 'TaskList'
                 }),
-                formulationsStore: new LABKEY.ext4.Store({
+                formulationsStore: Ext4.create('LABKEY.ext4.Store', {
                     schemaName: 'Samples',
-                    queryName: 'Formulations'
+                    queryName: 'Formulations',
+                    listeners: {
+                        load: this.onLoadFormulations.bind(this)
+                    }
                 }),
-                tempStore: new LABKEY.ext4.Store({
+                tempStore: Ext4.create('LABKEY.ext4.Store', {
                     schemaName: 'lists',
                     queryName: 'Temperatures',
                     listeners: {
                         load: this.onLoadTemperatures.bind(this)
                     }
                 }),
-                stabilityStore: new LABKEY.ext4.Store({
+                stabilityStore: Ext4.create('LABKEY.ext4.Store', {
                     schemaName: 'lists',
                     queryName: 'StabilityProfile',
                     listeners: {
@@ -243,13 +252,12 @@ Ext4.define('LABKEY.idri.TaskPanel', {
         return this.stores;
     },
 
-    loadStabilityProfile : function(stabilityStore)
-    {
-        var record = stabilityStore.findRecord('lotNum', this.rowId),
-                stores = this.getStores();
+    loadStabilityProfile : function(stabilityStore) {
 
-        if (record != null)
-        {
+        var record = stabilityStore.findRecord('lotNum', this.rowId),
+            stores = this.getStores();
+
+        if (record != null) {
             stores.tempStore.each(function(rec) {
                 var temp = rec.get('temperature');
                 var cmp = Ext4.getCmp('sb-watch-temp-' + temp);
@@ -270,7 +278,6 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 cmp.setValue('false');
             });
 
-
             Ext4.getCmp(this.ids.stabilityForm).getForm().setValues(Ext4.decode(record.get('profile')));
 
             var submitBtn = Ext4.getCmp(this.ids.submit);
@@ -278,6 +285,20 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             if (submitBtn) {
                 submitBtn.setText('Update');
                 this.isUpdate = true;
+            }
+        }
+    },
+
+    onLoadFormulations : function(store) {
+        if (this.webpart && this.rowId > 0) {
+            var webpartTitle = Ext4.DomQuery.select('.labkey-wp-title-text', 'webpart_' + this.webpart.id);
+
+            if (webpartTitle) {
+                var record = store.findRecord('RowId', this.rowId);
+                Ext4.get(webpartTitle).update('Stability Profile for ' + record.get('Name'));
+            }
+            else {
+                console.warn('Stability Profile: unable to update header. Has the DOM selector changed?');
             }
         }
     },
@@ -339,8 +360,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
         }
     },
 
-    onCreateStability : function()
-    {
+    onCreateStability : function() {
         var _profile = Ext4.encode(Ext4.getCmp(this.ids.stabilityForm).getForm().getValues()),
             stores = this.getStores();
 
@@ -402,8 +422,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
         }
     },
 
-    addTasks : function()
-    {
+    addTasks : function() {
         var stores = this.getStores(),
             record = stores.formulationsStore.findRecord('RowId', this.rowId),
             DM = record.get('DM'),
@@ -417,18 +436,17 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             importance = 'high';
         }
 
-        stores.tempStore.each(function(rec)
-        {
+        stores.tempStore.each(function(rec) {
             var temp = rec.get('temperature');
             cmp = Ext4.getCmp('sb-watch-temp-' + temp);
 
-            if (cmp && cmp.getValue())
-            {
-                stores.timepointStore.each(function(recTime)
-                {
+            if (cmp && cmp.getValue()) {
+
+                stores.timepointStore.each(function(recTime) {
+
                     var cmpTime = Ext4.getCmp('sb-watch-time-' + recTime.get('time'));
-                    if (cmpTime && cmpTime.getValue())
-                    {
+
+                    if (cmpTime && cmpTime.getValue()) {
                         var tempTime = Ext4.Date.add(DM, Ext4.Date.DAY, parseInt(recTime.get('sort')));
 
                         var pSize = Ext4.getCmp(this.ids.pSize);
@@ -448,25 +466,20 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 }, this);
 
                 cmp2 = Ext4.getCmp(this.ids.uv);
-                if (cmp2 && cmp2.getValue())
-                {
-                    stores.timepointHplcUvStore.each(function(recTime)
-                    {
+                if (cmp2 && cmp2.getValue()) {
+                    stores.timepointHplcUvStore.each(function(recTime) {
                         cmpTimeHplc = Ext4.getCmp('sb-watch-timeHplc-' + recTime.get('time'));
                         if (cmpTimeHplc && cmpTimeHplc.getValue()){
                             var tempTime = Ext4.Date.add(DM, Ext4.Date.DAY, parseInt(recTime.get('sort')));
 
-                            var uvType = Ext4.getCmp(this.ids.uvType);
-
-                            if (tempTime >= currentDate)
-                            {
+                            if (tempTime >= currentDate) {
                                 stores.taskListStore.add({
                                     lotNum: this.rowId,
                                     cat: 'UV',
                                     temperature: temp,
                                     timepoint: recTime.get("time"),
                                     type: record.get('Type'),
-                                    adjuvant: uvType.getValue(),
+                                    adjuvant: Ext4.getCmp(this.ids.uvType).getValue(),
                                     date: tempTime,
                                     importance: importance
                                 });
@@ -477,17 +490,14 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 }
 
                 cmp2 = Ext4.getCmp(this.ids.hplc);
-                if (cmp2 && cmp2.getValue())
-                {
-                    stores.timepointHplcUvStore.each(function(recTime)
-                    {
+                if (cmp2 && cmp2.getValue()) {
+                    stores.timepointHplcUvStore.each(function(recTime) {
                         cmpTimeHplc = Ext4.getCmp('sb-watch-timeHplc-' + recTime.get('time'));
                         if (cmpTimeHplc && cmpTimeHplc.getValue()){
                             var tempTime = Ext4.Date.add(DM, Ext4.Date.DAY, parseInt(recTime.get('sort')));
                             var hplcType = Ext4.getCmp(this.ids.hplcType);
 
-                            if (tempTime >= currentDate)
-                            {
+                            if (tempTime >= currentDate) {
                                 stores.taskListStore.add({
                                     lotNum: this.rowId,
                                     cat: 'HPLC',
@@ -505,23 +515,9 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             }
         }, this);
 
-        function showSuccess() {
-            Ext4.Msg.show({
-                title: 'Stability Profile',
-                msg: 'The Stability Profile have been Created',
-                buttons: Ext4.Msg.OK,
-                fn: function(id) {
-                    if (id === 'ok') {
-                        this.fireEvent('profilecreated');
-                    }
-                },
-                scope: this
-            });
-        }
-
         if (stores.taskListStore.getModifiedRecords().length > 0) {
             stores.taskListStore.sync({
-                success: showSuccess,
+                success: this.onProfileSaved,
                 failure: function() {
                     Ext4.Msg.alert('Error', 'Failed to sync Task List store');
                 },
@@ -529,7 +525,21 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             });
         }
         else {
-            showSuccess.call(this);
+            this.onProfileSaved();
         }
+    },
+
+    onProfileSaved : function() {
+        Ext4.Msg.show({
+            title: 'Stability Profile',
+            msg: 'The Stability Profile has been ' + (this.isUpdate ? 'updated' : 'created'),
+            buttons: Ext4.Msg.OK,
+            fn: function(id) {
+                if (id === 'ok') {
+                    this.fireEvent('profilechange');
+                }
+            },
+            scope: this
+        });
     }
 });

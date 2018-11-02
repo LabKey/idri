@@ -1,0 +1,21 @@
+<div id="stability-profile"></div>
+<script type="application/javascript">
+    Ext4.onReady(function() {
+        var rowId = LABKEY.ActionURL.getParameter('rowId');
+
+        if (rowId !== undefined) {
+            rowId = parseInt(rowId);
+        }
+
+        if (isNaN(rowId)) {
+            Ext4.get('stability-profile').update('A formulation has not been selected.');
+        }
+        else {
+            Ext4.create('LABKEY.idri.TaskPanel', {
+                renderTo: 'stability-profile',
+                rowId: rowId,
+                webpart: <%=webpartContext%>
+            });
+        }
+    });
+</script>

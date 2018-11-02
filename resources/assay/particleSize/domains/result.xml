@@ -27,12 +27,13 @@
         <exp:Name>ZAve</exp:Name>
         <exp:Required>true</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
-        <exp:Label>Z-Ave</exp:Label>
+        <exp:Label>Z-Ave (d.nm)</exp:Label>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
         <exp:Name>Pdl</exp:Name>
         <exp:Required>true</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+        <exp:Label>PdI</exp:Label>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
         <exp:Name>meanCountRate</exp:Name>
@@ -44,6 +45,7 @@
         <exp:Name>Cumulants</exp:Name>
         <exp:Required>true</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+        <exp:Label>Cumulants Fit Error</exp:Label>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
         <exp:Name>Date</exp:Name>
@@ -56,7 +58,7 @@
         <exp:Name>StorageTemperature</exp:Name>
         <exp:Required>true</exp:Required>
         <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
-        <exp:Label>Storage Temperature</exp:Label>
+        <exp:Label>T (°C)</exp:Label>
     </exp:PropertyDescriptor>
     <exp:PropertyDescriptor>
         <exp:Name>Record</exp:Name>
