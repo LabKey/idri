@@ -79,7 +79,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 width   : 600,
                 columns : [100, 100, 100, 100, 100, 100],
                 xtype : 'checkboxgroup',
-                fieldLabel: 'Timpoints',
+                fieldLabel: 'Timepoints',
                 allowBlank : false,
                 validateOnBlur : false,
                 id: this.ids.timepoints
@@ -172,7 +172,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 width   : 600,
                 columns : [100, 100, 100, 100, 100, 100],
                 xtype : 'checkboxgroup',
-                fieldLabel: 'Adjuvant Concentration Timpoints',
+                fieldLabel: 'Adjuvant Concentration Timepoints',
                 allowBlank : false,
                 validateOnBlur : false,
                 id: this.ids.hplcuvtimepoints
@@ -534,12 +534,10 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             title: 'Stability Profile',
             msg: 'The Stability Profile has been ' + (this.isUpdate ? 'updated' : 'created'),
             buttons: Ext4.Msg.OK,
-            fn: function(id) {
-                if (id === 'ok') {
-                    this.fireEvent('profilechange');
-                }
-            },
+            fn: function(id) { /* no-op */ },
             scope: this
         });
+
+        this.fireEvent('profilechange');
     }
 });
