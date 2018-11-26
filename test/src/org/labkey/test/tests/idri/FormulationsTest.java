@@ -37,6 +37,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 @Category({Git.class})
 public class FormulationsTest extends BaseWebDriverTest
@@ -70,6 +73,7 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String RAWMATERIALS_DATA_4 = RAW_MATERIAL_4 + "\tSPD\tSPD Supplier\tsynthetic\t9123D-AS\t12331-CC\n";
 
     private static final String FORMULATION = "TD789";
+    private static final String PS_FORMULATION = "QH123";
 
     private static final String CATALOG_DATA_1 = "EM081";
     private static final String GRANT_DATA_1 = "KL9090";
@@ -130,6 +134,7 @@ public class FormulationsTest extends BaseWebDriverTest
     public void testParticleSizeAssay()
     {
         defineParticleSizeAssay();
+        createParticleSizeFormulations();
         uploadParticleSizeData();
     }
 
@@ -274,6 +279,35 @@ public class FormulationsTest extends BaseWebDriverTest
     }
 
     @LogMethod
+    protected void createParticleSizeFormulations()
+    {
+        goToProjectHome();
+
+        log("Create Formulations used in runs of Particle Size Assay");
+        clickAndWait(Locator.linkWithText("Create/Update a Formulation"));
+        _ext4Helper.waitForMaskToDisappear();
+
+        // Describe Formulation
+        setFormElement(Locator.name("Batch"), PS_FORMULATION);
+        _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='Type']/.."), "Alum");
+        setFormElement(Locator.name("DM"), "9/14/2016");
+        setFormElement(Locator.name("batchsize"), "100");
+        setFormElement(Locator.name("Comments"), "Lost used for Particle Size");
+        setFormElement(Locator.name("nbpg"), "123-33");
+        _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='Catalog']/.."), CATALOG_DATA_1);
+        _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='Grant']/.."), GRANT_DATA_1);
+
+        clickButton("Add Another Material", 0);
+        _extHelper.selectComboBoxItem(getRawMaterialLocator(0), RAW_MATERIAL_2);
+        waitForText(WAIT_FOR_JAVASCRIPT, "%v/vol");
+        setFormElement(Locator.name("concentration"), "15");
+
+        // Create
+        clickButton("Create", 0);
+        waitForText(WAIT_FOR_JAVASCRIPT, "has been created.");
+    }
+
+    @LogMethod
     protected void defineParticleSizeAssay()
     {
         goToProjectHome();
@@ -319,7 +353,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         File[] allFiles = TestFileUtils
                 .getSampleData("particleSize")
-                .listFiles((dir, name) -> name.matches("^TD789.xls"));
+                .listFiles((dir, name) -> name.matches("^(" + FORMULATION + "|" + PS_FORMULATION + ").xlsx?"));
 
         for (File file : allFiles)
         {
@@ -327,6 +361,28 @@ public class FormulationsTest extends BaseWebDriverTest
             setFormElement(Locator.id("upload-run-field-file-button-fileInputEl"), file);
             waitForElement(Locator.linkWithText(file.getName().split("\\.")[0])); // Strip file extension
         }
+
+        log("navigate back to assay batches then runs");
+        clickAndWait(Locator.linkWithText("Particle Size Batches"));
+        clickAndWait(Locator.linkWithText("view runs"));
+
+        clickAndWait(Locator.linkWithText(FORMULATION));
+        DataRegionTable resultsTable = new DataRegionTable("Data", this);
+
+        // validate calculated columns
+        Map<String, String> dataRow = resultsTable.getRowDataAsMap(0);
+        assertEquals("Unexpected Measuring Temperature", "22", dataRow.get("MeasuringTemperature"));
+        assertEquals("Unexpected Storage Temperature", "5C", dataRow.get("StorageTemperature"));
+        assertEquals("Unexpected Run/ZAveMean", "114", dataRow.get("Run/ZAveMean"));
+
+        clickAndWait(Locator.linkWithText("view runs"));
+        clickAndWait(Locator.linkWithText(PS_FORMULATION));
+        resultsTable = new DataRegionTable("Data", this);
+
+        dataRow = resultsTable.getRowDataAsMap(99);
+        assertEquals("Unexpected Measuring Temperature", "25", dataRow.get("MeasuringTemperature"));
+        assertEquals("Unexpected Storage Temperature", "37C", dataRow.get("StorageTemperature"));
+        assertEquals("Unexpected Run/ZAveMean", "66", dataRow.get("Run/ZAveMean"));
     }
 
     @LogMethod

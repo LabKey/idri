@@ -566,7 +566,7 @@
                 [queryInfo.getColumn('meanCountRate').fieldKey]: getRowData(row, 'meanCountRate'),
                 [queryInfo.getColumn('Cumulants').fieldKey]: getRowData(row, 'Cumulants'),
                 [queryInfo.getColumn('Date').fieldKey]: getRowData(row, 'Date'),
-                [queryInfo.getColumn('StorageTemperature'.fieldKey)]: parseResult.temperature,
+                [queryInfo.getColumn('StorageTemperature').fieldKey]: parseResult.temperature,
                 [queryInfo.getColumn('MeasuringTemperature').fieldKey]: getRowData(row, 'MeasuringTemperature'),
                 [queryInfo.getColumn('AnalysisTool').fieldKey]: parseResult.machineType
             };
