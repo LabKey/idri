@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016 LabKey Corporation
+ * Copyright (c) 2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
@@ -26,6 +26,23 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         this.materialsPanel = this.generateMaterialsForm();
 
         this.buttons = [{
+            id: 'clear-button',
+            text: 'Clear',
+            handler: function() {
+                Ext.Msg.show({
+                    title: 'Clear Form',
+                    msg: 'Are you sure you would like to start over?',
+                    buttons:  {no: 'No, continue editing', yes: 'Yes, clear form'},
+                    fn: function(id) {
+                        if (id === 'yes') {
+                            this.resetForm();
+                        }
+                    },
+                    scope: this
+                });
+            },
+            scope: this
+        },{
             id: 'add-button',
             text: 'Add Another Material',
             handler: function() {
@@ -212,10 +229,10 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         var dialogPanel = this.getComponent('dialogPanel');
 
         if (dialogPanel) {
-            if (msg.length === 0)
-                dialogPanel.hide();
-            else
+            if (msg)
                 dialogPanel.show();
+            else
+                dialogPanel.hide();
 
             if (error)
                 dialogPanel.update('<span style="color: red;">' + msg + '</span>');
@@ -275,14 +292,23 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
                                         if (batch === val) {
 
+                                            var encodedName = Ext4.htmlEncode(batch);
+
+                                            if (this.isClone) {
+                                                var msg = encodedName + ' already exists. Please choose a different "Lot Number".';
+
+                                                this.showMsg(msg, true);
+                                                field.reset(); // clear the current value
+                                                field.markInvalid(msg);
+                                                return false;
+                                            }
+
                                             var rowId = formulation.get('RowId');
 
                                             if (this.lastChecked === rowId) {
                                                 return;
                                             }
                                             this.lastChecked = rowId;
-
-                                            var encodedName = Ext4.htmlEncode(batch);
 
                                             Ext.Msg.show({
                                                 title: 'Load ' + encodedName + '?',
@@ -306,7 +332,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                                                         this.getForm().getForm().reset();
                                                         this.resetMaterials();
 
-                                                        this.showMsg('');
+                                                        this.showMsg();
                                                         this.loadFormulation(formulation, isClone);
                                                     }
                                                 },
@@ -609,6 +635,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
 
     onSaveFormulation : function(formulation) {
 
+        /* gather state prior to resetting form */
         var savedRowId = formulation.rowID;
         var onStability = this.onStabilityWatch();
         var hasProfile = this.hasStabilityProfile;
@@ -620,16 +647,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         });
         this.showMsg("Formulation : <a href='" + localHref + "'>" + Ext4.htmlEncode(formulation.batch) + "</a> has been " + (this.isUpdate ? "updated." : "created."), false);
 
-        /* reset back to the initial state */
-        this.getSubmitBtn().setText('Create');
-        this.isUpdate = false;
-        this.lastChecked = undefined;
-        this.hasStabilityProfile = false;
-        this.getStabilityCheckCmp().setBoxLabel('');
-        this.getForm().getForm().reset();
-        this.resetMaterials();
-        this._loadStores();
-        this.getEl().unmask();
+        this.resetForm(false);
 
         if (onStability) {
             if (hasProfile) {
@@ -651,6 +669,26 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                 this.informStabilityGroup(formulation, localHref);
             }
         }
+    },
+
+    /* reset back to the initial state */
+    resetForm : function(clearMessage) {
+        this.getSubmitBtn().setText('Create');
+        this.isClone = false;
+        this.isUpdate = false;
+        this.lastChecked = undefined;
+        this.hasStabilityProfile = false;
+        this.getStabilityCheckCmp().setBoxLabel('');
+        Ext.getCmp('lot-field-id').emptyText = null;
+        this.getForm().getForm().reset();
+        this.resetMaterials();
+        this._loadStores();
+
+        if (clearMessage !== false) {
+            this.showMsg();
+        }
+
+        this.getEl().unmask();
     },
 
     onSaveFormulationFailure : function(response) {
@@ -683,16 +721,21 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
                     xtype: 'idri-taskpanel',
                     rowId: formulation.rowID,
                     listeners: {
-                        profilechange: function() {
-                            if (window) {
-                                window.close();
-                            }
+                        profilechange: {
+                            fn: function() {
+                                if (window) {
+                                    window.close();
+                                }
+
+                                this._loadStores();
+                            },
+                            scope: this
                         }
                     }
                 }],
                 autoShow: true
             });
-        });
+        }, this);
     },
 
     removeStabilityWatch : function(formulation, callback, scope) {
@@ -938,7 +981,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
     },
     
     validateSubmit : function() {
-        this.showMsg('');
+        this.showMsg();
         var insertFormulation = {};
         var form = this.getForm().getForm();
 
