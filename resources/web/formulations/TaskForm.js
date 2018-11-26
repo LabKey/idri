@@ -41,6 +41,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             stabilityForm: Ext4.id()
         };
 
+        var stores = this.getStores();
+
         this.items = [{
             xtype: 'form',
             labelAlign: 'top',
@@ -106,83 +108,70 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 }],
                 name : 'pSize',
                 id: this.ids.pSize
-            }, {
+            },{
                 xtype: 'box',
-                html: "<hr>",
+                html: "<hr/><style type='text/css'>.excipient-conc-cell { margin: 5px; }</style>",
                 border: false
             },{
                 xtype: 'checkboxgroup',
-                columns: [100, 150],
+                columns: [125, 150],
                 border: false,
                 frame: false,
-                fieldLabel: 'Adjuvant Concentration',
+                fieldLabel: 'Excipient Concentration',
+                itemCls: 'excipient-conc-cell',
                 items: [{
                     xtype: 'checkbox',
-                    boxLabel: 'UV Type',
+                    boxLabel: 'UV Analysis',
                     id: this.ids.uv,
                     name: 'uv',
                     checked: false
-                }, {
+                },{
                     xtype: 'combo',
                     name: 'uvType',
                     id: this.ids.uvType,
                     width: 200,
+                    queryMode: 'local',
                     triggerAction: 'all',
                     multiSelect: true,
                     typeAhead: true,
-                    allowBlank: false,
                     editable: false,
                     validateOnBlur: false,
-                    //valueField: 'RowId',
                     displayField: 'Name',
-                    store: Ext4.create('LABKEY.ext4.Store', {
-                        schemaName: 'Samples',
-                        queryName: 'Compounds',
-                        filterArray:  [
-                            LABKEY.Filter.create('CompoundLookup/type', 'adjuvant')
-                        ]
-                    })
-                }, {
+                    store: stores.compoundStore
+                },{
                     xtype: 'checkbox',
-                    boxLabel: 'HPLC Type',
+                    boxLabel: 'HPLC Analysis',
                     id: this.ids.hplc,
                     name: 'hplc'
-                }, {
+                },{
                     xtype: 'combo',
                     name: 'hplcType',
                     id: this.ids.hplcType,
                     multiSelect: true,
-                    mode: 'local',
+                    queryMode: 'local',
                     width: 200,
                     triggerAction: 'all',
                     typeAhead: true,
-                    allowBlank: false,
                     editable: false,
                     validateOnBlur: false,
                     displayField: 'Name',
-                    store: Ext4.create('LABKEY.ext4.Store', {
-                        schemaName: 'Samples',
-                        queryName: 'Compounds',
-                        filterArray:  [
-                            LABKEY.Filter.create('CompoundLookup/type', 'adjuvant')
-                        ]
-                    })
+                    store: stores.compoundStore
                 }]
             },{
-                width   : 600,
-                columns : [100, 100, 100, 100, 100, 100],
-                xtype : 'checkboxgroup',
-                fieldLabel: 'Adjuvant Concentration Timepoints',
-                allowBlank : false,
-                validateOnBlur : false,
+                width: 600,
+                columns: [100, 100, 100, 100, 100, 100],
+                xtype: 'checkboxgroup',
+                fieldLabel: 'Excipient Concentration Timepoints',
+                allowBlank: false,
+                validateOnBlur: false,
                 id: this.ids.hplcuvtimepoints
             },{
                 xtype: 'button',
-                id : this.ids.submit,
+                id: this.ids.submit,
                 name: 'submit-profile-btn',
-                text : 'Create',
-                handler : this.onCreateStability,
-                scope : this
+                text: 'Create',
+                handler: this.onCreateStability,
+                scope: this
             }]
         }];
 
@@ -200,6 +189,16 @@ Ext4.define('LABKEY.idri.TaskPanel', {
     getStores : function() {
         if (!this.stores) {
             this.stores = {
+                compoundStore: Ext4.create('LABKEY.ext4.Store', {
+                    schemaName: 'Samples',
+                    queryName: 'Compounds',
+                    columns: 'Name,RowId',
+                    sorters: [{
+                        sorterFn: function(a, b) {
+                            return LABKEY.internal.SortUtil.naturalSort(a.get('Name'), b.get('Name'));
+                        }
+                    }]
+                }),
                 timepointStore: Ext4.create('LABKEY.ext4.Store', {
                     schemaName: 'lists',
                     queryName: 'Timepoints',
