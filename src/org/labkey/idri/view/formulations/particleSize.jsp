@@ -25,9 +25,7 @@
     public void addClientDependencies(ClientDependencies dependencies)
     {
         dependencies.add("formulations/formulation.css");
-        dependencies.add("clientapi/ext3");
         dependencies.add("Ext4");
-        dependencies.add("formulations/SearchFormulation.js"); // buildPSReports
     }
 %>
 <%
@@ -184,9 +182,7 @@
             });
         };
 
-        var assayId = <%=PageFlowUtil.jsString(formulation.getBatch())%>;
-
-        var panel = new Ext.Panel({
+        Ext4.create('Ext.Panel', {
             renderTo : 'machine-select',
             bodyStyle : 'background-color: transparent;',
             border: false,
@@ -196,9 +192,9 @@
                 mode: 'local',
                 width: 80,
                 editable: false,
-                store : new Ext.data.ArrayStore({
-                    fields : [ 'machine' ],
-                    data : [['aps'],['nano']]
+                store: Ext4.create('Ext.data.ArrayStore', {
+                    fields: [ 'machine' ],
+                    data: [['aps'],['nano']]
                 }),
                 valueField : 'machine',
                 displayField : 'machine',
@@ -209,23 +205,18 @@
                         cb.fireEvent('select', cb);
                     },
                     select : function(cb) {
-                        var grid = Ext.getCmp('query-assay-grid');
-                        if (grid) {
-                            grid.destroy();
-                            var el = Ext.get('testdiv');
-                            if (el) {
-                                el.mask('Loading ' + cb.getValue());
-                            }
+                        var el = Ext4.get('testdiv');
+                        if (el) {
+                            el.mask('Loading ' + cb.getValue());
                         }
+
+                        var assayId = <%=PageFlowUtil.jsString(formulation.getBatch())%>;
                         lookupAssayId(assayId, cb.getValue());
                     }
                 }
             }]
         });
-
-
     });
-
 </script>
 <%
     }

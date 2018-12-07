@@ -929,7 +929,7 @@
             successCallback : function (batch, response) {
                 Ext.getCmp('submit-form').getEl().unmask();
                 LABKEY.page.batch = batch;
-                var link = LABKEY.contextPath + '/idri/Formulations/formulationDetails.view?rowId=' + _lotID;
+                var link = LABKEY.contextPath + '/project/Formulations/begin.view?pageId=idri.LOT_SUMMARY&rowId=' + _lotID;
                 var home = LABKEY.contextPath + '/project/Formulations/begin.view?';
                 Ext.Msg.show({
                     title : 'Saved Successfully',
