@@ -254,7 +254,7 @@
             listeners: {
                 render: function(qwp) {
                     if (qwp.getDataRegion().domId) {
-                        var links = Ext4.DomQuery.select('a.labkey-text-link', qwp.getDataRegion().domId);
+                        var links = Ext4.DomQuery.select('a.lk-dr-action-icon', qwp.getDataRegion().domId);
                         if (!Ext4.isEmpty(links)) {
                             Ext4.each(links, function(linkEl) {
                                 var link = Ext4.get(linkEl);
@@ -263,6 +263,8 @@
                                     var params = LABKEY.ActionURL.getParameters(href);
                                     if (Ext4.isObject(params) && Ext4.isString(params['pHPLCRun'])) {
                                         var runId = params['pHPLCRun'];
+                                        link.set({'class': 'labkey-text-link'});
+                                        link.set({'style': 'cursor:pointer;'});
                                         link.on('click', function() { viewSpectrum(runId); });
                                         link.dom.removeAttribute('href');
                                         link.update('chromatogram');

@@ -40,16 +40,12 @@ import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
-import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.util.UnexpectedException;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
-import org.labkey.api.view.NotFoundException;
-import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewContext;
-import org.labkey.api.view.WebPartView;
 import org.labkey.api.webdav.WebdavResource;
 import org.labkey.api.webdav.WebdavService;
 import org.labkey.idri.assay.hplc.HPLCAssayDataHandler;
@@ -374,42 +370,6 @@ public class idriController extends SpringActionController
         {
             if (form.getMaterialName() == null)
                 errors.reject("No Material Name provided.");
-        }
-    }
-
-    /**
-     * This action is the old Details view for a specific Formulation. For the current usage, visit
-     * the "Formulation Summary" tab from idriFormulationsFolderType.
-     */
-    @Deprecated
-    @RequiresPermission(ReadPermission.class)
-    public class FormulationDetailsAction extends SimpleViewAction<ExpObjectForm>
-    {
-        private Formulation _formulation;
-
-        @Override
-        public ModelAndView getView(ExpObjectForm form, BindException errors) throws Exception
-        {
-            VBox vbox = new VBox();
-
-            _formulation = idriManager.getFormulation(form.getRowId());
-
-            if (null == _formulation)
-            {
-                throw new NotFoundException("404: Formulation not found.");
-            }
-
-            JspView view = new JspView<>("/org/labkey/idri/view/formulationDetails.jsp", form);
-            view.setFrame(WebPartView.FrameType.NONE);
-            vbox.addView(view);
-
-            return vbox;
-        }
-
-        @Override
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return root.addChild("Formulation " + _formulation.getBatch());
         }
     }
 

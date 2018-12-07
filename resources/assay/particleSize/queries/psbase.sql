@@ -22,8 +22,6 @@ ROUND(AVG(ZAve), 2) AS "Average ZAve",
 PSD.Run.RunProperties.ZAveMean
 FROM
 assay.particleSize."Particle Size".Data AS PSD
-WHERE
-ExtractionNumber IN (1,2,3)
 GROUP BY
 TimeLabel,
 StorageTemperature,

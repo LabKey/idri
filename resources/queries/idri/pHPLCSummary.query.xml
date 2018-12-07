@@ -4,7 +4,7 @@
             <table tableName="pHPLCSummary" tableDbType="NOT_IN_DB">
                 <!--<insertUrl>/idri/createFormulation.view</insertUrl>-->
                 <!--<updateUrl>/idri/createFormulation.view?RowId=${RowId}</updateUrl>-->
-                <tableUrl>/idri/formulationDetails.view?pHPLCRun=${RowId}</tableUrl>
+                <tableUrl>/project/begin.view?pageId=idri.LOT_SUMMARY&amp;pHPLCRun=${RowId}</tableUrl>
             </table>
         </tables>
     </metadata>
