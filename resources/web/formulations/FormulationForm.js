@@ -714,8 +714,8 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
         Ext4.onReady(function() {
             var window = Ext4.create('Ext.window.Window', {
                 title: 'Stability Profile',
-                height: 550,
-                width: 625,
+                height: 580,
+                width: 810,
                 bodyStyle: 'padding:5px; padding-top; 30px;',
                 items: [{
                     xtype: 'idri-taskpanel',
