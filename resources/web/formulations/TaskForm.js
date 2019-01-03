@@ -48,7 +48,7 @@ Ext4.define('LABKEY.idri.TaskPanel', {
             labelAlign: 'top',
             itemId: 'form-panel',
             bodyStyle: 'background-color: transparent',
-            width: 625,
+            width: 800,
             border: false,
             frame: false,
             scope: this,
@@ -66,8 +66,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 html: "<hr>",
                 border: false
             },{
-                width   : 600,
-                columns : [100, 100, 100, 100, 100, 100],
+                width   : 800,
+                columns : [100, 100, 100, 100, 100, 100, 100, 100],
                 xtype : 'checkboxgroup',
                 fieldLabel: 'Temperatures',
                 allowBlank : false,
@@ -78,8 +78,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                 html: "<hr>",
                 border: false
             }, {
-                width   : 600,
-                columns : [100, 100, 100, 100, 100, 100],
+                width   : 800,
+                columns : [100, 100, 100, 100, 100, 100, 100, 100],
                 xtype : 'checkboxgroup',
                 fieldLabel: 'Timepoints',
                 allowBlank : false,
@@ -158,8 +158,8 @@ Ext4.define('LABKEY.idri.TaskPanel', {
                     store: stores.compoundStore
                 }]
             },{
-                width: 600,
-                columns: [100, 100, 100, 100, 100, 100],
+                width: 800,
+                columns: [100, 100, 100, 100, 100, 100, 100, 100],
                 xtype: 'checkboxgroup',
                 fieldLabel: 'Excipient Concentration Timepoints',
                 allowBlank: false,
