@@ -36,8 +36,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
@@ -285,7 +285,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Create Formulations used in runs of Particle Size Assay");
         clickAndWait(Locator.linkWithText("Create/Update a Formulation"));
-        _ext4Helper.waitForMaskToDisappear();
+        _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
 
         // Describe Formulation
         setFormElement(Locator.name("Batch"), PS_FORMULATION);
