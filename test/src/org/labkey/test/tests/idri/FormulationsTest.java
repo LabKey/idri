@@ -29,6 +29,7 @@ import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
+import org.labkey.test.util.SampleSetHelper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -172,10 +173,8 @@ public class FormulationsTest extends BaseWebDriverTest
         log("Entering compound information");
         clickAndWait(Locator.linkWithText(COMPOUNDS_NAME));
 
-        clickButton("Import More Samples");
-        click(Locator.radioButtonById("insertOnlyChoice"));
-        setFormElement(Locator.name("data"), COMPOUNDS_HEADER + COMPOUNDS_DATA_1 + COMPOUNDS_DATA_2 + COMPOUNDS_DATA_3 + COMPOUNDS_DATA_4);
-        clickButton("Submit");
+        SampleSetHelper helper = new SampleSetHelper(this);
+        helper.bulkImport(COMPOUNDS_HEADER + COMPOUNDS_DATA_1 + COMPOUNDS_DATA_2 + COMPOUNDS_DATA_3 + COMPOUNDS_DATA_4);
     }
 
     @LogMethod
@@ -185,10 +184,8 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Entering raw material information");
         clickAndWait(Locator.linkWithText(RAW_MATERIALS_NAME));
-        clickButton("Import More Samples");
-        click(Locator.radioButtonById("insertOnlyChoice"));
-        setFormElement(Locator.id("textbox"), RAWMATERIALS_HEADER + RAWMATERIALS_DATA_1 + RAWMATERIALS_DATA_2 + RAWMATERIALS_DATA_3 + RAWMATERIALS_DATA_4);
-        clickButton("Submit");
+        SampleSetHelper helper = new SampleSetHelper(this);
+        helper.bulkImport(RAWMATERIALS_HEADER + RAWMATERIALS_DATA_1 + RAWMATERIALS_DATA_2 + RAWMATERIALS_DATA_3 + RAWMATERIALS_DATA_4);
     }
 
     @LogMethod
