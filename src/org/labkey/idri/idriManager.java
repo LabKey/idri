@@ -17,6 +17,7 @@ package org.labkey.idri;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
@@ -239,7 +240,8 @@ public class idriManager
             if (exists != null)
             {
                 formulation.setRowID(exists.getRowId());
-                Map<String, Object> formulationMap = formulation.describe();
+                ArrayListMap<String, Object> formulationMap = new ArrayListMap<>();
+                formulationMap.putAll(formulation.describe());
 
                 for (String key : formulationMap.keySet())
                     assert columnSet.contains(key) : "Cannot find '" + key + "' in " + idriSchema.TABLE_FORMULATIONS;
@@ -259,7 +261,7 @@ public class idriManager
             }
             else
             {
-                CaseInsensitiveHashMap<Object> formulationMap = new CaseInsensitiveHashMap<>();
+                ArrayListMap<String, Object> formulationMap = new ArrayListMap<>();
                 formulationMap.putAll(formulation.describe());
 
                 for (String key : formulationMap.keySet())
