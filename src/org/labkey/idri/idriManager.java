@@ -259,7 +259,8 @@ public class idriManager
             }
             else
             {
-                Map<String, Object> formulationMap = formulation.describe();
+                CaseInsensitiveHashMap<Object> formulationMap = new CaseInsensitiveHashMap<>();
+                formulationMap.putAll(formulation.describe());
 
                 for (String key : formulationMap.keySet())
                     assert columnSet.contains(key) : "Cannot find '" + key + "' in " + idriSchema.TABLE_FORMULATIONS;
