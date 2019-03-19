@@ -220,7 +220,7 @@
                 Ext4.each(files, function(file) {
                     LABKEY.Ajax.request({
                         url: LABKEY.ActionURL.buildURL('idri', 'getHPLCResource.api'),
-                        method: 'GET',
+                        method: 'POST',
                         params: { path: file.id, test: true },
                         success: function(response) {
                             done(file, Ext4.decode(response.responseText));

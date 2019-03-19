@@ -17,7 +17,8 @@
 package org.labkey.idri;
 
 import org.json.JSONObject;
-import org.labkey.api.action.ApiAction;
+import org.labkey.api.action.ReadOnlyApiAction;
+import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.CustomApiForm;
@@ -101,7 +102,7 @@ public class idriController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class GetDerivationGraphDescriptionAction extends ApiAction<MaterialTypeForm>
+    public class GetDerivationGraphDescriptionAction extends ReadOnlyApiAction<MaterialTypeForm>
     {
         private String start;
         private String nodeDefinition;
@@ -294,7 +295,7 @@ public class idriController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class GetFormulationAction extends ApiAction<MaterialTypeForm>
+    public class GetFormulationAction extends ReadOnlyApiAction<MaterialTypeForm>
     {
         @Override
         public ApiResponse execute(MaterialTypeForm form, BindException errors) throws Exception
@@ -334,7 +335,7 @@ public class idriController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class GetMaterialTypeAction extends ApiAction<MaterialTypeForm>
+    public class GetMaterialTypeAction extends ReadOnlyApiAction<MaterialTypeForm>
     {
         @Override
         public ApiResponse execute(MaterialTypeForm form, BindException errors) throws Exception
@@ -377,7 +378,7 @@ public class idriController extends SpringActionController
      * Meant to mimic PipelineController.getPipelineContainerAction but with the incorporated HPLC path context
      */
     @RequiresPermission(ReadPermission.class)
-    public class getHPLCPipelineContainerAction extends ApiAction
+    public class getHPLCPipelineContainerAction extends ReadOnlyApiAction
     {
         public ApiResponse execute(Object form, BindException errors) throws Exception
         {
@@ -429,7 +430,7 @@ public class idriController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class getHPLCResourceAction extends ApiAction<HPLCResourceForm>
+    public class getHPLCResourceAction extends MutatingApiAction<HPLCResourceForm>
     {
         @Override
         public ApiResponse execute(HPLCResourceForm form, BindException errors) throws Exception
