@@ -209,6 +209,7 @@ public class FormulationsTest extends BaseWebDriverTest
 
         // Describe Formulation
         setFormElement(Locator.name("Batch"), FORMULATION);
+        _ext4Helper.waitForMaskToDisappear();
         _extHelper.selectComboBoxItem(Locator.xpath("//input[@name='Type']/.."), "Alum");
         setFormElement(Locator.name("DM"), "8/8/2008");
         setFormElement(Locator.name("batchsize"), "100");
