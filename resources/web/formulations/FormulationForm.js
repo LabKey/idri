@@ -902,7 +902,7 @@ LABKEY.idri.FormulationPanel = Ext.extend(Ext.Panel, {
             name: 'concentration',
             hideLabel: true,
             width: 60,
-            decimalPrecision: 4,
+            decimalPrecision: 6,
             allowBlank: false,
             validateOnBlur: false,
             value: material.concentration
