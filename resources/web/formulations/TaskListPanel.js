@@ -299,13 +299,9 @@ Ext4.define('LABKEY.idri.TaskListPanel', {
             var filters = [
                 LABKEY.Filter.create('lotNum', task.lotNum),
                 LABKEY.Filter.create('cat', category),
-                LABKEY.Filter.create('date', task.date, LABKEY.Filter.Types.DATE_GREATER_THAN)
+                LABKEY.Filter.create('date', task.date, LABKEY.Filter.Types.DATE_GREATER_THAN),
+                LABKEY.Filter.create('temperature', task.temperature)
             ];
-
-            category = category.toLowerCase();
-            if (category === 'nano' || category === 'aps') {
-                filters.push(LABKEY.Filter.create('temperature', task.temperature));
-            }
 
             filterSets.push(filters);
         });
