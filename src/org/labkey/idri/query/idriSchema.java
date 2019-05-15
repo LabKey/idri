@@ -17,7 +17,7 @@
 package org.labkey.idri.query;
 
 import org.labkey.api.data.Container;
-import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.module.Module;
@@ -35,7 +35,7 @@ import java.util.Set;
 public class idriSchema extends UserSchema
 {
     public static final String NAME = "idri";
-    public static final String DESCRIPTION = "Container IDRI Formulations Data.";
+    private static final String DESCRIPTION = "Container IDRI Formulations Data.";
     
     public static final String TABLE_COMPOUNDS = "Compounds";
     public static final String TABLE_RAW_MATERIALS = "Raw Materials";
@@ -62,11 +62,11 @@ public class idriSchema extends UserSchema
     }
 
     @Override
-    public TableInfo createTable(String name)
+    public TableInfo createTable(String name, ContainerFilter cf)
     {
         if (TABLE_CONCENTRATIONS.equalsIgnoreCase(name))
         {
-            return new ConcentrationsTable(this);
+            return new ConcentrationsTable(this, cf);
         }
         else
         {
@@ -75,7 +75,7 @@ public class idriSchema extends UserSchema
             if (null == tinfo)
                 return null;
 
-            FilteredTable ftable = new FilteredTable<>(tinfo, this);
+            FilteredTable ftable = new FilteredTable<>(tinfo, this, cf);
             ftable.wrapAllColumns(true);
             return ftable;
         }

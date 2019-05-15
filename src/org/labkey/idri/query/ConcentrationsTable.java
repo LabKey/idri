@@ -16,11 +16,16 @@
 package org.labkey.idri.query;
 
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.data.ColumnInfo;
+import org.labkey.api.data.BaseColumnInfo;
+import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DatabaseTableType;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.query.ExpSchema;
-import org.labkey.api.query.*;
+import org.labkey.api.query.DefaultQueryUpdateService;
+import org.labkey.api.query.FieldKey;
+import org.labkey.api.query.FilteredTable;
+import org.labkey.api.query.LookupForeignKey;
+import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.Permission;
 
@@ -38,38 +43,41 @@ public class ConcentrationsTable extends FilteredTable<idriSchema>
             FieldKey.fromString("Concentration"),
             FieldKey.fromString("Unit")};
 
-    public ConcentrationsTable(idriSchema schema)
+    ConcentrationsTable(idriSchema schema, ContainerFilter cf)
     {
-        super(schema.getDbSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), schema);
+        super(schema.getDbSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), schema, cf);
 
         addColumn(wrapColumn("rowId", getRealTable().getColumn("rowId")));
-        ColumnInfo compoundCol = addColumn(wrapColumn("Compound", getRealTable().getColumn("Compound")));
-        compoundCol.setFk(new LookupForeignKey("rowid")
+        BaseColumnInfo compoundCol = addColumn(wrapColumn("Compound", getRealTable().getColumn("Compound")));
+        // TODO: Replace this LookupForeignKey with QueryForeignKey.from() (which will allow caching, etc.)
+        compoundCol.setFk(new LookupForeignKey(cf, "rowid", null)
         {
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials");
+                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials", getLookupContainerFilter());
             }
         });
-        ColumnInfo lotCol = addColumn(wrapColumn("Lot", getRealTable().getColumn("Lot")));
-        lotCol.setFk(new LookupForeignKey("rowid")
+        BaseColumnInfo lotCol = addColumn(wrapColumn("Lot", getRealTable().getColumn("Lot")));
+        // TODO: Replace this LookupForeignKey with QueryForeignKey.from() (which will allow caching, etc.)
+        lotCol.setFk(new LookupForeignKey(cf, "rowid", null)
         {
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials");
+                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials", getLookupContainerFilter());
             }
         });
         addColumn(wrapColumn("Concentration", getRealTable().getColumn("Concentration")));
         addColumn(wrapColumn("Unit", getRealTable().getColumn("Unit")));
-        ColumnInfo matCol = addColumn(wrapColumn("Material", getRealTable().getColumn("Material")));
-        matCol.setFk(new LookupForeignKey("rowid")
+        BaseColumnInfo matCol = addColumn(wrapColumn("Material", getRealTable().getColumn("Material")));
+        // TODO: Replace this LookupForeignKey with QueryForeignKey.from() (which will allow caching, etc.)
+        matCol.setFk(new LookupForeignKey(cf, "rowid", null)
         {
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials");
+                return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials", getLookupContainerFilter());
             }
         });
         addColumn(wrapColumn("IsTop", getRealTable().getColumn("istop")));
