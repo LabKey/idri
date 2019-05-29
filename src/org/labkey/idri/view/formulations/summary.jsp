@@ -19,13 +19,12 @@
 <%@ page import="org.labkey.api.exp.api.ExpMaterial"%>
 <%@ page import="org.labkey.api.exp.api.ExperimentService" %>
 <%@ page import="org.labkey.api.exp.api.ExperimentUrls" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.idri.idriController" %>
 <%@ page import="org.labkey.idri.idriManager" %>
 <%@ page import="org.labkey.idri.model.Formulation" %>
-<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -60,10 +59,10 @@
 <div>
     <h3><%=h(formulation.getBatch())%></h3>
     <% if (c.hasPermission(getUser(), InsertPermission.class)) { %>
-    <%=textLink("Edit " + formulation.getBatch(), new ActionURL(idriController.CreateFormulationAction.class, c).addParameter("RowId", formulation.getRowID()))%>
+    <%=link("Edit " + formulation.getBatch(), new ActionURL(idriController.CreateFormulationAction.class, c).addParameter("RowId", formulation.getRowID()))%>
     <% } %>
-    <%=textLink("Browse Formulations", PageFlowUtil.urlProvider(ExperimentUrls.class).getShowSampleSetURL(idriManager.getFormulationSampleSet(getContainer())))%>
-    <%=textLink("Sample View", PageFlowUtil.urlProvider(ExperimentUrls.class).getMaterialDetailsURL(formulationMaterial))%>
+    <%=link("Browse Formulations", urlProvider(ExperimentUrls.class).getShowSampleSetURL(idriManager.getFormulationSampleSet(getContainer())))%>
+    <%=link("Sample View", urlProvider(ExperimentUrls.class).getMaterialDetailsURL(formulationMaterial))%>
     <table>
         <tr>
             <td class="labkey-form-label">Date of Manufacture</td><td><%=formulation.getDm()%></td>

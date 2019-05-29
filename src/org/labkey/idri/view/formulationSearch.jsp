@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 %>
+<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.util.UniqueID" %>
-<%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.idri.idriController" %>
-<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
@@ -44,7 +43,7 @@
                 <input type="text" id="<%=text(searchID)%>" style="font-size: 18px; font-weight:lighter;" name="nameContains" value="">
             </td>
             <td colspan="1">
-                <%= PageFlowUtil.button("Search").href("javascript:void(0);").onClick("getRunIdIfUnique(" + PageFlowUtil.jsString(searchID) + "); return false;") %>
+                <%= button("Search").href("javascript:void(0);").onClick("getRunIdIfUnique(" + PageFlowUtil.jsString(searchID) + "); return false;") %>
             </td>
         </tr>
     </table>
@@ -52,7 +51,7 @@
 <div id="SearchStatusDiv"></div>
 <div id="SearchStatusDiv2"></div>
 <% if (getContainer().hasPermission(getUser(), InsertPermission.class)) { %>
-<div style="padding-bottom:2px;"><%=PageFlowUtil.textLink("Create/Update a Formulation", new ActionURL(idriController.CreateFormulationAction.class, getContainer()))%></div>
+<div style="padding-bottom:2px;"><%=link("Create/Update a Formulation", idriController.CreateFormulationAction.class)%></div>
 <% } %>
 <div id="topDiv"></div>
 <div id="errorDiv"></div>
