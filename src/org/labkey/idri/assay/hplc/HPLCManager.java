@@ -32,12 +32,11 @@ import org.labkey.api.files.FileContentService;
 import org.labkey.api.qc.DataLoaderSettings;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
-import org.labkey.api.services.ServiceRegistry;
-import org.labkey.api.study.assay.AssayProvider;
-import org.labkey.api.study.assay.AssayRunUploadContext;
-import org.labkey.api.study.assay.AssayService;
-import org.labkey.api.study.assay.AssayUploadXarContext;
-import org.labkey.api.study.assay.DefaultAssayRunCreator;
+import org.labkey.api.assay.AssayProvider;
+import org.labkey.api.assay.AssayRunUploadContext;
+import org.labkey.api.assay.AssayService;
+import org.labkey.api.assay.AssayUploadXarContext;
+import org.labkey.api.assay.DefaultAssayRunCreator;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.view.ViewBackgroundInfo;
 

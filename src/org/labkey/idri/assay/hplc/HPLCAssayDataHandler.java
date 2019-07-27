@@ -16,8 +16,8 @@
 package org.labkey.idri.assay.hplc;
 
 import org.labkey.api.exp.api.DataType;
-import org.labkey.api.study.assay.AbstractAssayTsvDataHandler;
-import org.labkey.api.study.assay.AssayDataType;
+import org.labkey.api.assay.AbstractAssayTsvDataHandler;
+import org.labkey.api.assay.AssayDataType;
 import org.labkey.api.util.FileType;
 
 /**
