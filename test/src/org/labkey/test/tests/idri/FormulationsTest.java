@@ -15,7 +15,6 @@
  */
 package org.labkey.test.tests.idri;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -38,11 +37,13 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -319,16 +320,14 @@ public class FormulationsTest extends BaseWebDriverTest
         ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("Particle Size", PS_ASSAY)
             .setDescription(PS_ASSAY_DESC);
 
-        assayDesignerPage.goToBatchFields();
-        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
+        DomainFormPanel batchPanel = assayDesignerPage.goToBatchFields();
+        assertEquals("Batch fields", Collections.emptyList(), batchPanel.fieldNames());
 
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
-        assertThat("Missing expected run property", runPanel.getField("IDRIBatchNumber"), CoreMatchers.notNullValue());
+        assertThat("Run fields", runPanel.fieldNames(), hasItems("IDRIBatchNumber"));
 
         DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
-        assertThat("Missing expected result property", resultPanel.getField("MeasuringTemperature"), CoreMatchers.notNullValue());
-        assertThat("Missing expected result property", resultPanel.getField("meanCountRate"), CoreMatchers.notNullValue());
-        assertThat("Missing expected result property", resultPanel.getField("AnalysisTool"), CoreMatchers.notNullValue());
+        assertThat("Results fields", resultPanel.fieldNames(), hasItems("MeasuringTemperature", "meanCountRate", "AnalysisTool"));
 
         assayDesignerPage.clickFinish();
     }
@@ -388,16 +387,14 @@ public class FormulationsTest extends BaseWebDriverTest
         ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("Visual Inspection", VIS_INSPEC_ASSAY)
             .setDescription(VIS_INSPEC_ASSAY_DESC);
 
-        assayDesignerPage.goToBatchFields();
-        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
+        DomainFormPanel batchPanel = assayDesignerPage.goToBatchFields();
+        assertEquals("Batch fields", Collections.emptyList(), batchPanel.fieldNames());
 
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
-        assertThat("Missing expected run property", runPanel.getField("LotNumber"), CoreMatchers.notNullValue());
+        assertEquals("Run fields", Arrays.asList("LotNumber"), runPanel.fieldNames());
 
         DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
-        assertThat("Missing expected result property", resultPanel.getField("Pass"), CoreMatchers.notNullValue());
-        assertThat("Missing expected result property", resultPanel.getField("Color"), CoreMatchers.notNullValue());
-        assertThat("Missing expected result property", resultPanel.getField("Phase"), CoreMatchers.notNullValue());
+        assertThat("Results fields", resultPanel.fieldNames(), hasItems("Pass", "Color", "Phase"));
 
         assayDesignerPage.clickFinish();
     }
@@ -424,16 +421,14 @@ public class FormulationsTest extends BaseWebDriverTest
             .setEditableRuns(true)
             .setEditableResults(true);
 
-        assayDesignerPage.goToBatchFields();
-        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
+        DomainFormPanel batchPanel = assayDesignerPage.goToBatchFields();
+        assertEquals("Batch fields", Collections.emptyList(), batchPanel.fieldNames());
 
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
-        assertThat("Missing expected run property", runPanel.getField("RunIdentifier"), CoreMatchers.notNullValue());
-        assertThat("Missing expected run property", runPanel.getField("Method"), CoreMatchers.notNullValue());
+        assertThat("Run fields", runPanel.fieldNames(), hasItems("RunIdentifier", "Method"));
 
         DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
-        assertThat("Missing expected result property", resultPanel.getField("Dilution"), CoreMatchers.notNullValue());
-        assertThat("Missing expected result property", resultPanel.getField("DataFile"), CoreMatchers.notNullValue());
+        assertThat("Results fields", resultPanel.fieldNames(), hasItems("Dilution", "DataFile"));
 
         assayDesignerPage.clickFinish();
 
@@ -581,17 +576,14 @@ public class FormulationsTest extends BaseWebDriverTest
             .setEditableRuns(true)
             .setEditableResults(true);
 
-        assayDesignerPage.goToBatchFields();
-        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
+        DomainFormPanel batchPanel = assayDesignerPage.goToBatchFields();
+        assertEquals("Batch fields", Collections.emptyList(), batchPanel.fieldNames());
 
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
-        assertThat("Missing expected run property", runPanel.getField("LotNumber"), CoreMatchers.notNullValue());
-        assertThat("Missing expected run property", runPanel.getField("CompoundNumber"), CoreMatchers.notNullValue());
+        assertThat("Run fields", runPanel.fieldNames(), hasItems("LotNumber", "CompoundNumber"));
 
         DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
-        assertThat("Missing expected result property", resultPanel.getField("Dilution"), CoreMatchers.notNullValue());
-        assertThat("Missing expected result property", resultPanel.getField("FilePath"), CoreMatchers.notNullValue());
-        assertThat("Missing expected result property", resultPanel.getField("Concentration"), CoreMatchers.notNullValue());
+        assertThat("Result fields", resultPanel.fieldNames(), hasItems("Dilution", "Concentration"));
 
         assayDesignerPage.clickFinish();
     }
