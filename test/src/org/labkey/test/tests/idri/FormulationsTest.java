@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests.idri;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,7 +24,9 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.Git;
+import org.labkey.test.components.domain.DomainFormPanel;
 import org.labkey.test.components.ext4.ComboBox;
+import org.labkey.test.pages.ReactAssayDesignerPage;
 import org.labkey.test.pages.list.BeginPage;
 import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
@@ -41,6 +44,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 @Category({Git.class})
 public class FormulationsTest extends BaseWebDriverTest
@@ -312,30 +316,21 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Defining Particle Size Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
-        clickButton("New Assay Design");
+        ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("Particle Size", PS_ASSAY)
+            .setDescription(PS_ASSAY_DESC);
 
-        assertTextPresent("Particle Size Data");
-        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Particle Size"));
-        clickButton("Next");
+        assayDesignerPage.goToBatchFields();
+        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
 
-        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
-        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), PS_ASSAY);
-        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), PS_ASSAY_DESC);
-        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+        DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
+        assertThat("Missing expected run property", runPanel.getField("IDRIBatchNumber"), CoreMatchers.notNullValue());
 
+        DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
+        assertThat("Missing expected result property", resultPanel.getField("MeasuringTemperature"), CoreMatchers.notNullValue());
+        assertThat("Missing expected result property", resultPanel.getField("meanCountRate"), CoreMatchers.notNullValue());
+        assertThat("Missing expected result property", resultPanel.getField("AnalysisTool"), CoreMatchers.notNullValue());
 
-        assertTextPresent(
-                // Batch Properties
-                "No fields have been defined.",
-                // Run Properties
-                "IDRIBatchNumber",
-                // Result Properties
-                "MeasuringTemperature",
-                "meanCountRate",
-                "AnalysisTool");
-
-        clickButton("Save", 0);
-        waitForText(10000, "Save successful.");
+        assayDesignerPage.clickFinish();
     }
 
     @LogMethod
@@ -390,29 +385,21 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Defining Visual Inspection Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
-        clickButton("New Assay Design");
+        ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("Visual Inspection", VIS_INSPEC_ASSAY)
+            .setDescription(VIS_INSPEC_ASSAY_DESC);
 
-        assertTextPresent("Visual Formulation Time-Point Data");
-        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Visual Inspection"));
-        clickButton("Next");
+        assayDesignerPage.goToBatchFields();
+        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
 
-        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
-        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), VIS_INSPEC_ASSAY);
-        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), VIS_INSPEC_ASSAY_DESC);
-        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+        DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
+        assertThat("Missing expected run property", runPanel.getField("LotNumber"), CoreMatchers.notNullValue());
 
-        assertTextPresent(
-                // Batch Properties
-                "No fields have been defined.",
-                // Run Properties
-                "LotNumber",
-                // Result Properties
-                "Pass",
-                "Color",
-                "Phase");
+        DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
+        assertThat("Missing expected result property", resultPanel.getField("Pass"), CoreMatchers.notNullValue());
+        assertThat("Missing expected result property", resultPanel.getField("Color"), CoreMatchers.notNullValue());
+        assertThat("Missing expected result property", resultPanel.getField("Phase"), CoreMatchers.notNullValue());
 
-        clickButton("Save", 0);
-        waitForText(10000, "Save successful.");
+        assayDesignerPage.clickFinish();
     }
 
     @LogMethod
@@ -432,34 +419,23 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Defining Provisional HPLC Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
-        clickButton("New Assay Design");
+        ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("Provisional HPLC", PROVISIONAL_HPLC_ASSAY)
+            .setDescription(PROVISIONAL_HPLC_ASSAY_DESC)
+            .setEditableRuns(true)
+            .setEditableResults(true);
 
-        assertTextPresent("High performance liquid chromatography assay");
-        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Provisional HPLC"));
-        clickButton("Next");
+        assayDesignerPage.goToBatchFields();
+        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
 
-        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
-        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), PROVISIONAL_HPLC_ASSAY);
-        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), PROVISIONAL_HPLC_ASSAY_DESC);
-        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+        DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
+        assertThat("Missing expected run property", runPanel.getField("RunIdentifier"), CoreMatchers.notNullValue());
+        assertThat("Missing expected run property", runPanel.getField("Method"), CoreMatchers.notNullValue());
 
-        assertTextPresent(
-                // Batch Properties
-                "No fields have been defined.",
-                // Run Properties
-                "RunIdentifier",
-                "Method",
-                // Result Properties
-                "Dilution",
-                "DataFile");
+        DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
+        assertThat("Missing expected result property", resultPanel.getField("Dilution"), CoreMatchers.notNullValue());
+        assertThat("Missing expected result property", resultPanel.getField("DataFile"), CoreMatchers.notNullValue());
 
-        // Make Runs/Results editable
-        checkCheckbox(Locator.checkboxByName("editableRunProperties"));
-        checkCheckbox(Locator.checkboxByName("editableResultProperties"));
-
-        clickButton("Save", 0);
-        waitForText(10000, "Save successful.");
-        clickButton("Save & Close");
+        assayDesignerPage.clickFinish();
 
         // Set pipeline path
         setPipelineRoot(HPLC_PIPELINE_PATH);
@@ -600,34 +576,24 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Defining HPLC Assay");
         clickAndWait(Locator.linkWithText("Manage Assays"));
-        clickButton("New Assay Design");
+        ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("HPLC", HPLC_ASSAY)
+            .setDescription(HPLC_ASSAY_DESC)
+            .setEditableRuns(true)
+            .setEditableResults(true);
 
-        assertTextPresent("High performance liquid chromatography assay");
-        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "HPLC"));
-        clickButton("Next");
+        assayDesignerPage.goToBatchFields();
+        assertElementPresent(Locator.tagWithClass("div", "domain-form-no-field-panel"));
 
-        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
-        setFormElement(Locator.xpath("//input[@id='AssayDesignerName']"), HPLC_ASSAY);
-        setFormElement(Locator.xpath("//textarea[@id='AssayDesignerDescription']"), HPLC_ASSAY_DESC);
-        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
+        DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
+        assertThat("Missing expected run property", runPanel.getField("LotNumber"), CoreMatchers.notNullValue());
+        assertThat("Missing expected run property", runPanel.getField("CompoundNumber"), CoreMatchers.notNullValue());
 
-        assertTextPresent(
-                // Batch Properties
-                "No fields have been defined.",
-                // Run Properties
-                "LotNumber",
-                "CompoundNumber",
-                // Result Properties
-                "Dilution", "FilePath",
-                "Concentration");
+        DomainFormPanel resultPanel = assayDesignerPage.goToFieldProperties("Result Properties");
+        assertThat("Missing expected result property", resultPanel.getField("Dilution"), CoreMatchers.notNullValue());
+        assertThat("Missing expected result property", resultPanel.getField("FilePath"), CoreMatchers.notNullValue());
+        assertThat("Missing expected result property", resultPanel.getField("Concentration"), CoreMatchers.notNullValue());
 
-        // Make Runs/Results editable
-        checkCheckbox(Locator.checkboxByName("editableRunProperties"));
-        checkCheckbox(Locator.checkboxByName("editableResultProperties"));
-
-        clickButton("Save", 0);
-        waitForText(10000, "Save successful.");
-        clickButton("Save & Close");
+        assayDesignerPage.clickFinish();
     }
 
     @Override
