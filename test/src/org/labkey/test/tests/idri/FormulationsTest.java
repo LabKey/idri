@@ -326,7 +326,7 @@ public class FormulationsTest extends BaseWebDriverTest
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
         assertThat("Run fields", runPanel.fieldNames(), hasItems("IDRIBatchNumber"));
 
-        DomainFormPanel resultPanel = assayDesignerPage.goToFieldsPanel("Result");
+        DomainFormPanel resultPanel = assayDesignerPage.expandFieldsPanel("Result");
         assertThat("Results fields", resultPanel.fieldNames(), hasItems("MeasuringTemperature", "meanCountRate", "AnalysisTool"));
 
         assayDesignerPage.clickFinish();
@@ -393,7 +393,7 @@ public class FormulationsTest extends BaseWebDriverTest
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
         assertEquals("Run fields", Arrays.asList("LotNumber"), runPanel.fieldNames());
 
-        DomainFormPanel resultPanel = assayDesignerPage.goToFieldsPanel("Result");
+        DomainFormPanel resultPanel = assayDesignerPage.expandFieldsPanel("Result");
         assertThat("Results fields", resultPanel.fieldNames(), hasItems("Pass", "Color", "Phase"));
 
         assayDesignerPage.clickFinish();
@@ -427,7 +427,7 @@ public class FormulationsTest extends BaseWebDriverTest
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
         assertThat("Run fields", runPanel.fieldNames(), hasItems("RunIdentifier", "Method"));
 
-        DomainFormPanel resultPanel = assayDesignerPage.goToFieldsPanel("Result");
+        DomainFormPanel resultPanel = assayDesignerPage.expandFieldsPanel("Result");
         assertThat("Results fields", resultPanel.fieldNames(), hasItems("Dilution", "DataFile"));
 
         assayDesignerPage.clickFinish();
@@ -582,7 +582,7 @@ public class FormulationsTest extends BaseWebDriverTest
         DomainFormPanel runPanel = assayDesignerPage.goToRunFields();
         assertThat("Run fields", runPanel.fieldNames(), hasItems("LotNumber", "CompoundNumber"));
 
-        DomainFormPanel resultPanel = assayDesignerPage.goToFieldsPanel("Result");
+        DomainFormPanel resultPanel = assayDesignerPage.expandFieldsPanel("Result");
         assertThat("Result fields", resultPanel.fieldNames(), hasItems("Dilution", "Concentration"));
 
         assayDesignerPage.clickFinish();
