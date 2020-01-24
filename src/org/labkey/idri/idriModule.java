@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 public class idriModule extends DefaultModule
@@ -66,21 +65,25 @@ public class idriModule extends DefaultModule
         addModuleProperty(_formulationPrefixes);
     }
 
+    @Override
     public String getName()
     {
         return "idri";
     }
 
+    @Override
     public double getVersion()
     {
         return 20.000;
     }
 
+    @Override
     public boolean hasScripts()
     {
         return true;
     }
 
+    @Override
     @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
@@ -88,6 +91,7 @@ public class idriModule extends DefaultModule
 
             new BaseWebPartFactory(FormulationSearchWebPart.NAME)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new FormulationSearchWebPart();
@@ -95,6 +99,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(FormulationSummaryWebPart.NAME)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new FormulationSummaryWebPart();
@@ -102,6 +107,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(ConcentrationsWebPart.NAME)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new ConcentrationsWebPart();
@@ -109,6 +115,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(ParticleSizeWebPart.NAME)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new ParticleSizeWebPart();
@@ -116,6 +123,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(StabilityWebPart.NAME)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new StabilityWebPart();
@@ -123,6 +131,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(HPLCWebPart.NAME)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     return new HPLCWebPart();
@@ -130,6 +139,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(WEBPART_TASKLIST)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     JspView view = new JspView("/org/labkey/idri/view/formulations/taskList.jsp");
@@ -140,6 +150,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(WEBPART_CONCENTRATIONS)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     ConcentrationsQueryView view = new ConcentrationsQueryView(new idriSchema(portalCtx.getUser(), portalCtx.getContainer()));
@@ -150,6 +161,7 @@ public class idriModule extends DefaultModule
             },
             new BaseWebPartFactory(WEBPART_CREATE_FORMULATION)
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     JspView view = new JspView("/org/labkey/idri/view/createFormulation.jsp");
@@ -161,11 +173,13 @@ public class idriModule extends DefaultModule
         ));
     }
 
+    @Override
     protected void init()
     {
         addController("idri", idriController.class);
     }
 
+    @Override
     public void doStartup(ModuleContext moduleContext)
     {
         // add a container listener so we'll know when our container is deleted:
@@ -201,8 +215,6 @@ public class idriModule extends DefaultModule
     @Override
     public Set<Class> getUnitTests()
     {
-        return new HashSet<>(Arrays.asList(
-                HPLCManager.HPLCImportTestCase.class
-        ));
+        return Set.of(HPLCManager.HPLCImportTestCase.class);
     }
 }
