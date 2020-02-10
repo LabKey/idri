@@ -90,7 +90,7 @@ public class FormulationsTest extends BaseWebDriverTest
     private static final String HPLC_ASSAY = "HPLC";
     private static final String PROVISIONAL_HPLC_ASSAY = "pHPLC";
     private static final String PROVISIONAL_HPLC_RUN = "2014_9_19_15_53_20";
-    private static final String HPLC_PIPELINE_PATH = TestFileUtils.getLabKeyRoot() + "/server/optionalModules/idri/test/sampledata/pHPLC";
+    private static final File HPLC_PIPELINE_PATH = TestFileUtils.getSampleData(PROVISIONAL_HPLC_ASSAY);
     private static final String HPLC_ASSAY_DESC = "IDRI HPLC Assay Data";
     private static final String PROVISIONAL_HPLC_ASSAY_DESC = "IDRI Provisional HPLC Assay Data";
 
@@ -433,7 +433,7 @@ public class FormulationsTest extends BaseWebDriverTest
         assayDesignerPage.clickFinish();
 
         // Set pipeline path
-        setPipelineRoot(HPLC_PIPELINE_PATH);
+        setPipelineRoot(HPLC_PIPELINE_PATH.getAbsolutePath());
     }
 
     @LogMethod
