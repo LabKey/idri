@@ -25,13 +25,13 @@ import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.Git;
 import org.labkey.test.components.domain.DomainFormPanel;
 import org.labkey.test.components.ext4.ComboBox;
+import org.labkey.test.pages.ImportDataPage;
 import org.labkey.test.pages.ReactAssayDesignerPage;
 import org.labkey.test.pages.list.BeginPage;
 import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
-import org.labkey.test.util.SampleSetHelper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -177,9 +177,10 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Entering compound information");
         clickAndWait(Locator.linkWithText(COMPOUNDS_NAME));
-
-        SampleSetHelper helper = new SampleSetHelper(this);
-        helper.bulkImport(COMPOUNDS_HEADER + COMPOUNDS_DATA_1 + COMPOUNDS_DATA_2 + COMPOUNDS_DATA_3 + COMPOUNDS_DATA_4);
+        clickButton("Import More Samples");
+        ImportDataPage importDataPage = new ImportDataPage(getDriver());
+        importDataPage.setText(COMPOUNDS_HEADER + COMPOUNDS_DATA_1 + COMPOUNDS_DATA_2 + COMPOUNDS_DATA_3 + COMPOUNDS_DATA_4);
+        importDataPage.submit();
     }
 
     @LogMethod
@@ -189,8 +190,10 @@ public class FormulationsTest extends BaseWebDriverTest
 
         log("Entering raw material information");
         clickAndWait(Locator.linkWithText(RAW_MATERIALS_NAME));
-        SampleSetHelper helper = new SampleSetHelper(this);
-        helper.bulkImport(RAWMATERIALS_HEADER + RAWMATERIALS_DATA_1 + RAWMATERIALS_DATA_2 + RAWMATERIALS_DATA_3 + RAWMATERIALS_DATA_4);
+        clickButton("Import More Samples");
+        ImportDataPage importDataPage = new ImportDataPage(getDriver());
+        importDataPage.setText(RAWMATERIALS_HEADER + RAWMATERIALS_DATA_1 + RAWMATERIALS_DATA_2 + RAWMATERIALS_DATA_3 + RAWMATERIALS_DATA_4);
+        importDataPage.submit();
     }
 
     @LogMethod
