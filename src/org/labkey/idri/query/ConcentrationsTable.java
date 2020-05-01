@@ -16,7 +16,6 @@
 package org.labkey.idri.query;
 
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.data.BaseColumnInfo;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DatabaseTableType;
 import org.labkey.api.data.TableInfo;
@@ -48,7 +47,7 @@ public class ConcentrationsTable extends FilteredTable<idriSchema>
         super(schema.getDbSchema().getTable(idriSchema.TABLE_CONCENTRATIONS), schema, cf);
 
         addColumn(wrapColumn("rowId", getRealTable().getColumn("rowId")));
-        BaseColumnInfo compoundCol = addColumn(wrapColumn("Compound", getRealTable().getColumn("Compound")));
+        var compoundCol = addColumn(wrapColumn("Compound", getRealTable().getColumn("Compound")));
         // TODO: Replace this LookupForeignKey with QueryForeignKey.from() (which will allow caching, etc.)
         compoundCol.setFk(new LookupForeignKey(cf, "rowid", null)
         {
@@ -58,7 +57,7 @@ public class ConcentrationsTable extends FilteredTable<idriSchema>
                 return new ExpSchema(_userSchema.getUser(), _userSchema.getContainer()).getTable("materials", getLookupContainerFilter());
             }
         });
-        BaseColumnInfo lotCol = addColumn(wrapColumn("Lot", getRealTable().getColumn("Lot")));
+        var lotCol = addColumn(wrapColumn("Lot", getRealTable().getColumn("Lot")));
         // TODO: Replace this LookupForeignKey with QueryForeignKey.from() (which will allow caching, etc.)
         lotCol.setFk(new LookupForeignKey(cf, "rowid", null)
         {
@@ -70,7 +69,7 @@ public class ConcentrationsTable extends FilteredTable<idriSchema>
         });
         addColumn(wrapColumn("Concentration", getRealTable().getColumn("Concentration")));
         addColumn(wrapColumn("Unit", getRealTable().getColumn("Unit")));
-        BaseColumnInfo matCol = addColumn(wrapColumn("Material", getRealTable().getColumn("Material")));
+        var matCol = addColumn(wrapColumn("Material", getRealTable().getColumn("Material")));
         // TODO: Replace this LookupForeignKey with QueryForeignKey.from() (which will allow caching, etc.)
         matCol.setFk(new LookupForeignKey(cf, "rowid", null)
         {
