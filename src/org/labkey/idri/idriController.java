@@ -181,9 +181,9 @@ public class idriController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Create Formulation");
+            root.addChild("Create Formulation");
         }
     }
 
@@ -287,9 +287,8 @@ public class idriController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return null;
         }
     }
 
@@ -379,6 +378,7 @@ public class idriController extends SpringActionController
     @RequiresPermission(ReadPermission.class)
     public class getHPLCPipelineContainerAction extends ReadOnlyApiAction
     {
+        @Override
         public ApiResponse execute(Object form, BindException errors)
         {
             ApiSimpleResponse resp = new ApiSimpleResponse();

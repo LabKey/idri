@@ -40,6 +40,7 @@ public class ConcentrationsQueryView extends QueryView
         setSettings(settings);
     }
 
+    @Override
     public DataView createDataView()
     {
         DataView view = super.createDataView();
