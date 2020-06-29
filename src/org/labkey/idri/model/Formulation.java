@@ -250,7 +250,7 @@ public class Formulation
     }
 
     /**
-     * Converts this Formulation into a Sample Set ready ExpMaterial.
+     * Converts this Formulation into a Sample Type ready ExpMaterial.
      * NOTE: This does not change state of anything! No material is added, purely for object retrieval.
      * @return
      */

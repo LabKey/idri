@@ -7,7 +7,7 @@
                 <updateUrl>/idri/createFormulation.view?RowId=${RowId}</updateUrl>
                 <tableUrl>/project/begin.view?pageId=idri.LOT_SUMMARY&amp;rowId=${RowId}</tableUrl>
 
-                <!-- deleteUrl is not currently supported for Sample Sets -->
+                <!-- deleteUrl is not currently supported for Sample Types -->
                 <!--<deleteUrl>/idri/deleteFormulation.view?materialName=${Name}</deleteUrl>-->
 
                 <buttonBarOptions includeStandardButtons="false">

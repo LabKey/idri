@@ -36,9 +36,9 @@ import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.PropertyDescriptor;
 import org.labkey.api.exp.PropertyType;
 import org.labkey.api.exp.api.ExpMaterial;
-import org.labkey.api.exp.api.ExpSampleSet;
+import org.labkey.api.exp.api.ExpSampleType;
 import org.labkey.api.exp.api.ExperimentService;
-import org.labkey.api.exp.api.SampleSetService;
+import org.labkey.api.exp.api.SampleTypeService;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
 import org.labkey.api.exp.property.Domain;
@@ -95,27 +95,27 @@ public class idriManager
 
     public static ExpMaterial getFormulationAsSample(Formulation formulation)
     {
-        String materialSrcLSID = SampleSetService.get().getSampleSetLsid(idriSchema.TABLE_FORMULATIONS, HttpView.getContextContainer()).toString();
+        String materialSrcLSID = SampleTypeService.get().getSampleTypeLsid(idriSchema.TABLE_FORMULATIONS, HttpView.getContextContainer()).toString();
 
         return ExperimentService.get().createExpMaterial(HttpView.getContextContainer(), materialSrcLSID, formulation.getBatch());
     }
 
     @Nullable
-    public static ExpSampleSet getCompoundsSampleSet(Container container)
+    public static ExpSampleType getCompoundsSampleType(Container container)
     {
-        return SampleSetService.get().getSampleSet(container, idriSchema.TABLE_COMPOUNDS);
+        return SampleTypeService.get().getSampleType(container, idriSchema.TABLE_COMPOUNDS);
     }
 
     @Nullable
-    public static ExpSampleSet getFormulationSampleSet(Container container)
+    public static ExpSampleType getFormulationSampleType(Container container)
     {
-        return SampleSetService.get().getSampleSet(container, idriSchema.TABLE_FORMULATIONS);
+        return SampleTypeService.get().getSampleType(container, idriSchema.TABLE_FORMULATIONS);
     }
 
     @Nullable
-    public static ExpSampleSet getRawMaterialsSampleSet(Container container)
+    public static ExpSampleType getRawMaterialsSampleType(Container container)
     {
-        return SampleSetService.get().getSampleSet(container, idriSchema.TABLE_RAW_MATERIALS);
+        return SampleTypeService.get().getSampleType(container, idriSchema.TABLE_RAW_MATERIALS);
     }
 
     @Nullable
@@ -133,7 +133,7 @@ public class idriManager
     {
         ViewContext ctx = HttpView.getRootContext();
         Container c = ctx.getContainer();
-        ExpMaterial formulationMaterial = getFormulationSampleSet(c).getSample(c, materialName);
+        ExpMaterial formulationMaterial = getFormulationSampleType(c).getSample(c, materialName);
 
         Map<String, Object> aggregate = new CaseInsensitiveHashMap<>();
         aggregate.put("Type", "aggregate");
@@ -207,10 +207,10 @@ public class idriManager
             }
         }
 
-        ExpSampleSet ss = getFormulationSampleSet(container);
-        if (ss != null && ss.canImportMoreSamples())
+        ExpSampleType st = getFormulationSampleType(container);
+        if (st != null && st.canImportMoreSamples())
         {
-            ExpMaterial exists = ss.getSample(container, formulation.getBatch());
+            ExpMaterial exists = st.getSample(container, formulation.getBatch());
 
             SamplesSchema sampleSchema = new SamplesSchema(user, container);
             TableInfo tableInfo = sampleSchema.getSchema("Samples").getTable(idriSchema.TABLE_FORMULATIONS);
@@ -326,18 +326,18 @@ public class idriManager
     }
 
     /**
-     * Retrieves a well-formed (not a Sample Set row as it is persisted) formulation from the database.
+     * Retrieves a well-formed (not a Sample Type row as it is persisted) formulation from the database.
      * Returns NULL if formulation is not found.
      */
     @Nullable
     public static Formulation getFormulation(String lot)
     {
         Formulation formulation = null;
-        ExpSampleSet ss = getFormulationSampleSet(HttpView.getContextContainer());
+        ExpSampleType st = getFormulationSampleType(HttpView.getContextContainer());
 
-        if (null != ss)
+        if (null != st)
         {
-            ExpMaterial sampleRow = ss.getSample(HttpView.getContextContainer(), lot);
+            ExpMaterial sampleRow = st.getSample(HttpView.getContextContainer(), lot);
             if (sampleRow != null)
             {
                 formulation = Formulation.fromSample(sampleRow, true);
@@ -432,11 +432,11 @@ public class idriManager
     public static List<Concentration> getConcentrations(Formulation f, Container c, User u, boolean isTopOnly)
     {
         ExperimentService service = ExperimentService.get();
-        ExpSampleSet sampleSet = getFormulationSampleSet(c);
+        ExpSampleType sampleType = getFormulationSampleType(c);
 
-        if (sampleSet != null)
+        if (sampleType != null)
         {
-            ExpMaterial m = sampleSet.getSample(c, f.getBatch());
+            ExpMaterial m = sampleType.getSample(c, f.getBatch());
 
             if (m != null)
             {
@@ -457,11 +457,11 @@ public class idriManager
     {
         ExperimentService service = ExperimentService.get();
         List<Concentration> concentrations = new ArrayList<>();
-        ExpMaterial m = getRawMaterialsSampleSet(c).getSample(c, material.getMaterialName());
+        ExpMaterial m = getRawMaterialsSampleType(c).getSample(c, material.getMaterialName());
 
         if (m == null)
         {
-            m = getFormulationSampleSet(c).getSample(c, material.getMaterialName());
+            m = getFormulationSampleType(c).getSample(c, material.getMaterialName());
             if (m == null)
                 throw new RuntimeException("The material received is not valid.");
 
@@ -480,8 +480,8 @@ public class idriManager
         else
         {
             // It is a Raw Material -- Return the Concentration with the Compound
-            String pcol = m.getSampleSet().getParentCol().getName();
-            assert pcol != null : idriSchema.TABLE_RAW_MATERIALS + " requires a parent column. Fix the Sample Set to proceed.";
+            String pcol = m.getSampleType().getParentCol().getName();
+            assert pcol != null : idriSchema.TABLE_RAW_MATERIALS + " requires a parent column. Fix the Sample Type to proceed.";
 
             // Lookup the Compound for this Raw Material
             ExpMaterial comp = getCompound(material.getMaterialName());
@@ -537,7 +537,7 @@ public class idriManager
     public static ExpMaterial getCompound(String RawMaterial)
     {
         Container container = HttpView.getRootContext().getContainer();
-        ExpSampleSet rawMaterialsSS = getRawMaterialsSampleSet(container);
+        ExpSampleType rawMaterialsSS = getRawMaterialsSampleType(container);
         ExpMaterial m = null;
 
         if (rawMaterialsSS != null)
@@ -548,12 +548,12 @@ public class idriManager
             if (m != null)
             {
                 String pcol = rawMaterialsSS.getParentCol().getName();
-                assert pcol != null : idriSchema.TABLE_RAW_MATERIALS + " requires a parent column. Fix the Sample Set to proceed.";
+                assert pcol != null : idriSchema.TABLE_RAW_MATERIALS + " requires a parent column. Fix the Sample Type to proceed.";
                 Map<PropertyDescriptor, Object> values = m.getPropertyValues();
                 for (PropertyDescriptor pd : values.keySet())
                 {
                     if (pd.getName().equals(pcol))
-                        return getCompoundsSampleSet(container).getSample(container, values.get(pd).toString());
+                        return getCompoundsSampleType(container).getSample(container, values.get(pd).toString());
                 }
             }
         }
@@ -631,19 +631,19 @@ public class idriManager
 
     /**
      * Initializes the Samples Sets used by Formulations. Does precautionary
-     * lookup to make sure sample sets don't already exist. If they do, does
+     * lookup to make sure sample types don't already exist. If they do, does
      * nothing.
      */
-    public static void initializeSampleSets(Container c, User user)
+    public static void initializeSampleTypes(Container c, User user)
     {
         try
         {
             List<GWTPropertyDescriptor> properties;
 
-            // Create the Compounds Sample Set
-            if (getCompoundsSampleSet(c) == null)
+            // Create the Compounds Sample Type
+            if (getCompoundsSampleType(c) == null)
             {
-                // Definition -- 'Compounds' Sample Set
+                // Definition -- 'Compounds' Sample Type
                 properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Compound Name", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Full Name", PropertyType.STRING.getTypeUri()));
@@ -651,11 +651,11 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Density", PropertyType.DOUBLE.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Molecular Weight", PropertyType.DOUBLE.getTypeUri()));
 
-                ExperimentService.get().createSampleSet(c, user, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, Collections.emptyList(), 0, -1, -1, -1, null, null);
+                SampleTypeService.get().createSampleType(c, user, idriSchema.TABLE_COMPOUNDS, "Formulation Compounds", properties, Collections.emptyList(), 0, -1, -1, -1, null, null);
             }
 
-            // Create the Raw Materials Sample Set
-            if (getRawMaterialsSampleSet(c) == null)
+            // Create the Raw Materials Sample Type
+            if (getRawMaterialsSampleType(c) == null)
             {
                 properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Identifier", PropertyType.STRING.getTypeUri()));
@@ -665,11 +665,11 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Catalogue ID", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Lot ID", PropertyType.STRING.getTypeUri()));
 
-                SampleSetService.get().createSampleSet(c, user, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties, Collections.emptyList(), 0, -1, -1, 1, null, null);
+                SampleTypeService.get().createSampleType(c, user, idriSchema.TABLE_RAW_MATERIALS, "Raw Materials used in Formulations", properties, Collections.emptyList(), 0, -1, -1, 1, null, null);
             }
 
-            // Create the Formulations Sample Set
-            if (getFormulationSampleSet(c) == null)
+            // Create the Formulations Sample Type
+            if (getFormulationSampleType(c) == null)
             {
                 properties = new ArrayList<>();
                 properties.add(new GWTPropertyDescriptor("Batch", PropertyType.STRING.getTypeUri()));
@@ -683,7 +683,7 @@ public class idriManager
                 properties.add(new GWTPropertyDescriptor("Comments", PropertyType.STRING.getTypeUri()));
                 properties.add(new GWTPropertyDescriptor("Raw Materials", PropertyType.STRING.getTypeUri()));
 
-                SampleSetService.get().createSampleSet(c, user, idriSchema.TABLE_FORMULATIONS, null, properties, Collections.emptyList(), 0, -1, -1, 9, null, null);
+                SampleTypeService.get().createSampleType(c, user, idriSchema.TABLE_FORMULATIONS, null, properties, Collections.emptyList(), 0, -1, -1, 9, null, null);
             }
         }
         catch (SQLException e)
@@ -894,7 +894,7 @@ public class idriManager
             }
 
             // Setup lookup for compound material type
-            ExpSampleSet compounds = getCompoundsSampleSet(c);
+            ExpSampleType compounds = getCompoundsSampleType(c);
             if (null != compounds)
             {
                 Domain sampleDomain = compounds.getDomain();

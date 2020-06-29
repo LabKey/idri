@@ -45,7 +45,7 @@ public class idriFormulationsFolderType extends MultiPortalFolderType
                 "Manage formulations data, modeling, and assays. One per site.",
                 Arrays.asList(
                         Portal.getPortalPart("Formulation Search").createWebPart(),
-                        Portal.getPortalPart("Sample Sets").createWebPart(),
+                        Portal.getPortalPart("Sample Types").createWebPart(),
                         Portal.getPortalPart("Assay List").createWebPart(),
                         Portal.getPortalPart("Lists").createWebPart()
                 ),
@@ -65,7 +65,7 @@ public class idriFormulationsFolderType extends MultiPortalFolderType
     {
         super.configureContainer(c, user);
 
-        idriManager.initializeSampleSets(c, user);
+        idriManager.initializeSampleTypes(c, user);
         idriManager.initializeLists(c, user);
     }
 

@@ -61,7 +61,7 @@
     <% if (c.hasPermission(getUser(), InsertPermission.class)) { %>
     <%=link("Edit " + formulation.getBatch(), new ActionURL(idriController.CreateFormulationAction.class, c).addParameter("RowId", formulation.getRowID()))%>
     <% } %>
-    <%=link("Browse Formulations", urlProvider(ExperimentUrls.class).getShowSampleSetURL(idriManager.getFormulationSampleSet(getContainer())))%>
+    <%=link("Browse Formulations", urlProvider(ExperimentUrls.class).getShowSampleTypeURL(idriManager.getFormulationSampleType(getContainer())))%>
     <%=link("Sample View", urlProvider(ExperimentUrls.class).getMaterialDetailsURL(formulationMaterial))%>
     <table>
         <tr>

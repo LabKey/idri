@@ -115,7 +115,7 @@ public class FormulationsTest extends BaseWebDriverTest
         // Create 'Stability' Group
         _permissionsHelper.createPermissionsGroup(STABILITY_GROUP, getCurrentUser());
 
-        // Sample Sets should already exist
+        // Sample Types should already exist
         assertElementPresent(Locator.linkWithText(COMPOUNDS_NAME));
         assertElementPresent(Locator.linkWithText(RAW_MATERIALS_NAME));
         assertElementPresent(Locator.linkWithText(FORMULATIONS_NAME));
@@ -204,7 +204,7 @@ public class FormulationsTest extends BaseWebDriverTest
         goToProjectHome();
 
         log("Inserting a Formulation");
-        clickAndWait(Locator.linkWithText("Sample Sets"));
+        clickAndWait(Locator.linkWithText("Sample Types"));
         clickAndWait(Locator.linkWithText(FORMULATIONS_NAME));
         new DataRegionTable("Material",this).clickInsertNewRow();
         _ext4Helper.waitForMaskToDisappear();
