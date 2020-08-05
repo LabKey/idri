@@ -15,7 +15,8 @@
  */
 package org.labkey.idri;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
@@ -76,7 +77,7 @@ import java.util.Set;
 public class idriManager
 {
     private static final idriManager _instance = new idriManager();
-    static Logger _log = Logger.getLogger(idriManager.class);
+    static Logger _log = LogManager.getLogger(idriManager.class);
 
     private idriManager()
     {

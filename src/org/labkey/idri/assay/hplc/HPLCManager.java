@@ -15,7 +15,8 @@
  */
 package org.labkey.idri.assay.hplc;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Assert;
@@ -51,7 +52,7 @@ import java.util.Map;
  */
 public class HPLCManager
 {
-    static Logger _log = Logger.getLogger(HPLCManager.class);
+    static Logger _log = LogManager.getLogger(HPLCManager.class);
 
     private static final HPLCManager _instance = new HPLCManager();
 
