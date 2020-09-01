@@ -35,7 +35,7 @@
 <%
     String searchID = "idri-search-" + UniqueID.getRequestScopedUID(HttpView.currentRequest());
 %>
-<form method="GET" action="../formulations" onsubmit="getRunIdIfUnique(<%=PageFlowUtil.jsString(searchID)%>); return false;">
+<form method="GET" action="../formulations" onsubmit="getRunIdIfUnique(<%=q(searchID)%>); return false;">
     <table cols="3">
         <tr>
             <td>Search (e.g. QF325)</td>
@@ -43,7 +43,7 @@
                 <input type="text" id="<%=text(searchID)%>" style="font-size: 18px; font-weight:lighter;" name="nameContains" value="">
             </td>
             <td colspan="1">
-                <%= button("Search").href("javascript:void(0);").onClick("getRunIdIfUnique(" + PageFlowUtil.jsString(searchID) + "); return false;") %>
+                <%= button("Search").href("javascript:void(0);").onClick("getRunIdIfUnique(" + q(searchID) + "); return false;") %>
             </td>
         </tr>
     </table>

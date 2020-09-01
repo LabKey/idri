@@ -37,7 +37,7 @@
         Ext4.QuickTips.init();
 
         Ext4.create('LABKEY.idri.TaskListPanel', {
-            renderTo: <%=PageFlowUtil.jsString(renderId)%>
+            renderTo: <%=q(renderId)%>
         });
     });
 </script>

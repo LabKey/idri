@@ -210,7 +210,7 @@
                             el.mask('Loading ' + cb.getValue());
                         }
 
-                        var assayId = <%=PageFlowUtil.jsString(formulation.getBatch())%>;
+                        var assayId = <%=q(formulation.getBatch())%>;
                         lookupAssayId(assayId, cb.getValue());
                     }
                 }

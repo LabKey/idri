@@ -65,7 +65,7 @@
     <%=link("Sample View", urlProvider(ExperimentUrls.class).getMaterialDetailsURL(formulationMaterial))%>
     <table>
         <tr>
-            <td class="labkey-form-label">Date of Manufacture</td><td><%=formulation.getDm()%></td>
+            <td class="labkey-form-label">Date of Manufacture</td><td><%=formatDateTime(formulation.getDm())%></td>
         </tr>
         <tr>
             <td class="labkey-form-label">Type</td><td><%=h(formulation.getType())%></td>

@@ -54,8 +54,8 @@
 </div>
 <script type="text/javascript">
     Ext4.onReady(function() {
-        buildPSReports('5C', <%=PageFlowUtil.jsString(formulation.getBatch())%>, 'aps', 'aps-report');
-        buildPSReports('5C', <%=PageFlowUtil.jsString(formulation.getBatch())%>, 'nano', 'nano-report');
+        buildPSReports('5C', <%=q(formulation.getBatch())%>, 'aps', 'aps-report');
+        buildPSReports('5C', <%=q(formulation.getBatch())%>, 'nano', 'nano-report');
     });
 </script>
 <%

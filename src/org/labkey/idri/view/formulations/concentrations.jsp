@@ -91,7 +91,7 @@
             });
         };
 
-        var assayId = <%=PageFlowUtil.jsString(formulation.getBatch())%>;
+        var assayId = <%=q(formulation.getBatch())%>;
 
         new LABKEY.QueryWebPart({
             renderTo   : 'concentrationDiv',

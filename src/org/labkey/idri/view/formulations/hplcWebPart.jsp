@@ -84,7 +84,7 @@
         // Provisional HPLC
         //
 
-        var assayId = <%=PageFlowUtil.jsString(formulation.getBatch())%>;
+        var assayId = <%=q(formulation.getBatch())%>;
 
         function viewSpectrum(runId) {
             HPLCService.getRun("assay.provisionalHPLC.pHPLC", runId, function(context) {
